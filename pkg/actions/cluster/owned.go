@@ -126,20 +126,8 @@ func (c *OwnedCluster) Delete(ctx context.Context, _, podEvictionWaitPeriod time
 	newTasksToDeleteAddonIAM := addon.NewRemover(c.stackManager).DeleteAddonIAMTasks
 
 	newTasksToDeleteCapability := func() (*tasks.TaskTree, error) {
-		capabilityGetter := &capability.Getter{
-			ClusterName: c.cfg.Metadata.Name,
-			EKSAPI:      c.ctl.AWSProvider.EKS(),
-		}
-
-		// Get all capabilities
-		capabilities, err := capabilityGetter.Get(ctx, "")
-
-		if err != nil {
-			return &tasks.TaskTree{}, err
-		}
-
 		capabilityRemover := capability.NewRemover(c.cfg.Metadata.Name, c.stackManager)
-		return capabilityRemover.DeleteTasks(ctx, capabilities)
+		return capabilityRemover.DeleteTasks(ctx, nil) // Delete all capabilities.
 	}
 
 	newTasksToDeletePodIdentityRoles := func() (*tasks.TaskTree, error) {
