@@ -2,8 +2,9 @@ package capability_test
 
 import (
 	"context"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"testing"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
 
 	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/stretchr/testify/mock"
