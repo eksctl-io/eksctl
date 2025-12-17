@@ -30,10 +30,10 @@ metadata:
 
 nodeGroups:
   - name: ng1-public
-    instanceType: m5.xlarge
+    instanceType: t3.large
     desiredCapacity: 4
   - name: ng2-private
-    instanceType: m5.large
+    instanceType: t3.medium
     desiredCapacity: 10
     privateNetworking: true
 ```
@@ -56,18 +56,18 @@ metadata:
 
 nodeGroups:
   - name: ng1-public
-    instanceType: m5.xlarge
+    instanceType: t3.large
     desiredCapacity: 4
   - name: ng2-private
-    instanceType: m5.large
+    instanceType: t3.medium
     desiredCapacity: 10
     privateNetworking: true
   - name: ng3-dev
-    instanceType: m4.large
+    instanceType: t3.large
     desiredCapacity: 2
     privateNetworking: true
   - name: ng2-test
-    instanceType: m5.large
+    instanceType: t3.medium
     desiredCapacity: 4
     privateNetworking: true
 ```
