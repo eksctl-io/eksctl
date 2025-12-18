@@ -70,20 +70,34 @@ func (r *Remover) DeleteTasks(ctx context.Context, capabilities []Summary) (*tas
 		return nil, fmt.Errorf("failed to fetch IAM role stacks for capabilities: %w", err)
 	}
 
+	capabilityNames := make(map[string]bool)
+	if len(capabilities) == 0 { // Passed in on cluster deletion case.
+		for _, capStack := range capabilityStacks {
+			capabilityNames[manager.GetCapabilityNameFromStack(capStack)] = true
+		}
+		for _, iamStack := range iamStacks {
+			capabilityNames[manager.GetCapabilityNameFromIAMStack(iamStack)] = true
+		}
+	} else {
+		for _, cap := range capabilities {
+			capabilityNames[cap.Name] = true
+		}
+	}
+
 	// Create parallel tasks for capability deletion and waiting
 	capabilityTasks := &tasks.TaskTree{
 		Parallel: true,
 	}
 
-	for _, cap := range capabilities {
+	for capName := range capabilityNames {
 		capabilityTasks.Append(&tasks.GenericTask{
-			Description: fmt.Sprintf("delete and wait for capability %s", cap.Name),
+			Description: fmt.Sprintf("delete and wait for capability %s", capName),
 			Doer: func() error {
-				if err := r.deleteCapabilityStack(ctx, cap.Name, capabilityStacks); err != nil {
+				if err := r.deleteCapabilityStack(ctx, capName, capabilityStacks); err != nil {
 					return err
 				}
 
-				return r.deleteCapabilityIAMRoleStack(ctx, cap.Name, iamStacks)
+				return r.deleteCapabilityIAMRoleStack(ctx, capName, iamStacks)
 			},
 		})
 	}
