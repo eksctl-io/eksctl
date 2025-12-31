@@ -344,6 +344,7 @@ func NewIAMRoleResourceSetForServiceAccount(spec *api.ClusterIAMServiceAccount, 
 		wellKnownPolicies:   spec.WellKnownPolicies,
 		roleName:            spec.RoleName,
 		permissionsBoundary: spec.PermissionsBoundary,
+		subjectPattern:      spec.SubjectPattern,
 		description: fmt.Sprintf(
 			"IAM role for serviceaccount %q %s",
 			spec.NameString(),
@@ -427,6 +428,7 @@ type IAMRoleResourceSet struct {
 	namespace           string
 	permissionsBoundary string
 	description         string
+	subjectPattern      string
 }
 
 // NewIAMRoleResourceSetWithAttachPolicyARNs builds IAM Role stack from the give spec
@@ -525,6 +527,9 @@ func (rs *IAMRoleResourceSet) makeAssumeRolePolicyDocument() cft.MapOfInterfaces
 	}
 	if rs.serviceAccount != "" && rs.namespace != "" {
 		logger.Debug("service account location provided: %s/%s, adding sub condition", api.AWSNodeMeta.Namespace, api.AWSNodeMeta.Name)
+		if rs.subjectPattern != "" {
+			return rs.oidc.MakeAssumeRolePolicyDocumentWithServiceAccountConditionsAllowingWildcard(rs.namespace, rs.subjectPattern)
+		}
 		return rs.oidc.MakeAssumeRolePolicyDocumentWithServiceAccountConditions(rs.namespace, rs.serviceAccount)
 	}
 	return rs.oidc.MakeAssumeRolePolicyDocument()
