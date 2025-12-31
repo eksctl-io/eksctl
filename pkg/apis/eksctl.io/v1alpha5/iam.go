@@ -129,7 +129,7 @@ type ClusterIAMServiceAccount struct {
 	// instead of the service account name, and StringLike is used instead of StringEquals
 	// to allow wildcard matching. This only works when using command line flags (not with config files).
 	// +optional
-	SubjectPattern string `json:"-"`
+	SubjectPattern string `json:"subjectPattern,omitempty"`
 }
 
 // ClusterIAMServiceAccountStatus holds status of the IAM service account
