@@ -133,8 +133,7 @@ This creates an IAM trust policy condition like:
 ???+ warning "Security Considerations"
     Use wildcard patterns carefully. A broad pattern like `*` would allow any service account in the namespace to assume the IAM role. Always use the most restrictive pattern possible for your use case.
 
-???+ note
-    The `--subject-pattern` flag is only available when using command-line flags. It cannot be used with `--config-file`.
+The Subject Pattern property can be defined in the configuration file.
 
 ### Usage with config files
 
@@ -185,6 +184,7 @@ iam:
     tags:
       Owner: "John Doe"
       Team: "Some Team"
+    subjectPattern: "app-*"
   - metadata:
       name: cache-access
       namespace: backend-apps
