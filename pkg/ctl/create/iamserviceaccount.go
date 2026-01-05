@@ -57,7 +57,7 @@ func createIAMServiceAccountCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *
 
 		fs.BoolVar(&overrideExistingServiceAccounts, "override-existing-serviceaccounts", false, "create IAM roles for existing serviceaccounts and update the serviceaccount")
 
-		fs.StringVar(&serviceAccount.SubjectPattern, "subject-pattern", "", "subject pattern to use in the trust policy (supports wildcards like '*' with StringLike condition; only works without --config-file)")
+		fs.StringVar(&serviceAccount.SubjectPattern, "subject-pattern", "", "subject pattern to use in the trust policy (supports wildcards like '*' with StringLike condition)")
 
 		cmdutils.AddIAMServiceAccountFilterFlags(fs, &cmd.Include, &cmd.Exclude)
 		cmdutils.AddApproveFlag(fs, cmd)
