@@ -649,6 +649,59 @@ var _ = Describe("cmdutils configfile", func() {
 		})
 	})
 
+	Describe("NewCreateIAMServiceAccountLoader", func() {
+		When("subject-pattern flag is used with config file", func() {
+			It("should return an error", func() {
+				cfg := api.NewClusterConfig()
+				cobraCmd := newCmd()
+				cobraCmd.Flags().String("subject-pattern", "", "")
+				cobraCmd.Flags().String("cluster", "", "")
+				Expect(cobraCmd.ParseFlags([]string{"--subject-pattern", "app-*"})).To(Succeed())
+
+				cmd := &Cmd{
+					ClusterConfig:     cfg,
+					CobraCommand:      cobraCmd,
+					ClusterConfigFile: examplesDir + "01-simple-cluster.yaml",
+					ProviderConfig:    api.ProviderConfig{},
+				}
+
+				err := NewCreateIAMServiceAccountLoader(cmd, filter.NewIAMServiceAccountFilter()).Load()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("--subject-pattern"))
+				Expect(err.Error()).To(ContainSubstring("cannot use --subject-pattern when --config-file/-f is set"))
+			})
+		})
+
+		When("subject-pattern flag is used without config file", func() {
+			It("should succeed", func() {
+				cfg := api.NewClusterConfig()
+				cfg.Metadata.Name = "test-cluster"
+				serviceAccount := &api.ClusterIAMServiceAccount{
+					ClusterIAMMeta: api.ClusterIAMMeta{
+						Name:      "test-sa",
+						Namespace: "default",
+					},
+					AttachPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"},
+					SubjectPattern:   "app-*",
+				}
+				cfg.IAM.ServiceAccounts = []*api.ClusterIAMServiceAccount{serviceAccount}
+
+				cobraCmd := newCmd()
+				cobraCmd.Flags().String("cluster", "", "")
+				cobraCmd.Flags().String("subject-pattern", "", "")
+
+				cmd := &Cmd{
+					ClusterConfig:  cfg,
+					CobraCommand:   cobraCmd,
+					ProviderConfig: api.ProviderConfig{},
+				}
+
+				err := NewCreateIAMServiceAccountLoader(cmd, filter.NewIAMServiceAccountFilter()).Load()
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+	})
+
 	Context("makeManagedNodegroup with node repair config", func() {
 		var (
 			ng      *api.NodeGroup

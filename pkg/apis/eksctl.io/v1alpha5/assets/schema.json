@@ -975,6 +975,11 @@
         "status": {
           "$ref": "#/definitions/ClusterIAMServiceAccountStatus"
         },
+        "subjectPattern": {
+          "type": "string",
+          "description": "Subject pattern to use in the trust policy condition. When set, this pattern is used instead of the service account name, and StringLike is used instead of StringEquals to allow wildcard matching.",
+          "x-intellij-html-description": "Subject pattern to use in the trust policy condition. When set, this pattern is used instead of the service account name, and StringLike is used instead of StringEquals to allow wildcard matching."
+        },
         "tags": {
           "additionalProperties": {
             "type": "string"
@@ -998,7 +1003,8 @@
         "status",
         "roleName",
         "roleOnly",
-        "tags"
+        "tags",
+        "subjectPattern"
       ],
       "additionalProperties": false,
       "description": "holds an IAM service account metadata and configuration",

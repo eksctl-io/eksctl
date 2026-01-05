@@ -254,6 +254,42 @@ var _ = Describe("template builder for IAM", func() {
 			Expect(t).To(HaveOutputWithValue(outputs.IAMServiceAccountRoleName, `{ "Fn::GetAtt": "Role1.Arn" }`))
 		})
 
+		It("can construct an iamserviceaccount addon template with subject pattern using wildcards", func() {
+			serviceAccount := &api.ClusterIAMServiceAccount{}
+
+			serviceAccount.Name = "sa-1"
+			serviceAccount.SubjectPattern = "app-*"
+
+			serviceAccount.AttachPolicyARNs = []string{"arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"}
+
+			appendServiceAccountToClusterConfig(cfg, serviceAccount)
+
+			rs := builder.NewIAMRoleResourceSetForServiceAccount(serviceAccount, oidc)
+
+			templateBody := []byte{}
+
+			Expect(rs).To(RenderWithoutErrors(&templateBody))
+
+			t := cft.NewTemplate()
+
+			Expect(t).To(LoadBytesWithoutErrors(templateBody))
+
+			Expect(t.Description).To(Equal("IAM role for serviceaccount \"default/sa-1\" [created and managed by eksctl]"))
+
+			Expect(t.Resources).To(HaveLen(1))
+			Expect(t.Outputs).To(HaveLen(1))
+
+			Expect(t).To(HaveResource(outputs.IAMServiceAccountRoleName, "AWS::IAM::Role"))
+
+			// Verify that the assume role policy uses StringLike for subject pattern
+			Expect(t).To(HaveResourceWithPropertyValue(outputs.IAMServiceAccountRoleName, "AssumeRolePolicyDocument", expectedServiceAccountAssumeRolePolicyDocumentWithWildcard))
+			Expect(t).To(HaveResourceWithPropertyValue(outputs.IAMServiceAccountRoleName, "ManagedPolicyArns", `[
+			"arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+		]`))
+
+			Expect(t).To(HaveOutputWithValue(outputs.IAMServiceAccountRoleName, `{ "Fn::GetAtt": "Role1.Arn" }`))
+		})
+
 		It("can construct an iamserviceaccount addon template with all the wellKnownPolicies", func() {
 			serviceAccount := &api.ClusterIAMServiceAccount{}
 
@@ -439,6 +475,29 @@ const expectedServiceAccountAssumeRolePolicyDocument = `{
 		  "StringEquals": {
 			"oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E:aud": "sts.amazonaws.com",
 			"oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E:sub": "system:serviceaccount:default:sa-1"
+		  }
+		},
+		"Effect": "Allow",
+		"Principal": {
+		  "Federated": "arn:aws:iam::456123987123:oidc-provider/oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E"
+		}
+	  }
+	],
+	"Version": "2012-10-17"
+}`
+
+const expectedServiceAccountAssumeRolePolicyDocumentWithWildcard = `{
+	"Statement": [
+	  {
+		"Action": [
+		  "sts:AssumeRoleWithWebIdentity"
+		],
+		"Condition": {
+		  "StringEquals": {
+			"oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E:aud": "sts.amazonaws.com"
+		  },
+		  "StringLike": {
+			"oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E:sub": "system:serviceaccount:default:app-*"
 		  }
 		},
 		"Effect": "Allow",
