@@ -224,7 +224,7 @@ func (n *NvidiaDevicePlugin) SetTolerations(spec *corev1.PodTemplateSpec) error 
 	taints := make(map[string]api.NodeGroupTaint)
 	for _, ng := range n.spec.NodeGroups {
 		if api.HasInstanceType(ng, instance.IsNvidiaInstanceType) &&
-			ng.GetAMIFamily() == api.NodeImageFamilyAmazonLinux2 {
+			(ng.GetAMIFamily() == api.NodeImageFamilyAmazonLinux2 || ng.GetAMIFamily() == api.NodeImageFamilyAmazonLinux2023) {
 			for _, taint := range ng.Taints {
 				if _, ok := taints[taint.Key]; !ok {
 					taints[taint.Key] = taint
@@ -234,7 +234,7 @@ func (n *NvidiaDevicePlugin) SetTolerations(spec *corev1.PodTemplateSpec) error 
 	}
 	for _, ng := range n.spec.ManagedNodeGroups {
 		if api.HasInstanceTypeManaged(ng, instance.IsNvidiaInstanceType) &&
-			ng.GetAMIFamily() == api.NodeImageFamilyAmazonLinux2 {
+			(ng.GetAMIFamily() == api.NodeImageFamilyAmazonLinux2 || ng.GetAMIFamily() == api.NodeImageFamilyAmazonLinux2023) {
 			for _, taint := range ng.Taints {
 				if _, ok := taints[taint.Key]; !ok {
 					taints[taint.Key] = taint
