@@ -695,7 +695,7 @@ var _ = Describe("Update", func() {
 
 		addonManager, err := addon.New(&api.ClusterConfig{
 			Metadata: &api.ClusterMeta{
-				Version: api.Version1_32,
+				Version: api.DefaultVersion,
 				Name:    clusterName,
 			},
 			AddonsConfig: e.addonsConfig,
