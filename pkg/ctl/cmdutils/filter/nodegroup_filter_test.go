@@ -3,6 +3,7 @@ package filter
 import (
 	"bytes"
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
@@ -341,14 +342,14 @@ func addGroupB(cfg *api.ClusterConfig) {
 	ng.SSH = nil
 }
 
-const expected = `
+var expected = fmt.Sprintf(`
   {
 		"kind": "ClusterConfig",
 		"apiVersion": "eksctl.io/v1alpha5",
 		"metadata": {
 		  "name": "test-3x3-ngs",
 		  "region": "eu-central-1",
-		  "version": "1.32"
+		  "version": "%s"
 		},
 		"upgradePolicy": {},
 		"kubernetesNetworkConfig": {
@@ -656,7 +657,7 @@ const expected = `
 		  }
 		]
   }
-`
+`, api.DefaultVersion)
 
 type mockStackLister struct {
 	nodesResult []manager.NodeGroupStack
