@@ -28,7 +28,7 @@ func TestBuildNetworkInterfaces(t *testing.T) {
 	}{
 		{
 			name:          "non-EFA nodegroup",
-			instanceTypes: []string{"m5.large"},
+			instanceTypes: []string{"t3.medium"},
 			efaEnabled:    false,
 			securityGroups: []*gfnt.Value{
 				gfnt.NewString("sg-12345"),
@@ -106,7 +106,7 @@ func TestBuildNetworkInterfaces(t *testing.T) {
 		},
 		{
 			name:          "EFA nodegroup with non-EFA instance type",
-			instanceTypes: []string{"m5.large"},
+			instanceTypes: []string{"t3.medium"},
 			efaEnabled:    true,
 			securityGroups: []*gfnt.Value{
 				gfnt.NewString("sg-12345"),
@@ -120,7 +120,7 @@ func TestBuildNetworkInterfaces(t *testing.T) {
 					},
 				},
 			},
-			expectedError: "instance type m5.large does not support EFA",
+			expectedError: "instance type t3.medium does not support EFA",
 		},
 		{
 			name:          "EFA nodegroup with default security groups (1.33+ scenario)",
