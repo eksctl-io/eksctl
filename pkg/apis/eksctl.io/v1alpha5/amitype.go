@@ -56,6 +56,14 @@ func GetAMIType(amiFamily, instanceType string, strict bool) ekstypes.AMITypes {
 			X86x64:    ekstypes.AMITypesWindowsCore2022X8664,
 			X86Nvidia: ekstypes.AMITypesWindowsCore2022X8664,
 		},
+		NodeImageFamilyWindowsServer2025FullContainer: {
+			X86x64:    ekstypes.AMITypes("WINDOWS_FULL_2025_x86_64"),
+			X86Nvidia: ekstypes.AMITypes("WINDOWS_FULL_2025_x86_64"),
+		},
+		NodeImageFamilyWindowsServer2025CoreContainer: {
+			X86x64:    ekstypes.AMITypes("WINDOWS_CORE_2025_x86_64"),
+			X86Nvidia: ekstypes.AMITypes("WINDOWS_CORE_2025_x86_64"),
+		},
 	}
 
 	amiType, ok := amiTypeMapping[amiFamily]

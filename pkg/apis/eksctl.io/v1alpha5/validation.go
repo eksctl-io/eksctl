@@ -1674,7 +1674,9 @@ func IsWindowsImage(imageFamily string) bool {
 	case NodeImageFamilyWindowsServer2019CoreContainer,
 		NodeImageFamilyWindowsServer2019FullContainer,
 		NodeImageFamilyWindowsServer2022CoreContainer,
-		NodeImageFamilyWindowsServer2022FullContainer:
+		NodeImageFamilyWindowsServer2022FullContainer,
+		NodeImageFamilyWindowsServer2025CoreContainer,
+		NodeImageFamilyWindowsServer2025FullContainer:
 		return true
 
 	default:

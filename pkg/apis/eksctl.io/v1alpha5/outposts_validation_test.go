@@ -217,6 +217,8 @@ var _ = Describe("Outposts validation", func() {
 		Entry("Windows2019Full", api.NodeImageFamilyWindowsServer2019FullContainer, true),
 		Entry("Windows2022Core", api.NodeImageFamilyWindowsServer2022CoreContainer, true),
 		Entry("Windows2022Full", api.NodeImageFamilyWindowsServer2022FullContainer, true),
+		Entry("Windows2025Core", api.NodeImageFamilyWindowsServer2025CoreContainer, true),
+		Entry("Windows2025Full", api.NodeImageFamilyWindowsServer2025FullContainer, true),
 	)
 
 	type nodeGroupEntry struct {
