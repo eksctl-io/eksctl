@@ -22,12 +22,18 @@ type amiTypeEntry struct {
 	nodeGroup *api.ManagedNodeGroup
 
 	expectedAMIType string
+	clusterVersion  string
 }
 
 var _ = DescribeTable("Managed Nodegroup AMI type", func(e amiTypeEntry) {
 	clusterConfig := api.NewClusterConfig()
 	clusterConfig.Status = &api.ClusterStatus{
 		Endpoint: "https://test.com",
+	}
+	if e.clusterVersion != "" {
+		clusterConfig.Metadata.Version = e.clusterVersion
+	} else {
+		clusterConfig.Metadata.Version = api.DefaultVersion
 	}
 	err := api.SetManagedNodeGroupDefaults(e.nodeGroup, clusterConfig.Metadata, false)
 	Expect(err).NotTo(HaveOccurred())
@@ -76,6 +82,7 @@ var _ = DescribeTable("Managed Nodegroup AMI type", func(e amiTypeEntry) {
 			},
 		},
 		expectedAMIType: "AL2_x86_64",
+		clusterVersion:  api.Version1_32,
 	}),
 
 	Entry("default Nvidia GPU instance type", amiTypeEntry{
@@ -107,6 +114,7 @@ var _ = DescribeTable("Managed Nodegroup AMI type", func(e amiTypeEntry) {
 			},
 		},
 		expectedAMIType: "AL2_x86_64_GPU",
+		clusterVersion:  api.Version1_32,
 	}),
 
 	Entry("default ARM instance type", amiTypeEntry{
@@ -128,6 +136,7 @@ var _ = DescribeTable("Managed Nodegroup AMI type", func(e amiTypeEntry) {
 			},
 		},
 		expectedAMIType: "AL2_ARM_64",
+		clusterVersion:  api.Version1_32,
 	}),
 
 	Entry("Bottlerocket AMI type", amiTypeEntry{

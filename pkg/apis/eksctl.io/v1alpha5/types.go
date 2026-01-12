@@ -48,13 +48,14 @@ const (
 	Version1_31                  = "1.31"
 	Version1_32                  = "1.32"
 	Version1_33                  = "1.33"
+	Version1_34                  = "1.34"
 	DockershimDeprecationVersion = Version1_24
 	AmazonLinux2EOLVersion       = Version1_33
 	// EFABuiltInSupportVersion defines the minimum Kubernetes version that supports built-in EFA
 	EFABuiltInSupportVersion = Version1_33
 	//TODO: Remove this and replace with output from DescribeClusterVersions endpoint
 	// DefaultVersion (default)
-	DefaultVersion = Version1_32
+	DefaultVersion = Version1_34
 )
 
 const (
