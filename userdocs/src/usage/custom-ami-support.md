@@ -68,6 +68,8 @@ The `--node-ami-family` can take following keywords:
 | WindowsServer2019CoreContainer | Indicates that the EKS AMI image based on Windows Server 2019 Core Container should be used.                                |
 | WindowsServer2022FullContainer | Indicates that the EKS AMI image based on Windows Server 2022 Full Container should be used.                                |
 | WindowsServer2022CoreContainer | Indicates that the EKS AMI image based on Windows Server 2022 Core Container should be used.                                |
+| WindowsServer2025FullContainer | Indicates that the EKS AMI image based on Windows Server 2025 Full Container should be used.                                |
+| WindowsServer2025CoreContainer | Indicates that the EKS AMI image based on Windows Server 2025 Core Container should be used.                                |
 
 CLI flag example:
 ```sh
