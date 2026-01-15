@@ -71,6 +71,17 @@ func MakeSSMParameterName(version, instanceType, imageFamily string) (string, er
 			return "", fmt.Errorf("Windows Server 2022 %s requires EKS version %s and above", windowsAmiType(imageFamily), minVersion)
 		}
 		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-2022-English-%s-EKS_Optimized-%s/%s", windowsAmiType(imageFamily), version, fieldName), nil
+	case api.NodeImageFamilyWindowsServer2025CoreContainer,
+		api.NodeImageFamilyWindowsServer2025FullContainer:
+		const minVersion = api.Version1_35
+		supportsWindows2025, err := utils.IsMinVersion(minVersion, version)
+		if err != nil {
+			return "", err
+		}
+		if !supportsWindows2025 {
+			return "", fmt.Errorf("Windows Server 2025 %s requires EKS version %s and above", windowsAmiType(imageFamily), minVersion)
+		}
+		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-2025-English-%s-EKS_Optimized-%s/%s", windowsAmiType(imageFamily), version, fieldName), nil
 	case api.NodeImageFamilyBottlerocket:
 		return fmt.Sprintf("/aws/service/bottlerocket/aws-k8s-%s/%s/latest/%s", imageType(imageFamily, instanceType, version), instanceEC2ArchName(instanceType), fieldName), nil
 	case api.NodeImageFamilyUbuntu2004,
