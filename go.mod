@@ -50,7 +50,7 @@ require (
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.12.0
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/ginkgo/v2 v2.26.0
-	github.com/onsi/gomega v1.38.2
+	github.com/onsi/gomega v1.38.3
 	github.com/orcaman/concurrent-map v1.0.0
 	github.com/otiai10/copy v1.14.1
 	github.com/pelletier/go-toml v1.9.5
