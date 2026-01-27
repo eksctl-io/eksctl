@@ -38,7 +38,7 @@ managedNodeGroups:
       imageBuilder: false
       xRay: false
   instanceSelector: {}
-  instanceType: m5.large
+  instanceType: t3.medium
   labels:
     alpha.eksctl.io/cluster-name: development
     alpha.eksctl.io/nodegroup-name: ng-4aba8a47
