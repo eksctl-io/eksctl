@@ -77,5 +77,9 @@ var _ = Describe("create pod identity association", func() {
 			args:        []string{"--disable-session-tags", "--config-file", configFile},
 			expectedErr: "cannot use --disable-session-tags when --config-file/-f is set",
 		}),
+		Entry("setting --policy without --disable-session-tags", createPodIdentityAssociationEntry{
+			args:        append(defaultArgs, "--role-arn", "arn:aws:iam::111122223333:role/test-role", "--policy", `{"Version":"2012-10-17","Statement":[]}`),
+			expectedErr: "--disable-session-tags must be set to true when using --policy",
+		}),
 	)
 })

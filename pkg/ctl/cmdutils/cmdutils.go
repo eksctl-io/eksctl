@@ -249,3 +249,7 @@ func ErrUnsupportedManagedFlag(flag string) error {
 func ErrUnsupportedNameArg() error {
 	return errors.New("name argument is not supported")
 }
+
+func ErrDisableSessionTagsMustBeSet() error {
+	return errors.New("--disable-session-tags must be set to true when using --policy")
+}

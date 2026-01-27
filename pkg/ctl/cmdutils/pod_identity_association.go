@@ -22,6 +22,7 @@ var (
 		"create-service-account",
 		"target-role-arn",
 		"disable-session-tags",
+		"policy",
 	}
 )
 
@@ -181,12 +182,14 @@ type UpdatePodIdentityAssociationOptions struct {
 	// DisableSessionTags is a boolean flag to enable or disable session tags.
 	// This is used for cross-account pod identity access.
 	DisableSessionTags *bool
+	// Policy is the optional policy that applies additional restrictions to this pod identity association beyond the IAM policies attached to the IAM role.
+	Policy *string
 }
 
 // NewUpdatePodIdentityAssociationLoader will load config or use flags for `eksctl update podidentityassociation`.
 func NewUpdatePodIdentityAssociationLoader(cmd *Cmd, options UpdatePodIdentityAssociationOptions) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
-	l.flagsIncompatibleWithConfigFile.Insert("namespace", "service-account-name", "role-arn", "target-role-arn", "disable-session-tags")
+	l.flagsIncompatibleWithConfigFile.Insert("namespace", "service-account-name", "role-arn", "target-role-arn", "disable-session-tags", "policy")
 
 	l.validateWithoutConfigFile = func() error {
 		if err := validatePodIdentityAssociation(l, options.PodIdentityAssociationOptions); err != nil {

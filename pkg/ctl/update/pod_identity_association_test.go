@@ -97,6 +97,7 @@ func TestUpdatePodIdentityAssociationWithCrossAccountAccess(t *testing.T) {
 		RoleARN:            "arn:aws:iam::111122223333:role/source-role",
 		TargetRoleARN:      aws.String("arn:aws:iam::444455556666:role/target-role"),
 		DisableSessionTags: aws.Bool(true),
+		Policy:             aws.String(`{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":"s3:GetObject","Resource":"*"}]}`),
 	}
 
 	// Create the pod identity association in the cluster config
@@ -107,6 +108,7 @@ func TestUpdatePodIdentityAssociationWithCrossAccountAccess(t *testing.T) {
 			RoleARN:            options.RoleARN,
 			TargetRoleARN:      options.TargetRoleARN,
 			DisableSessionTags: options.DisableSessionTags,
+			Policy:             options.Policy,
 		},
 	}
 
@@ -134,6 +136,33 @@ func TestUpdatePodIdentityAssociationWithCrossAccountAccess(t *testing.T) {
 	require.NotNil(t, capturedInput.DisableSessionTags)
 	require.True(t, *capturedInput.DisableSessionTags)
 
+	require.NotNil(t, capturedInput.Policy)
+	require.Equal(t, `{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":"s3:GetObject","Resource":"*"}]}`, *capturedInput.Policy)
+
 	// Verify all expectations were met
 	mockEKS.AssertExpectations(t)
+}
+
+func TestUpdatePodIdentityAssociationPolicyWithNoDisableSessionTagsValidation(t *testing.T) {
+	cmd := &cmdutils.Cmd{
+		CobraCommand:   &cobra.Command{},
+		ClusterConfig:  api.NewClusterConfig(),
+		ProviderConfig: api.ProviderConfig{},
+	}
+	cmd.ClusterConfig.Metadata.Name = "test-cluster"
+	cmd.ProviderConfig.Region = "us-west-2"
+
+	options := cmdutils.UpdatePodIdentityAssociationOptions{
+		PodIdentityAssociationOptions: cmdutils.PodIdentityAssociationOptions{
+			Namespace:          "default",
+			ServiceAccountName: "test-sa",
+		},
+		RoleARN:            "arn:aws:iam::111122223333:role/source-role",
+		Policy:             aws.String(`{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":"s3:GetObject","Resource":"*"}]}`),
+		DisableSessionTags: aws.Bool(false),
+	}
+
+	err := doUpdatePodIdentityAssociation(cmd, options)
+	require.Error(t, err)
+	require.Equal(t, "--disable-session-tags must be set to true when using --policy", err.Error())
 }
