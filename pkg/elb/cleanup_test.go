@@ -115,4 +115,45 @@ var _ = Describe("ELB Cleanup", func() {
 			}
 		})
 	})
+
+	When("Verifying security group cleanup works for Gateway API load balancers", func() {
+		It("should handle Gateway API load balancers the same as Ingress ALBs", func() {
+			// Gateway API ALBs use the same naming pattern as Ingress ALBs
+
+			testCases := []struct {
+				description string
+				hostname    string
+				expected    string
+			}{
+				{
+					description: "Gateway LB with standard format",
+					hostname:    "k8s-default-mygateway-abc123-1234567890.us-west-2.elb.amazonaws.com",
+					expected:    "k8s-default-mygateway-abc123",
+				},
+				{
+					description: "Internal Gateway LB",
+					hostname:    "internal-k8s-default-gateway-xyz789-987654321.us-west-2.elb.amazonaws.com",
+					expected:    "k8s-default-gateway-xyz789",
+				},
+				{
+					description: "Gateway LB with namespace and gateway name",
+					hostname:    "k8s-prod-api-gw-hash1234-1111111111.eu-central-1.elb.amazonaws.com",
+					expected:    "k8s-prod-api-gw-hash1234",
+				},
+			}
+
+			for _, tc := range testCases {
+				// Test that getGatewayLBName produces the expected name
+				name, err := getGatewayLBName([]string{tc.hostname})
+				Expect(err).NotTo(HaveOccurred(), "Failed for: %s", tc.description)
+				Expect(name).To(Equal(tc.expected), "Failed for: %s", tc.description)
+
+				// Verify the name is also compatible with getIngressELBName
+				// This demonstrates that Gateway and Ingress ALBs use the same naming pattern
+				ingressName, err := getIngressELBName([]string{tc.hostname})
+				Expect(err).NotTo(HaveOccurred(), "Failed for: %s", tc.description)
+				Expect(ingressName).To(Equal(name), "Gateway and Ingress name parsing should produce identical results for: %s", tc.description)
+			}
+		})
+	})
 })
