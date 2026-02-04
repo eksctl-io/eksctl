@@ -162,6 +162,9 @@ func (c *RawClient) ServerVersion() (string, error) {
 // ClientSet returns the underlying ClientSet
 func (c *RawClient) ClientSet() Interface { return c.clientSet }
 
+// RestConfig returns the underlying REST config
+func (c *RawClient) RestConfig() *restclient.Config { return c.config }
+
 // NewHelperFor construct a raw client helper instance for a give gvk
 // (it's based on k8s.io/kubernetes/pkg/kubectl/cmd/util/factory_client_access.go)
 func (c *RawClient) NewHelperFor(gvk schema.GroupVersionKind) (*resource.Helper, error) {
