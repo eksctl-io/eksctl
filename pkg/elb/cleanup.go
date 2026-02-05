@@ -25,6 +25,7 @@ import (
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	cloudprovider "k8s.io/cloud-provider"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -63,9 +64,9 @@ type DescribeLoadBalancersAPIV2 interface {
 	DescribeLoadBalancers(ctx context.Context, params *elasticloadbalancingv2.DescribeLoadBalancersInput, optFns ...func(*elasticloadbalancingv2.Options)) (*elasticloadbalancingv2.DescribeLoadBalancersOutput, error)
 }
 
-// Cleanup finds and deletes any dangling ELBs associated to a Kubernetes Service
+// Cleanup finds and deletes any dangling ELBs associated to a Kubernetes Service, Ingress, or Gateway
 func Cleanup(ctx context.Context, ec2API awsapi.EC2, elbAPI DescribeLoadBalancersAPI, elbv2API DescribeLoadBalancersAPIV2,
-	kubernetesCS kubernetes.Interface, clusterConfig *api.ClusterConfig) error {
+	kubernetesCS kubernetes.Interface, restConfig *rest.Config, clusterConfig *api.ClusterConfig) error {
 
 	deadline, ok := ctx.Deadline()
 	if !ok {
@@ -86,6 +87,15 @@ func Cleanup(ctx context.Context, ec2API awsapi.EC2, elbAPI DescribeLoadBalancer
 		errStr := fmt.Sprintf("cannot list Kubernetes Ingresses: %s", err)
 		if k8serrors.IsForbidden(err) {
 			errStr = fmt.Sprintf("%s (deleting a cluster requires permission to list Kubernetes Ingresses)", errStr)
+		}
+		return errors.New(errStr)
+	}
+
+	gateways, gwClient, err := listGateway(ctx, restConfig)
+	if err != nil {
+		errStr := fmt.Sprintf("cannot list Kubernetes Gateways: %s", err)
+		if k8serrors.IsForbidden(err) {
+			errStr = fmt.Sprintf("%s (deleting a cluster requires permission to list Kubernetes Gateways)", errStr)
 		}
 		return errors.New(errStr)
 	}
@@ -139,6 +149,32 @@ func Cleanup(ctx context.Context, ec2API awsapi.EC2, elbAPI DescribeLoadBalancer
 			errStr := fmt.Sprintf("cannot delete Kubernetes Ingress %s/%s: %s", ingressMetadata.Namespace, ingressMetadata.Name, err)
 			if k8serrors.IsForbidden(err) {
 				errStr = fmt.Sprintf("%s (deleting a cluster requires permission to delete Kubernetes Ingress)", errStr)
+			}
+			return errors.New(errStr)
+		}
+	}
+	// For k8s Kind Gateway
+	for _, g := range gateways {
+		gatewayMetadata := g.GetMetadata()
+
+		lb, err := getGatewayLoadBalancer(ctx, ec2API, elbAPI, elbv2API, gwClient, clusterConfig.Metadata.Name, g)
+		if err != nil {
+			return fmt.Errorf("cannot obtain information for load balancer from Gateway %s/%s: %w",
+				gatewayMetadata.Namespace, gatewayMetadata.Name, err)
+		}
+		if lb == nil {
+			continue
+		}
+		logger.Debug(
+			"tracking deletion of load balancer %s of kind %d with security groups %v",
+			lb.name, lb.kind, convertStringSetToSlice(lb.ownedSecurityGroupIDs),
+		)
+		awsLoadBalancers[lb.name] = *lb
+		logger.Debug("deleting Gateway %s/%s", gatewayMetadata.Namespace, gatewayMetadata.Name)
+		if err := g.Delete(ctx, gwClient); err != nil {
+			errStr := fmt.Sprintf("cannot delete Kubernetes Gateway %s/%s: %s", gatewayMetadata.Namespace, gatewayMetadata.Name, err)
+			if k8serrors.IsForbidden(err) {
+				errStr = fmt.Sprintf("%s (deleting a cluster requires permission to delete Kubernetes Gateway)", errStr)
 			}
 			return errors.New(errStr)
 		}
@@ -406,13 +442,22 @@ func getSecurityGroupsOwnedByLoadBalancer(ctx context.Context, ec2API awsapi.EC2
 
 	switch loadBalancerKind {
 	case network:
-		// V2 ELBs just use the Security Group of the EC2 instances
-		return map[string]struct{}{}, nil
+		// NLBs can now have security groups attached
+		nlb, err := describeELBv2LoadBalancer(ctx, elbv2API, loadBalancerName)
+		if err != nil {
+			return nil, fmt.Errorf("cannot describe NLB: %w", err)
+		}
+		if nlb == nil {
+			// The load balancer wasn't found
+			return map[string]struct{}{}, nil
+		}
+		groupIDs = nlb.SecurityGroups
+
 	case application:
-		alb, err := describeApplicationLoadBalancer(ctx, elbv2API, loadBalancerName)
+		alb, err := describeELBv2LoadBalancer(ctx, elbv2API, loadBalancerName)
 
 		if err != nil {
-			return nil, fmt.Errorf("cannot describe ELB: %w", err)
+			return nil, fmt.Errorf("cannot describe ALB: %w", err)
 		}
 		if alb == nil {
 			// The load balancer wasn't found
@@ -503,7 +548,7 @@ func elbExists(ctx context.Context, elbAPI DescribeLoadBalancersAPI, elbv2API De
 	return desc != nil, err
 }
 
-func describeApplicationLoadBalancer(ctx context.Context, elbv2API DescribeLoadBalancersAPIV2,
+func describeELBv2LoadBalancer(ctx context.Context, elbv2API DescribeLoadBalancersAPIV2,
 	name string) (*elbv2types.LoadBalancer, error) {
 
 	response, err := elbv2API.DescribeLoadBalancers(ctx, &elasticloadbalancingv2.DescribeLoadBalancersInput{

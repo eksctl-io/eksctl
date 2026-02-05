@@ -59,8 +59,15 @@ func deleteSharedResources(ctx context.Context, cfg *api.ClusterConfig, ctl *eks
 
 		cfg.Metadata.Version = *ctl.Status.ClusterInfo.Cluster.Version
 
-		logger.Info("cleaning up AWS load balancers created by Kubernetes objects of Kind Service or Ingress")
-		if err := elb.Cleanup(ctx, ctl.AWSProvider.EC2(), ctl.AWSProvider.ELB(), ctl.AWSProvider.ELBV2(), clientSet, cfg); err != nil {
+		// Create rest.Config for Gateway API cleanup
+		rawClient, err := ctl.NewRawClient(cfg)
+		if err != nil {
+			return fmt.Errorf("failed to create Kubernetes client for cleanup: %w", err)
+		}
+		restConfig := rawClient.RestConfig()
+
+		logger.Info("cleaning up AWS load balancers created by Kubernetes objects of Kind Service, Ingress, or Gateway")
+		if err := elb.Cleanup(ctx, ctl.AWSProvider.EC2(), ctl.AWSProvider.ELB(), ctl.AWSProvider.ELBV2(), clientSet, restConfig, cfg); err != nil {
 			return err
 		}
 	}
