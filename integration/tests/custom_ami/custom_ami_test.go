@@ -58,7 +58,7 @@ var _ = BeforeSuite(func() {
 
 	// retrieve AL2 AMI
 	input := &awsssm.GetParameterInput{
-		Name: aws.String(fmt.Sprintf("/aws/service/eks/optimized-ami/%s/amazon-linux-2/recommended/image_id", params.Version)),
+		Name: aws.String(fmt.Sprintf("/aws/service/eks/optimized-ami/%s/amazon-linux-2/recommended/image_id", api.Version1_32)),
 	}
 	output, err := ssm.GetParameter(context.Background(), input)
 	Expect(err).NotTo(HaveOccurred())
