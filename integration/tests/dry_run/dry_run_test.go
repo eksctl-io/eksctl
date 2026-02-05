@@ -68,7 +68,7 @@ accessConfig:
   authenticationMode: API_AND_CONFIG_MAP
 addonsConfig: {}
 nodeGroups:
-- amiFamily: AmazonLinux2
+- amiFamily: AmazonLinux2023
   containerRuntime: containerd
   disableIMDSv1: true
   disablePodIMDS: false
