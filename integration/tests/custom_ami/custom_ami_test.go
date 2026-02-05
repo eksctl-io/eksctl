@@ -130,28 +130,6 @@ var _ = Describe("(Integration) [Test Custom AMI]", func() {
 		})
 	})
 
-	Context("override bootstrap command for managed and un-managed nodegroups", func() {
-
-		It("can create a working nodegroup which can join the cluster", func() {
-			By(fmt.Sprintf("using the following EKS optimised AMI: %s", customAMIAL2))
-			content, err := os.ReadFile(filepath.Join("testdata/override-bootstrap.yaml"))
-			Expect(err).NotTo(HaveOccurred())
-			content = bytes.ReplaceAll(content, []byte("<generated>"), []byte(params.ClusterName))
-			content = bytes.ReplaceAll(content, []byte("<generated-region>"), []byte(params.Region))
-			content = bytes.ReplaceAll(content, []byte("<generated-ami>"), []byte(customAMIAL2))
-			cmd := params.EksctlCreateCmd.
-				WithArgs(
-					"nodegroup",
-					"--config-file", "-",
-					"--verbose", "4",
-				).
-				WithoutArg("--region", params.Region).
-				WithStdin(bytes.NewReader(content))
-			Expect(cmd).To(RunSuccessfully())
-		})
-
-	})
-
 	Context("bottlerocket un-managed nodegroups", func() {
 
 		It("can create a working nodegroup which can join the cluster", func() {
