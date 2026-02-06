@@ -176,9 +176,9 @@ type EKS interface {
 	// node group was created. You can update the launch template version with
 	// necessary changes. For more information about using launch templates, see [Customizing managed nodes with launch templates].
 	//
-	// An Amazon EKS managed node group is an Amazon EC2 Amazon EC2 Auto Scaling group
-	// and associated Amazon EC2 instances that are managed by Amazon Web Services for
-	// an Amazon EKS cluster. For more information, see [Managed node groups]in the Amazon EKS User Guide.
+	// An Amazon EKS managed node group is an Amazon EC2 Auto Scaling group and
+	// associated Amazon EC2 instances that are managed by Amazon Web Services for an
+	// Amazon EKS cluster. For more information, see [Managed node groups]in the Amazon EKS User Guide.
 	//
 	// Windows AMI types are only supported for commercial Amazon Web Services Regions
 	// that support Windows on Amazon EKS.

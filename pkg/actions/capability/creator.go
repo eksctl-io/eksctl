@@ -70,8 +70,11 @@ func (c *Creator) CreateTasks(ctx context.Context, capabilities []api.Capability
 				if err := c.ensureClusterReady(ctx); err != nil {
 					return fmt.Errorf("cluster not ready for capability creation: %w", err)
 				}
-				if err := c.createIAMRoleStack(ctx, &cap); err != nil {
-					return err
+				// Only create IAM role stack if RoleARN is not provided
+				if cap.RoleARN == "" {
+					if err := c.createIAMRoleStack(ctx, &cap); err != nil {
+						return err
+					}
 				}
 
 				return c.createCapability(ctx, &cap)

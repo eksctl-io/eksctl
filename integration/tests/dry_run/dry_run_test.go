@@ -68,7 +68,7 @@ accessConfig:
   authenticationMode: API_AND_CONFIG_MAP
 addonsConfig: {}
 nodeGroups:
-- amiFamily: AmazonLinux2
+- amiFamily: AmazonLinux2023
   containerRuntime: containerd
   disableIMDSv1: true
   disablePodIMDS: false
@@ -287,7 +287,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 			Memory: "4",
 		}
 
-	}, "--managed=false", "--instance-selector-vcpus=2", "--instance-selector-memory=4", "--node-ami-family=AmazonLinux2"),
+	}, "--managed=false", "--instance-selector-vcpus=2", "--instance-selector-memory=4", "--node-ami-family=AmazonLinux2023"),
 
 		Entry("instance selector options with managed nodegroup", func(actual, expected *api.ClusterConfig) {
 			Expect(actual.ManagedNodeGroups[0].InstanceTypes).NotTo(BeEmpty())

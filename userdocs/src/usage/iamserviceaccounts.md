@@ -91,6 +91,50 @@ To update a service accounts roles permissions you can run `eksctl update iamser
 ???+ note
     `eksctl delete iamserviceaccount` deletes Kubernetes `ServiceAccounts` even if they were not created by `eksctl`.
 
+#### Using wildcard patterns with `--subject-pattern`
+
+When you need to grant IAM permissions to multiple service accounts that follow a naming pattern, you can use the `--subject-pattern` flag to create an IAM role that trusts service accounts matching a wildcard pattern.
+
+This is useful for scenarios such as:
+- Multiple deployment replicas with dynamic service account names
+- Applications that create service accounts with predictable prefixes
+- Multi-tenant environments where service accounts share a naming convention
+
+When using `--subject-pattern`, the IAM trust policy will use the `StringLike` condition operator instead of `StringEquals`, allowing wildcards like `*` to match multiple service accounts:
+
+```console
+eksctl create iamserviceaccount \
+  --cluster=<clusterName> \
+  --name=<serviceAccountName> \
+  --namespace=<serviceAccountNamespace> \
+  --attach-policy-arn=<policyARN> \
+  --subject-pattern="app-*"
+```
+
+For example, to allow all service accounts starting with `app-` in the `default` namespace to assume the role:
+
+```console
+eksctl create iamserviceaccount \
+  --cluster=<clusterName> \
+  --name=app-base \
+  --namespace=default \
+  --attach-policy-arn=arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess \
+  --subject-pattern="app-*"
+```
+
+This creates an IAM trust policy condition like:
+
+```json
+"StringLike": {
+  "oidc.eks.region.amazonaws.com/id/EXAMPLED539D4633E53DE1B716D3041E:sub": "system:serviceaccount:default:app-*"
+}
+```
+
+???+ warning "Security Considerations"
+    Use wildcard patterns carefully. A broad pattern like `*` would allow any service account in the namespace to assume the IAM role. Always use the most restrictive pattern possible for your use case.
+
+The Subject Pattern property can be defined in the configuration file.
+
 ### Usage with config files
 
 To manage `iamserviceaccounts` using config file, you will be looking to set `iam.withOIDC: true` and list account you want under `iam.serviceAccount`.
@@ -140,6 +184,7 @@ iam:
     tags:
       Owner: "John Doe"
       Team: "Some Team"
+    subjectPattern: "app-*"
   - metadata:
       name: cache-access
       namespace: backend-apps

@@ -48,13 +48,15 @@ const (
 	Version1_31                  = "1.31"
 	Version1_32                  = "1.32"
 	Version1_33                  = "1.33"
+	Version1_34                  = "1.34"
+	Version1_35                  = "1.35"
 	DockershimDeprecationVersion = Version1_24
 	AmazonLinux2EOLVersion       = Version1_33
 	// EFABuiltInSupportVersion defines the minimum Kubernetes version that supports built-in EFA
 	EFABuiltInSupportVersion = Version1_33
 	//TODO: Remove this and replace with output from DescribeClusterVersions endpoint
 	// DefaultVersion (default)
-	DefaultVersion = Version1_32
+	DefaultVersion = Version1_34
 )
 
 const (
@@ -223,6 +225,9 @@ const (
 
 	NodeImageFamilyWindowsServer2022CoreContainer = "WindowsServer2022CoreContainer"
 	NodeImageFamilyWindowsServer2022FullContainer = "WindowsServer2022FullContainer"
+
+	NodeImageFamilyWindowsServer2025CoreContainer = "WindowsServer2025CoreContainer"
+	NodeImageFamilyWindowsServer2025FullContainer = "WindowsServer2025FullContainer"
 )
 
 // Deprecated `NodeAMIFamily`
@@ -604,6 +609,8 @@ func SupportedAMIFamilies() []string {
 		NodeImageFamilyWindowsServer2019FullContainer,
 		NodeImageFamilyWindowsServer2022CoreContainer,
 		NodeImageFamilyWindowsServer2022FullContainer,
+		NodeImageFamilyWindowsServer2025CoreContainer,
+		NodeImageFamilyWindowsServer2025FullContainer,
 	}
 }
 

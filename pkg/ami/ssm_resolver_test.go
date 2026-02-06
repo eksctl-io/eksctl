@@ -175,6 +175,35 @@ var _ = Describe("AMI Auto Resolution", func() {
 					})
 				})
 
+				Context("Windows Server 2025 Core", func() {
+					BeforeEach(func() {
+						version = "1.35"
+						p = mockprovider.NewMockProvider()
+					})
+
+					It("should return a valid AMI", func() {
+						imageFamily = "WindowsServer2025CoreContainer"
+						addMockGetParameter(p, "/aws/service/ami-windows-latest/Windows_Server-2025-English-Core-EKS_Optimized-1.35/image_id", expectedAmi)
+
+						resolver := NewSSMResolver(p.MockSSM())
+						resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)
+
+						Expect(err).NotTo(HaveOccurred())
+						Expect(resolvedAmi).To(BeEquivalentTo(expectedAmi))
+						Expect(p.MockSSM().AssertNumberOfCalls(GinkgoT(), "GetParameter", 1)).To(BeTrue())
+					})
+
+					It("should return an error for EKS versions below 1.35", func() {
+						imageFamily = "WindowsServer2025CoreContainer"
+
+						resolver := NewSSMResolver(p.MockSSM())
+						resolvedAmi, err = resolver.Resolve(context.Background(), region, "1.34", instanceType, imageFamily)
+
+						Expect(err).To(HaveOccurred())
+						Expect(err).To(MatchError(ContainSubstring("Windows Server 2025 Core requires EKS version 1.35 and above")))
+					})
+				})
+
 			})
 
 			Context("and Windows Full family", func() {
@@ -229,6 +258,35 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 						Expect(err).To(HaveOccurred())
 						Expect(err).To(MatchError(ContainSubstring("Windows Server 2022 Full requires EKS version 1.23 and above")))
+					})
+				})
+
+				Context("Windows Server 2025 Full", func() {
+					BeforeEach(func() {
+						version = "1.35"
+						p = mockprovider.NewMockProvider()
+					})
+
+					It("should return a valid AMI", func() {
+						imageFamily = "WindowsServer2025FullContainer"
+						addMockGetParameter(p, "/aws/service/ami-windows-latest/Windows_Server-2025-English-Full-EKS_Optimized-1.35/image_id", expectedAmi)
+
+						resolver := NewSSMResolver(p.MockSSM())
+						resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)
+
+						Expect(err).NotTo(HaveOccurred())
+						Expect(resolvedAmi).To(BeEquivalentTo(expectedAmi))
+						Expect(p.MockSSM().AssertNumberOfCalls(GinkgoT(), "GetParameter", 1)).To(BeTrue())
+					})
+
+					It("should return an error for EKS versions below 1.34", func() {
+						imageFamily = "WindowsServer2025FullContainer"
+
+						resolver := NewSSMResolver(p.MockSSM())
+						resolvedAmi, err = resolver.Resolve(context.Background(), region, "1.34", instanceType, imageFamily)
+
+						Expect(err).To(HaveOccurred())
+						Expect(err).To(MatchError(ContainSubstring("Windows Server 2025 Full requires EKS version 1.35 and above")))
 					})
 				})
 
@@ -758,7 +816,9 @@ var _ = Describe("AMI Auto Resolution", func() {
 			for _, amiType := range eksAMIType.Values() {
 				if amiType == ekstypes.AMITypesCustom || strings.HasPrefix(string(amiType), "WINDOWS_") ||
 					// TODO: remove this condition after support for Bottlerocket FIPS AMI types.
-					amiType == ekstypes.AMITypesBottlerocketArm64Fips || amiType == ekstypes.AMITypesBottlerocketX8664Fips {
+					amiType == ekstypes.AMITypesBottlerocketArm64Fips || amiType == ekstypes.AMITypesBottlerocketX8664Fips ||
+					// TODO: remove this condition after support for Bottlerocket Nvidia FIPS AMI types.
+					amiType == ekstypes.AMITypesBottlerocketArm64NvidiaFips || amiType == ekstypes.AMITypesBottlerocketX8664NvidiaFips {
 					continue
 				}
 				ssmParameterName := MakeManagedSSMParameterName(api.Version1_31, amiType)

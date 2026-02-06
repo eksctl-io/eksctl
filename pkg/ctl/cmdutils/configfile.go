@@ -868,6 +868,7 @@ func NewCreateIAMServiceAccountLoader(cmd *Cmd, saFilter *filter.IAMServiceAccou
 
 	l.flagsIncompatibleWithConfigFile.Insert(
 		"policy-arn",
+		"subject-pattern",
 	)
 
 	l.validateWithConfigFile = func() error {
