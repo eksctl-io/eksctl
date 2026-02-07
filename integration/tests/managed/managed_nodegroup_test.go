@@ -364,7 +364,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 					NodeGroupBase: &api.NodeGroupBase{
 						Name:         ubuntuNodegroup,
 						VolumeSize:   aws.Int(25),
-						AMIFamily:    "Ubuntu2204",
+						AMIFamily:    "Ubuntu2404",
 						InstanceType: "t3a.xlarge",
 					},
 				},
