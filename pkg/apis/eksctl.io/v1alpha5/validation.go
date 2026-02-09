@@ -1215,6 +1215,9 @@ func validateNodeGroupIAMWithAddonPolicies(
 	if IsEnabled(policies.CloudWatch) {
 		return fmtFieldConflictErr(prefix + "cloudWatch")
 	}
+	if IsEnabled(policies.AWSGlobalAccelerator) {
+		return fmtFieldConflictErr(prefix + "awsGlobalAccelerator")
+	}
 	return nil
 }
 
