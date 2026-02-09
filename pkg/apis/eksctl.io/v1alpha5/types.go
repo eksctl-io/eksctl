@@ -1290,6 +1290,7 @@ func NewNodeGroup() *NodeGroup {
 					DeprecatedALBIngress:      Disabled(),
 					XRay:                      Disabled(),
 					CloudWatch:                Disabled(),
+					AWSGlobalAccelerator:      Disabled(),
 				},
 			},
 			ScalingConfig: &ScalingConfig{},
@@ -1340,6 +1341,7 @@ func NewManagedNodeGroup() *ManagedNodeGroup {
 					DeprecatedALBIngress:      Disabled(),
 					XRay:                      Disabled(),
 					CloudWatch:                Disabled(),
+					AWSGlobalAccelerator:      Disabled(),
 				},
 			},
 			ScalingConfig:  &ScalingConfig{},
@@ -1565,6 +1567,8 @@ type (
 		XRay *bool `json:"xRay"`
 		// +optional
 		CloudWatch *bool `json:"cloudWatch"`
+		// +optional
+		AWSGlobalAccelerator *bool `json:"awsGlobalAccelerator"`
 	}
 
 	// NodeGroupSSH holds all the ssh access configuration to a NodeGroup
