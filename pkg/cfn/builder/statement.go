@@ -482,3 +482,128 @@ func efsCSIControllerStatements() []cft.MapOfInterfaces {
 		},
 	}
 }
+
+func globalAcceleratorStatements() []cft.MapOfInterfaces {
+	return []cft.MapOfInterfaces{
+		{
+			"Effect":   effectAllow,
+			"Action":   []string{"iam:CreateServiceLinkedRole"},
+			"Resource": resourceAll,
+			"Condition": map[string]interface{}{
+				"StringEquals": map[string][]string{
+					"iam:AWSServiceName": {
+						"globalaccelerator.amazonaws.com",
+					},
+				},
+			},
+		},
+		{
+			"Effect":   effectAllow,
+			"Resource": resourceAll,
+			"Action": []string{
+				"globalaccelerator:ListAccelerators",
+				"globalaccelerator:ListEndpointGroups",
+				"globalaccelerator:ListListeners",
+				"globalaccelerator:ListTagsForResource",
+				"ec2:DescribeRegions",
+				"tag:GetResources",
+			},
+		},
+		{
+			"Effect": effectAllow,
+			"Resource": []*gfnt.Value{
+				addARNPartitionPrefix("globalaccelerator::*:accelerator/*"),
+				addARNPartitionPrefix("globalaccelerator::*:accelerator/*/listener/*"),
+				addARNPartitionPrefix("globalaccelerator::*:accelerator/*/listener/*/endpoint-group/*"),
+			},
+			"Action": []string{
+				"globalaccelerator:DescribeAccelerator",
+				"globalaccelerator:DescribeEndpointGroup",
+				"globalaccelerator:DescribeListener",
+			},
+			"Condition": map[string]interface{}{
+				"Null": map[string]string{
+					"aws:ResourceTag/elbv2.k8s.aws/cluster": "false",
+				},
+				"StringEquals": map[string]string{
+					"aws:ResourceTag/aga.k8s.aws/resource": "GlobalAccelerator",
+				},
+			},
+		},
+		{
+			"Effect":   effectAllow,
+			"Resource": resourceAll,
+			"Action": []string{
+				"globalaccelerator:CreateAccelerator",
+			},
+			"Condition": map[string]interface{}{
+				"Null": map[string]string{
+					"aws:RequestTag/elbv2.k8s.aws/cluster": "false",
+				},
+				"StringEquals": map[string]string{
+					"aws:RequestTag/aga.k8s.aws/resource": "GlobalAccelerator",
+				},
+			},
+		},
+		{
+			"Effect": effectAllow,
+			"Resource": []*gfnt.Value{
+				addARNPartitionPrefix("globalaccelerator::*:accelerator/*"),
+				addARNPartitionPrefix("globalaccelerator::*:accelerator/*/listener/*"),
+				addARNPartitionPrefix("globalaccelerator::*:accelerator/*/listener/*/endpoint-group/*"),
+			},
+			"Action": []string{
+				"globalaccelerator:UpdateAccelerator",
+				"globalaccelerator:DeleteAccelerator",
+				"globalaccelerator:CreateListener",
+				"globalaccelerator:UpdateListener",
+				"globalaccelerator:DeleteListener",
+				"globalaccelerator:CreateEndpointGroup",
+				"globalaccelerator:UpdateEndpointGroup",
+				"globalaccelerator:DeleteEndpointGroup",
+				"globalaccelerator:AddEndpoints",
+				"globalaccelerator:RemoveEndpoints",
+			},
+			"Condition": map[string]interface{}{
+				"Null": map[string]string{
+					"aws:ResourceTag/elbv2.k8s.aws/cluster": "false",
+				},
+				"StringEquals": map[string]string{
+					"aws:ResourceTag/aga.k8s.aws/resource": "GlobalAccelerator",
+				},
+			},
+		},
+		{
+			"Effect":   effectAllow,
+			"Resource": addARNPartitionPrefix("globalaccelerator::*:accelerator/*"),
+			"Action": []string{
+				"globalaccelerator:TagResource",
+				"globalaccelerator:UntagResource",
+			},
+			"Condition": map[string]interface{}{
+				"Null": map[string]string{
+					"aws:RequestTag/elbv2.k8s.aws/cluster":  "true",
+					"aws:ResourceTag/elbv2.k8s.aws/cluster": "false",
+				},
+				"StringEquals": map[string]string{
+					"aws:ResourceTag/aga.k8s.aws/resource": "GlobalAccelerator",
+				},
+			},
+		},
+		{
+			"Effect":   effectAllow,
+			"Resource": addARNPartitionPrefix("globalaccelerator::*:accelerator/*"),
+			"Action": []string{
+				"globalaccelerator:TagResource",
+			},
+			"Condition": map[string]interface{}{
+				"Null": map[string]string{
+					"aws:RequestTag/elbv2.k8s.aws/cluster": "false",
+				},
+				"StringEquals": map[string]string{
+					"aws:RequestTag/aga.k8s.aws/resource": "GlobalAccelerator",
+				},
+			},
+		},
+	}
+}
