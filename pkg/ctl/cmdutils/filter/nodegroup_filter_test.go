@@ -414,7 +414,8 @@ var expected = fmt.Sprintf(`
 				  "efs": false,
 				  "albIngress": false,
 				  "xRay": false,
-				  "cloudWatch": false
+				  "cloudWatch": false,
+                  "awsGlobalAccelerator": false
 			    }
 			  },
 			  "disableIMDSv1": true,
@@ -459,7 +460,8 @@ var expected = fmt.Sprintf(`
 				  "efs": false,
 				  "albIngress": false,
 				  "xRay": false,
-				  "cloudWatch": false
+				  "cloudWatch": false,
+                  "awsGlobalAccelerator": false
 			    }
 			  },
 			  "disableIMDSv1": true,
@@ -504,7 +506,8 @@ var expected = fmt.Sprintf(`
 				  "efs": false,
 				  "albIngress": false,
 				  "xRay": false,
-				  "cloudWatch": false
+				  "cloudWatch": false,
+                  "awsGlobalAccelerator": false
 			    }
 			  },
 			  "clusterDNS": "1.2.3.4",
@@ -540,7 +543,7 @@ var expected = fmt.Sprintf(`
 			    "withAddonPolicies": {
 			  	  "imageBuilder": false,
 			  	  "autoScaler": false,
-				    "awsLoadBalancerController": false,
+                  "awsLoadBalancerController": false,
 			  	  "externalDNS": false,
 			  	  "certManager": false,
 			  	  "appMesh": false,
@@ -550,7 +553,8 @@ var expected = fmt.Sprintf(`
 			  	  "efs": false,
 				  "albIngress": false,
 				  "xRay": false,
-				  "cloudWatch": false
+				  "cloudWatch": false,
+                  "awsGlobalAccelerator": false
 			    }
 			  },
 			  "disableIMDSv1": true,
@@ -588,7 +592,7 @@ var expected = fmt.Sprintf(`
 			    "withAddonPolicies": {
 			  	  "imageBuilder": false,
 			  	  "autoScaler": false,
-				    "awsLoadBalancerController": false,
+                  "awsLoadBalancerController": false,
 			  	  "externalDNS": false,
 			  	  "certManager": false,
 			  	  "appMesh": false,
@@ -598,7 +602,8 @@ var expected = fmt.Sprintf(`
 			  	  "efs": false,
 				  "albIngress": false,
 				  "xRay": false,
-				  "cloudWatch": false
+				  "cloudWatch": false,
+                  "awsGlobalAccelerator": false
 			    }
 			  },
 			  "clusterDNS": "4.2.8.14",
@@ -647,7 +652,8 @@ var expected = fmt.Sprintf(`
 			  	  "efs": false,
 				  "albIngress": false,
 				  "xRay": false,
-				  "cloudWatch": false
+				  "cloudWatch": false,
+                  "awsGlobalAccelerator": false
 			    }
 			  },
 			  "disableIMDSv1": true,

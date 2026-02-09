@@ -299,6 +299,7 @@ var _ = Describe("template builder for IAM", func() {
 				ImageBuilder:              true,
 				AutoScaler:                true,
 				AWSLoadBalancerController: true,
+				AWSGlobalAccelerator:      true,
 				ExternalDNS:               true,
 				CertManager:               true,
 				EBSCSIController:          true,
@@ -319,7 +320,7 @@ var _ = Describe("template builder for IAM", func() {
 
 			Expect(t.Description).To(Equal("IAM role for serviceaccount \"default/sa-1\" [created and managed by eksctl]"))
 
-			Expect(t.Resources).To(HaveLen(9))
+			Expect(t.Resources).To(HaveLen(10))
 			Expect(t.Outputs).To(HaveLen(1))
 
 			Expect(t).To(HaveResource(outputs.IAMServiceAccountRoleName, "AWS::IAM::Role"))
@@ -335,6 +336,7 @@ var _ = Describe("template builder for IAM", func() {
             ]`))
 			Expect(t).To(HaveOutputWithValue(outputs.IAMServiceAccountRoleName, `{ "Fn::GetAtt": "Role1.Arn" }`))
 			Expect(t).To(HaveResourceWithPropertyValue("PolicyAWSLoadBalancerController", "PolicyDocument", expectedAWSLoadBalancerControllerPolicyDocument))
+			Expect(t).To(HaveResourceWithPropertyValue("PolicyAWSGlobalAccelerator", "PolicyDocument", expectedAWSAWSGlobalAcceleratorPolicyDocument))
 		})
 
 		It("can parse an iamserviceaccount addon template", func() {
@@ -802,6 +804,150 @@ const expectedAWSLoadBalancerControllerPolicyDocument = `{
       ],
       "Effect": "Allow",
       "Resource": "*"
+    }
+  ],
+  "Version": "2012-10-17"
+}`
+
+const expectedAWSAWSGlobalAcceleratorPolicyDocument = `{
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateServiceLinkedRole"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "iam:AWSServiceName": [
+            "globalaccelerator.amazonaws.com"
+          ]
+        }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "globalaccelerator:ListAccelerators",
+        "globalaccelerator:ListEndpointGroups",
+        "globalaccelerator:ListListeners",
+        "globalaccelerator:ListTagsForResource",
+        "ec2:DescribeRegions",
+        "tag:GetResources"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "globalaccelerator:DescribeAccelerator",
+        "globalaccelerator:DescribeEndpointGroup",
+        "globalaccelerator:DescribeListener"
+      ],
+      "Resource": [
+		{
+          "Fn::Sub": "arn:${AWS::Partition}:globalaccelerator::*:accelerator/*"
+        },
+        {
+          "Fn::Sub": "arn:${AWS::Partition}:globalaccelerator::*:accelerator/*/listener/*"
+        },
+        {
+          "Fn::Sub": "arn:${AWS::Partition}:globalaccelerator::*:accelerator/*/listener/*/endpoint-group/*"
+        }
+      ],
+      "Condition": {
+        "Null": {
+          "aws:ResourceTag/elbv2.k8s.aws/cluster": "false"
+        },
+        "StringEquals": {
+          "aws:ResourceTag/aga.k8s.aws/resource": "GlobalAccelerator"
+        }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "globalaccelerator:CreateAccelerator"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "Null": {
+          "aws:RequestTag/elbv2.k8s.aws/cluster": "false"
+        },
+        "StringEquals": {
+          "aws:RequestTag/aga.k8s.aws/resource": "GlobalAccelerator"
+        }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "globalaccelerator:UpdateAccelerator",
+        "globalaccelerator:DeleteAccelerator",
+        "globalaccelerator:CreateListener",
+        "globalaccelerator:UpdateListener",
+        "globalaccelerator:DeleteListener",
+        "globalaccelerator:CreateEndpointGroup",
+        "globalaccelerator:UpdateEndpointGroup",
+        "globalaccelerator:DeleteEndpointGroup",
+        "globalaccelerator:AddEndpoints",
+        "globalaccelerator:RemoveEndpoints"
+      ],
+      "Resource": [
+		{
+          "Fn::Sub": "arn:${AWS::Partition}:globalaccelerator::*:accelerator/*"
+        },
+        {
+          "Fn::Sub": "arn:${AWS::Partition}:globalaccelerator::*:accelerator/*/listener/*"
+        },
+        {
+          "Fn::Sub": "arn:${AWS::Partition}:globalaccelerator::*:accelerator/*/listener/*/endpoint-group/*"
+        }
+      ],
+      "Condition": {
+        "Null": {
+          "aws:ResourceTag/elbv2.k8s.aws/cluster": "false"
+        },
+        "StringEquals": {
+          "aws:ResourceTag/aga.k8s.aws/resource": "GlobalAccelerator"
+        }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "globalaccelerator:TagResource",
+        "globalaccelerator:UntagResource"
+      ],
+      "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:globalaccelerator::*:accelerator/*"
+      },
+      "Condition": {
+        "Null": {
+          "aws:RequestTag/elbv2.k8s.aws/cluster": "true",
+          "aws:ResourceTag/elbv2.k8s.aws/cluster": "false"
+        },
+        "StringEquals": {
+          "aws:ResourceTag/aga.k8s.aws/resource": "GlobalAccelerator"
+        }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "globalaccelerator:TagResource"
+      ],
+      "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:globalaccelerator::*:accelerator/*"
+      },
+      "Condition": {
+        "Null": {
+          "aws:RequestTag/elbv2.k8s.aws/cluster": "false"
+        },
+        "StringEquals": {
+          "aws:RequestTag/aga.k8s.aws/resource": "GlobalAccelerator"
+        }
+      }
     }
   ],
   "Version": "2012-10-17"
