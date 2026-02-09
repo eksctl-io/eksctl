@@ -74,6 +74,11 @@ func createWellKnownPolicies(wellKnownPolicies api.WellKnownPolicies) ([]managed
 			customPolicyForRole{Name: "PolicyEFSCSIController", Statements: efsCSIControllerStatements()},
 		)
 	}
+	if wellKnownPolicies.AWSGlobalAccelerator {
+		customPolicies = append(customPolicies,
+			customPolicyForRole{Name: "PolicyAWSGlobalAccelerator", Statements: globalAcceleratorStatements()},
+		)
+	}
 	return managedPolicies, customPolicies
 }
 
@@ -141,6 +146,10 @@ func createRole(cfnTemplate cfnTemplate, clusterIAMConfig *api.ClusterIAM, iamCo
 
 	if api.IsEnabled(iamConfig.WithAddonPolicies.XRay) {
 		cfnTemplate.attachAllowPolicy("PolicyXRay", refIR, xRayStatements())
+	}
+
+	if api.IsEnabled(iamConfig.WithAddonPolicies.AWSGlobalAccelerator) {
+		cfnTemplate.attachAllowPolicy("PolicyAWSGlobalAccelerator", refIR, globalAcceleratorStatements())
 	}
 
 	return nil
