@@ -60,6 +60,14 @@ func TestManagedPolicyResources(t *testing.T) {
 			description:             "AutoScaler enabled",
 		},
 		{
+			addons: api.NodeGroupIAMAddonPolicies{
+				AWSGlobalAccelerator: api.Enabled(),
+			},
+			expectedNewPolicies:     []string{"PolicyAWSGlobalAccelerator"},
+			expectedManagedPolicies: makePartitionedPolicies("AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy", "AmazonEC2ContainerRegistryPullOnly", "AmazonSSMManagedInstanceCore"),
+			description:             "AWSGlobalAccelerator enabled",
+		},
+		{
 			attachPolicy: cft.MakePolicyDocument(cft.MapOfInterfaces{
 				"Effect": "Allow",
 				"Action": []string{
