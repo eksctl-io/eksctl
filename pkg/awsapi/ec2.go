@@ -2861,10 +2861,6 @@ type EC2 interface {
 	//     them through their termination. For more information, see [Instance lifecycle]in the Amazon EC2
 	//     User Guide.
 	//
-	//   - SQL license exemption monitoring - For instances registered with the SQL LE
-	//     service, status includes SQL license exemption monitoring health and processing
-	//     status to provide operational visibility into license exemption functionality.
-	//
 	// The Amazon EC2 API follows an eventual consistency model. This means that the
 	// result of an API command you run that creates or modifies resources might not be
 	// immediately available to all subsequent commands you run. For guidance on how to
@@ -5412,9 +5408,13 @@ type EC2 interface {
 	// With previous-generation instance types, resizing an EBS volume might require
 	// detaching and reattaching the volume or stopping and restarting the instance.
 	//
-	// After modifying a volume, you must wait at least six hours and ensure that the
-	// volume is in the in-use or available state before you can modify the same
-	// volume. This is sometimes referred to as a cooldown period.
+	// After you initiate a volume modification, you must wait for that modification
+	// to reach the completed state before you can initiate another modification for
+	// the same volume. You can modify a volume up to four times within a rolling
+	// 24-hour period, as long as the volume is in the in-use or available state, and
+	// all previous modifications for that volume are completed . If you exceed this
+	// limit, you get an error message that indicates when you can perform your next
+	// modification.
 	//
 	// [Monitor the progress of volume modifications]: https://docs.aws.amazon.com/ebs/latest/userguide/monitoring-volume-modifications.html
 	// [Amazon EBS Elastic Volumes]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-modify-volume.html
@@ -6430,4 +6430,3 @@ type EC2 interface {
 	// routing to Amazon Web Services because of BGP propagation delays.
 	WithdrawByoipCidr(ctx context.Context, params *ec2.WithdrawByoipCidrInput, optFns ...func(*Options)) (*ec2.WithdrawByoipCidrOutput, error)
 }
-
