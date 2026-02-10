@@ -2434,6 +2434,9 @@
           "description": "enables IAM policy for cluster-autoscaler",
           "x-intellij-html-description": "enables IAM policy for cluster-autoscaler"
         },
+        "awsGlobalAccelerator": {
+          "type": "boolean"
+        },
         "awsLoadBalancerController": {
           "type": "boolean"
         },
@@ -2483,7 +2486,8 @@
         "awsLoadBalancerController",
         "albIngress",
         "xRay",
-        "cloudWatch"
+        "cloudWatch",
+        "awsGlobalAccelerator"
       ],
       "additionalProperties": false,
       "description": "holds all IAM addon policies",
@@ -3146,6 +3150,12 @@
           "x-intellij-html-description": "adds policies for cluster-autoscaler. See <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/cluster-autoscaler.html\">autoscaler AWS docs</a>.",
           "default": "false"
         },
+        "awsGlobalAccelerator": {
+          "type": "boolean",
+          "description": "adds policies for using the Amazon Global Accelerator. See [IAM Policy for AWS Global Accelerator Controller](https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/install/aga_controller_iam_policy/).",
+          "x-intellij-html-description": "adds policies for using the Amazon Global Accelerator. See <a href=\"https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/install/aga_controller_iam_policy/\">IAM Policy for AWS Global Accelerator Controller</a>.",
+          "default": "false"
+        },
         "awsLoadBalancerController": {
           "type": "boolean",
           "description": "adds policies for using the aws-load-balancer-controller. See [Load Balancer docs](https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html).",
@@ -3190,7 +3200,8 @@
         "externalDNS",
         "certManager",
         "ebsCSIController",
-        "efsCSIController"
+        "efsCSIController",
+        "awsGlobalAccelerator"
       ],
       "additionalProperties": false,
       "description": "for attaching common IAM policies",
