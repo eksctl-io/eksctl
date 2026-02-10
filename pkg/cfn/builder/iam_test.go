@@ -336,7 +336,7 @@ var _ = Describe("template builder for IAM", func() {
             ]`))
 			Expect(t).To(HaveOutputWithValue(outputs.IAMServiceAccountRoleName, `{ "Fn::GetAtt": "Role1.Arn" }`))
 			Expect(t).To(HaveResourceWithPropertyValue("PolicyAWSLoadBalancerController", "PolicyDocument", expectedAWSLoadBalancerControllerPolicyDocument))
-			Expect(t).To(HaveResourceWithPropertyValue("PolicyAWSGlobalAccelerator", "PolicyDocument", expectedAWSAWSGlobalAcceleratorPolicyDocument))
+			Expect(t).To(HaveResourceWithPropertyValue("PolicyAWSGlobalAccelerator", "PolicyDocument", expectedAWSGlobalAcceleratorPolicyDocument))
 		})
 
 		It("can parse an iamserviceaccount addon template", func() {
@@ -809,7 +809,7 @@ const expectedAWSLoadBalancerControllerPolicyDocument = `{
   "Version": "2012-10-17"
 }`
 
-const expectedAWSAWSGlobalAcceleratorPolicyDocument = `{
+const expectedAWSGlobalAcceleratorPolicyDocument = `{
   "Statement": [
     {
       "Effect": "Allow",
