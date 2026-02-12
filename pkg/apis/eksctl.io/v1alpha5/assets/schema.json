@@ -2865,6 +2865,9 @@
           },
           "type": "array"
         },
+        "permissionPolicyName": {
+          "type": "string"
+        },
         "permissionsBoundaryARN": {
           "type": "string"
         },
@@ -2901,6 +2904,7 @@
         "roleName",
         "permissionsBoundaryARN",
         "permissionPolicyARNs",
+        "permissionPolicyName",
         "permissionPolicy",
         "wellKnownPolicies",
         "tags",

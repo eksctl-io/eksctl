@@ -193,6 +193,9 @@ type PodIdentityAssociation struct {
 	PermissionPolicyARNs []string `json:"permissionPolicyARNs,omitempty"`
 
 	// +optional
+	PermissionPolicyName string `json:"permissionPolicyName,omitempty"`
+
+	// +optional
 	PermissionPolicy InlineDocument `json:"permissionPolicy,omitempty"`
 
 	// +optional

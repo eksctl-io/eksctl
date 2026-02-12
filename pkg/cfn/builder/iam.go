@@ -339,6 +339,7 @@ func NewIAMRoleResourceSetForServiceAccount(spec *api.ClusterIAMServiceAccount, 
 		template:            cft.NewTemplate(),
 		attachPolicy:        spec.AttachPolicy,
 		attachPolicyARNs:    spec.AttachPolicyARNs,
+		attachPolicyName:    "Policy1",
 		serviceAccount:      spec.Name,
 		namespace:           spec.Namespace,
 		wellKnownPolicies:   spec.WellKnownPolicies,
@@ -361,10 +362,16 @@ func NewIAMRoleResourceSetForServiceAccount(spec *api.ClusterIAMServiceAccount, 
 }
 
 func NewIAMRoleResourceSetForPodIdentity(spec *api.PodIdentityAssociation) *IAMRoleResourceSet {
+	attachPolicyName := "Policy1"
+	if spec.PermissionPolicyName != "" {
+		attachPolicyName = spec.PermissionPolicyName
+	}
+
 	return &IAMRoleResourceSet{
 		template:            cft.NewTemplate(),
 		attachPolicy:        spec.PermissionPolicy,
 		attachPolicyARNs:    spec.PermissionPolicyARNs,
+		attachPolicyName:    attachPolicyName,
 		serviceAccount:      spec.ServiceAccountName,
 		namespace:           spec.Namespace,
 		wellKnownPolicies:   spec.WellKnownPolicies,
@@ -386,6 +393,7 @@ func NewIAMRoleResourceSetForCapability(spec *api.Capability) *IAMRoleResourceSe
 		template:         cft.NewTemplate(),
 		attachPolicy:     spec.AttachPolicy,
 		attachPolicyARNs: spec.AttachPolicyARNs,
+		attachPolicyName: "Policy1",
 		description: fmt.Sprintf(
 			"IAM role for capability %s %s",
 			spec.Name,
@@ -421,6 +429,7 @@ type IAMRoleResourceSet struct {
 	wellKnownPolicies   api.WellKnownPolicies
 	attachPolicyARNs    []string
 	attachPolicy        api.InlineDocument
+	attachPolicyName    string
 	trustStatements     []api.IAMStatement
 	roleNameCollector   func(string) error
 	OutputRole          string
@@ -452,6 +461,7 @@ func newIAMRoleResourceSet(name, namespace, serviceAccount, permissionsBoundary 
 		template:            cft.NewTemplate(),
 		attachPolicyARNs:    attachPolicyARNs,
 		attachPolicy:        attachPolicy,
+		attachPolicyName:    "Policy1",
 		oidc:                oidc,
 		serviceAccount:      serviceAccount,
 		namespace:           namespace,
@@ -512,7 +522,7 @@ func (rs *IAMRoleResourceSet) AddAllResources() error {
 	})
 
 	if len(rs.attachPolicy) != 0 {
-		rs.template.AttachPolicy("Policy1", roleRef, rs.attachPolicy)
+		rs.template.AttachPolicy(rs.attachPolicyName, roleRef, rs.attachPolicy)
 	}
 
 	return nil
