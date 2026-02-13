@@ -98,9 +98,10 @@ func (u *Updater) update(ctx context.Context, updateConfig *UpdateConfig, podIde
 			return err
 		}
 
-		// If there's no change to the IAM role or pod identity association properties, return early
+		// If there's no change to the IAM role, policy or pod identity association properties, return early
 		if !hasChanged &&
 			updateConfig.PodIdentityAssociation.TargetRoleARN == nil &&
+			updateConfig.PodIdentityAssociation.Policy == nil &&
 			updateConfig.PodIdentityAssociation.DisableSessionTags == nil {
 			return nil
 		}
@@ -116,6 +117,7 @@ func (u *Updater) updatePodIdentityAssociation(ctx context.Context, roleARN stri
 		RoleArn:            aws.String(roleARN),
 		TargetRoleArn:      updateConfig.PodIdentityAssociation.TargetRoleARN,
 		DisableSessionTags: updateConfig.PodIdentityAssociation.DisableSessionTags,
+		Policy:             updateConfig.PodIdentityAssociation.Policy,
 	}); err != nil {
 		return fmt.Errorf("(associationID: %s, roleARN: %s): %w", updateConfig.AssociationID, roleARN, err)
 	}
@@ -200,10 +202,11 @@ func (r *RoleUpdateValidator) ValidateRoleUpdate(pia api.PodIdentityAssociation,
 			RoleARN:            pia.RoleARN,
 			TargetRoleARN:      pia.TargetRoleARN,
 			DisableSessionTags: pia.DisableSessionTags,
+			Policy:             pia.Policy,
 		}
 
 		if !reflect.DeepEqual(pia, podIDWithCrossAccountFields) {
-			return errors.New("only namespace, serviceAccountName and roleARN can be specified if the role was not created by eksctl")
+			return errors.New("only namespace, serviceAccountName, roleARN and policy can be specified if the role was not created by eksctl")
 		}
 	}
 	return nil

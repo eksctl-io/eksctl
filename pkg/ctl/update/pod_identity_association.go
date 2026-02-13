@@ -38,9 +38,11 @@ func updatePodIdentityAssociation(cmd *cmdutils.Cmd) {
 		fs.StringVar(&options.RoleARN, "role-arn", "", "ARN of the IAM role to be associated with the service account")
 		var targetRoleArn string
 		var disableSessionTags, noDisableSessionTags bool
+		var policy string
 		fs.StringVar(&targetRoleArn, "target-role-arn", "", "ARN of the target IAM role for cross-account access")
 		fs.BoolVar(&disableSessionTags, "disable-session-tags", false, "Disable session tags added by EKS Pod Identity")
 		fs.BoolVar(&noDisableSessionTags, "no-disable-session-tags", false, "Enable session tags added by EKS Pod Identity")
+		fs.StringVar(&policy, "policy", "", "Optional policy that applies additional restrictions to this pod identity association beyond the IAM policies attached to the IAM role")
 		cmdutils.AddPreRun(cmd.CobraCommand, func(cobraCmd *cobra.Command, args []string) {
 			if fs.Changed("target-role-arn") {
 				options.TargetRoleARN = &targetRoleArn
@@ -50,6 +52,9 @@ func updatePodIdentityAssociation(cmd *cmdutils.Cmd) {
 			} else if fs.Changed("disable-session-tags") {
 				options.DisableSessionTags = utils.BoolPtr(true)
 			}
+			if fs.Changed("policy") {
+				options.Policy = &policy
+			}
 		})
 	})
 
@@ -57,6 +62,9 @@ func updatePodIdentityAssociation(cmd *cmdutils.Cmd) {
 }
 
 func doUpdatePodIdentityAssociation(cmd *cmdutils.Cmd, options cmdutils.UpdatePodIdentityAssociationOptions) error {
+	if options.Policy != nil && options.DisableSessionTags != nil && !*options.DisableSessionTags {
+		return cmdutils.ErrDisableSessionTagsMustBeSet()
+	}
 	if err := cmdutils.NewUpdatePodIdentityAssociationLoader(cmd, options).Load(); err != nil {
 		return err
 	}
@@ -84,6 +92,7 @@ func doUpdatePodIdentityAssociation(cmd *cmdutils.Cmd, options cmdutils.UpdatePo
 				RoleARN:            options.RoleARN,
 				TargetRoleARN:      options.TargetRoleARN,
 				DisableSessionTags: options.DisableSessionTags,
+				Policy:             options.Policy,
 			},
 		}
 	}
