@@ -47,6 +47,7 @@ var _ = Describe("Pod Identity Update", func() {
 		describeStackOutputs      []cfntypes.Output
 		describeStackCapabilities []cfntypes.Capability
 		makeStackName             func(podidentityassociation.Identifier) string
+		policy                    *string
 	}
 
 	mockCalls := func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS, o mockOptions) {
@@ -74,6 +75,7 @@ var _ = Describe("Pod Identity Update", func() {
 				AssociationId: aws.String(associationID),
 				ClusterName:   aws.String(clusterName),
 				RoleArn:       aws.String(o.updateRoleARN),
+				Policy:        o.policy,
 			}
 
 			// For the cross-account access test case
@@ -262,7 +264,7 @@ var _ = Describe("Pod Identity Update", func() {
 				eksAPI.AssertExpectations(GinkgoT())
 			},
 
-			expectedErr: `error updating pod identity association "kube-system/aws-node": only namespace, serviceAccountName and roleARN can be specified if the role was not created by eksctl`,
+			expectedErr: `error updating pod identity association "kube-system/aws-node": only namespace, serviceAccountName, roleARN and policy can be specified if the role was not created by eksctl`,
 		}),
 
 		Entry("roleName specified when the pod identity association was not created with a roleName", updateEntry{

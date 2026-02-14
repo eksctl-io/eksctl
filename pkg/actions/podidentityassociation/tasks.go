@@ -50,6 +50,7 @@ func (t *createPodIdentityAssociationTask) Do(errorCh chan error) error {
 		ServiceAccount:     &t.podIdentityAssociation.ServiceAccountName,
 		Tags:               t.podIdentityAssociation.Tags,
 		DisableSessionTags: t.podIdentityAssociation.DisableSessionTags,
+		Policy:             t.podIdentityAssociation.Policy,
 	}
 
 	// Add target role ARN if specified (for cross-account access)

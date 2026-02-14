@@ -2868,6 +2868,11 @@
         "permissionsBoundaryARN": {
           "type": "string"
         },
+        "policy": {
+          "type": "string",
+          "description": "optional policy that applies additional restrictions to this pod identity association beyond the IAM policies attached to the IAM role.",
+          "x-intellij-html-description": "optional policy that applies additional restrictions to this pod identity association beyond the IAM policies attached to the IAM role."
+        },
         "roleARN": {
           "type": "string"
         },
@@ -2905,7 +2910,8 @@
         "wellKnownPolicies",
         "tags",
         "targetRoleARN",
-        "disableSessionTags"
+        "disableSessionTags",
+        "policy"
       ],
       "additionalProperties": false
     },

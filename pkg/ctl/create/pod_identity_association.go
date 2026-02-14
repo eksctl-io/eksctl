@@ -37,6 +37,12 @@ func doCreatePodIdentityAssociation(cmd *cmdutils.Cmd) error {
 	cfg := cmd.ClusterConfig
 	ctx := context.Background()
 
+	for _, pia := range cfg.IAM.PodIdentityAssociations {
+		if pia.Policy != nil && (pia.DisableSessionTags == nil || !*pia.DisableSessionTags) {
+			return cmdutils.ErrDisableSessionTagsMustBeSet()
+		}
+	}
+
 	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
@@ -74,8 +80,10 @@ func configureCreatePodIdentityAssociationCmd(cmd *cmdutils.Cmd, pia *api.PodIde
 		fs.StringVar(&pia.PermissionsBoundaryARN, "permission-boundary-arn", "", "ARN of the policy that is used to set the permission boundary for the role")
 		var targetRoleARN string
 		var disableSessionTags bool
+		var policy string
 		fs.StringVar(&targetRoleARN, "target-role-arn", "", "ARN of the target IAM role for cross-account access (default to empty string for no cross-account access)")
 		fs.BoolVar(&disableSessionTags, "disable-session-tags", false, "Disable session tags added by EKS Pod Identity (if not provided, session tags are enabled by default)")
+		fs.StringVar(&policy, "policy", "", "Optional policy that applies additional restrictions to this pod identity association beyond the IAM policies attached to the IAM role")
 
 		// Store the flag values in the struct
 		cmdutils.AddPreRun(cmd.CobraCommand, func(cobraCmd *cobra.Command, args []string) {
@@ -84,6 +92,9 @@ func configureCreatePodIdentityAssociationCmd(cmd *cmdutils.Cmd, pia *api.PodIde
 			}
 			if fs.Changed("disable-session-tags") {
 				pia.DisableSessionTags = aws.Bool(true)
+			}
+			if fs.Changed("policy") {
+				pia.Policy = &policy
 			}
 		})
 
