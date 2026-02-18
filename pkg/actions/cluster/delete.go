@@ -13,6 +13,7 @@ import (
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/rest"
 
 	"github.com/kris-nova/logger"
 
@@ -60,11 +61,16 @@ func deleteSharedResources(ctx context.Context, cfg *api.ClusterConfig, ctl *eks
 		cfg.Metadata.Version = *ctl.Status.ClusterInfo.Cluster.Version
 
 		// Create rest.Config for Gateway API cleanup
-		rawClient, err := ctl.NewRawClient(cfg)
-		if err != nil {
-			return fmt.Errorf("failed to create Kubernetes client for cleanup: %w", err)
+		// If this fails, we'll pass nil and skip Gateway cleanup but continue with Service/Ingress
+		var restConfig *rest.Config
+		if ctl.KubeProvider != nil {
+			rawClient, err := ctl.NewRawClient(cfg)
+			if err != nil {
+				logger.Warning("failed to create Kubernetes client for Gateway API cleanup, will skip Gateway resources: %v", err)
+			} else if rawClient != nil {
+				restConfig = rawClient.RestConfig()
+			}
 		}
-		restConfig := rawClient.RestConfig()
 
 		logger.Info("cleaning up AWS load balancers created by Kubernetes objects of Kind Service, Ingress, or Gateway")
 		if err := elb.Cleanup(ctx, ctl.AWSProvider.EC2(), ctl.AWSProvider.ELB(), ctl.AWSProvider.ELBV2(), clientSet, restConfig, cfg); err != nil {

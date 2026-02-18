@@ -23,6 +23,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	eksfakes "github.com/weaveworks/eksctl/pkg/eks/fakes"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
@@ -119,6 +120,11 @@ var _ = Describe("Delete", func() {
 			c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager, autoModeDeleter)
 			fakeClientSet = fake.NewSimpleClientset()
 
+			// Mock KubeProvider to return nil for NewRawClient (Gateway API not available)
+			fakeKubeProvider := &eksfakes.FakeKubeProvider{}
+			fakeKubeProvider.NewRawClientReturns(nil, nil)
+			c.MockKubeProvider(fakeKubeProvider)
+
 			c.SetNewClientSet(func() (kubernetes.Interface, error) {
 				return fakeClientSet, nil
 			})
@@ -187,6 +193,11 @@ var _ = Describe("Delete", func() {
 				c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager, autoModeDeleter)
 				fakeClientSet = fake.NewSimpleClientset()
 
+				// Mock KubeProvider to return nil for NewRawClient (Gateway API not available)
+				fakeKubeProvider := &eksfakes.FakeKubeProvider{}
+				fakeKubeProvider.NewRawClientReturns(nil, nil)
+				c.MockKubeProvider(fakeKubeProvider)
+
 				c.SetNewClientSet(func() (kubernetes.Interface, error) {
 					return fakeClientSet, nil
 				})
@@ -251,6 +262,11 @@ var _ = Describe("Delete", func() {
 
 				c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager, autoModeDeleter)
 				fakeClientSet = fake.NewSimpleClientset()
+
+				// Mock KubeProvider to return nil for NewRawClient (Gateway API not available)
+				fakeKubeProvider := &eksfakes.FakeKubeProvider{}
+				fakeKubeProvider.NewRawClientReturns(nil, nil)
+				c.MockKubeProvider(fakeKubeProvider)
 
 				c.SetNewClientSet(func() (kubernetes.Interface, error) {
 					return fakeClientSet, nil
@@ -320,6 +336,12 @@ var _ = Describe("Delete", func() {
 			}, nil)
 
 			c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager, autoModeDeleter)
+
+			// Mock KubeProvider to return nil for NewRawClient (Gateway API not available)
+			fakeKubeProvider := &eksfakes.FakeKubeProvider{}
+			fakeKubeProvider.NewRawClientReturns(nil, nil)
+			c.MockKubeProvider(fakeKubeProvider)
+
 			c.SetNewNodeGroupDrainer(func(clientSet kubernetes.Interface) cluster.NodeGroupDrainer {
 				mockedDrainer := &drainerMockOwned{}
 				mockedDrainer.On("Drain", mock.Anything).Return(nil)

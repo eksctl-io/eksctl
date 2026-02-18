@@ -27,6 +27,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	cloudprovider "k8s.io/cloud-provider"
+	gatewayclient "sigs.k8s.io/gateway-api/pkg/client/clientset/versioned"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
@@ -91,13 +92,20 @@ func Cleanup(ctx context.Context, ec2API awsapi.EC2, elbAPI DescribeLoadBalancer
 		return errors.New(errStr)
 	}
 
-	gateways, gwClient, err := listGateway(ctx, restConfig)
-	if err != nil {
-		errStr := fmt.Sprintf("cannot list Kubernetes Gateways: %s", err)
-		if k8serrors.IsForbidden(err) {
-			errStr = fmt.Sprintf("%s (deleting a cluster requires permission to list Kubernetes Gateways)", errStr)
+	// List Gateways only if restConfig is available (Gateway API cleanup requires gateway client)
+	var gateways []Gateway
+	var gwClient gatewayclient.Interface
+	if restConfig != nil {
+		gateways, gwClient, err = listGateway(ctx, restConfig)
+		if err != nil {
+			errStr := fmt.Sprintf("cannot list Kubernetes Gateways: %s", err)
+			if k8serrors.IsForbidden(err) {
+				errStr = fmt.Sprintf("%s (deleting a cluster requires permission to list Kubernetes Gateways)", errStr)
+			}
+			return errors.New(errStr)
 		}
-		return errors.New(errStr)
+	} else {
+		logger.Debug("skipping Gateway API cleanup (restConfig not available)")
 	}
 
 	// Delete Services of type 'LoadBalancer' and Ingresses with IngressClass of alb
