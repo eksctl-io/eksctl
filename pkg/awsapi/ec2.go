@@ -1392,6 +1392,22 @@ type EC2 interface {
 	//
 	// [Route tables]: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
 	CreateRouteTable(ctx context.Context, params *ec2.CreateRouteTableInput, optFns ...func(*Options)) (*ec2.CreateRouteTableOutput, error)
+	// Creates an Amazon secondary network.
+	//
+	// The allowed size for a secondary network CIDR block is between /28 netmask (16
+	// IP addresses) and /12 netmask (1,048,576 IP addresses).
+	CreateSecondaryNetwork(ctx context.Context, params *ec2.CreateSecondaryNetworkInput, optFns ...func(*Options)) (*ec2.CreateSecondaryNetworkOutput, error)
+	// Creates a secondary subnet in a secondary network.
+	//
+	// A secondary subnet CIDR block must not overlap with the CIDR block of an
+	// existing secondary subnet in the secondary network. After you create a secondary
+	// subnet, you can't change its CIDR block.
+	//
+	// The allowed size for a secondary subnet CIDR block is between /28 netmask (16
+	// IP addresses) and /12 netmask (1,048,576 IP addresses). Amazon reserves the
+	// first four IP addresses and the last IP address in each secondary subnet for
+	// internal use.
+	CreateSecondarySubnet(ctx context.Context, params *ec2.CreateSecondarySubnetInput, optFns ...func(*Options)) (*ec2.CreateSecondarySubnetOutput, error)
 	// Creates a security group.
 	//
 	// A security group acts as a virtual firewall for your instance to control
@@ -2124,6 +2140,12 @@ type EC2 interface {
 	// Deletes the specified route table. You must disassociate the route table from
 	// any subnets before you can delete it. You can't delete the main route table.
 	DeleteRouteTable(ctx context.Context, params *ec2.DeleteRouteTableInput, optFns ...func(*Options)) (*ec2.DeleteRouteTableOutput, error)
+	// Deletes a secondary network. You must delete all secondary subnets in the
+	// secondary network before you can delete the secondary network.
+	DeleteSecondaryNetwork(ctx context.Context, params *ec2.DeleteSecondaryNetworkInput, optFns ...func(*Options)) (*ec2.DeleteSecondaryNetworkOutput, error)
+	// Deletes a secondary subnet. A secondary subnet must not contain any secondary
+	// interfaces prior to deletion.
+	DeleteSecondarySubnet(ctx context.Context, params *ec2.DeleteSecondarySubnetInput, optFns ...func(*Options)) (*ec2.DeleteSecondarySubnetOutput, error)
 	// Deletes a security group.
 	//
 	// If you attempt to delete a security group that is associated with an instance
@@ -2861,10 +2883,6 @@ type EC2 interface {
 	//     them through their termination. For more information, see [Instance lifecycle]in the Amazon EC2
 	//     User Guide.
 	//
-	//   - SQL license exemption monitoring - For instances registered with the SQL LE
-	//     service, status includes SQL license exemption monitoring health and processing
-	//     status to provide operational visibility into license exemption functionality.
-	//
 	// The Amazon EC2 API follows an eventual consistency model. This means that the
 	// result of an API command you run that creates or modifies resources might not be
 	// immediately available to all subsequent commands you run. For guidance on how to
@@ -3289,6 +3307,12 @@ type EC2 interface {
 	DescribeScheduledInstanceAvailability(ctx context.Context, params *ec2.DescribeScheduledInstanceAvailabilityInput, optFns ...func(*Options)) (*ec2.DescribeScheduledInstanceAvailabilityOutput, error)
 	// Describes the specified Scheduled Instances or all your Scheduled Instances.
 	DescribeScheduledInstances(ctx context.Context, params *ec2.DescribeScheduledInstancesInput, optFns ...func(*Options)) (*ec2.DescribeScheduledInstancesOutput, error)
+	// Describes one or more of your secondary interfaces.
+	DescribeSecondaryInterfaces(ctx context.Context, params *ec2.DescribeSecondaryInterfacesInput, optFns ...func(*Options)) (*ec2.DescribeSecondaryInterfacesOutput, error)
+	// Describes one or more secondary networks.
+	DescribeSecondaryNetworks(ctx context.Context, params *ec2.DescribeSecondaryNetworksInput, optFns ...func(*Options)) (*ec2.DescribeSecondaryNetworksOutput, error)
+	// Describes one or more of your secondary subnets.
+	DescribeSecondarySubnets(ctx context.Context, params *ec2.DescribeSecondarySubnetsInput, optFns ...func(*Options)) (*ec2.DescribeSecondarySubnetsOutput, error)
 	// Describes the VPCs on the other side of a VPC peering or Transit Gateway
 	// connection that are referencing the security groups you've specified in this
 	// request.
@@ -5412,9 +5436,13 @@ type EC2 interface {
 	// With previous-generation instance types, resizing an EBS volume might require
 	// detaching and reattaching the volume or stopping and restarting the instance.
 	//
-	// After modifying a volume, you must wait at least six hours and ensure that the
-	// volume is in the in-use or available state before you can modify the same
-	// volume. This is sometimes referred to as a cooldown period.
+	// After you initiate a volume modification, you must wait for that modification
+	// to reach the completed state before you can initiate another modification for
+	// the same volume. You can modify a volume up to four times within a rolling
+	// 24-hour period, as long as the volume is in the in-use or available state, and
+	// all previous modifications for that volume are completed . If you exceed this
+	// limit, you get an error message that indicates when you can perform your next
+	// modification.
 	//
 	// [Monitor the progress of volume modifications]: https://docs.aws.amazon.com/ebs/latest/userguide/monitoring-volume-modifications.html
 	// [Amazon EBS Elastic Volumes]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-modify-volume.html

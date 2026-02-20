@@ -74,10 +74,17 @@ type CloudWatchLogs interface {
 	// [StartQuery]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_StartQuery.html
 	// [GetQueryResults]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_GetQueryResults.html
 	AssociateKmsKey(ctx context.Context, params *cloudwatchlogs.AssociateKmsKeyInput, optFns ...func(*Options)) (*cloudwatchlogs.AssociateKmsKeyOutput, error)
+	// Associates a data source with an S3 Table Integration for query access in the
+	// 'logs' namespace. This enables querying log data using analytics engines that
+	// support Iceberg such as Amazon Athena, Amazon Redshift, and Apache Spark.
+	AssociateSourceToS3TableIntegration(ctx context.Context, params *cloudwatchlogs.AssociateSourceToS3TableIntegrationInput, optFns ...func(*Options)) (*cloudwatchlogs.AssociateSourceToS3TableIntegrationOutput, error)
 	// Cancels the specified export task.
 	//
 	// The task must be in the PENDING or RUNNING state.
 	CancelExportTask(ctx context.Context, params *cloudwatchlogs.CancelExportTaskInput, optFns ...func(*Options)) (*cloudwatchlogs.CancelExportTaskOutput, error)
+	// Cancels an active import task and stops importing data from the CloudTrail Lake
+	// Event Data Store.
+	CancelImportTask(ctx context.Context, params *cloudwatchlogs.CancelImportTaskInput, optFns ...func(*Options)) (*cloudwatchlogs.CancelImportTaskOutput, error)
 	// Creates a delivery. A delivery is a connection between a logical delivery
 	// source and a logical delivery destination that you have already created.
 	//
@@ -149,6 +156,64 @@ type CloudWatchLogs interface {
 	// [DescribeExportTasks]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_DescribeExportTasks.html
 	// [Real-time processing of log data with subscriptions]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Subscriptions.html
 	CreateExportTask(ctx context.Context, params *cloudwatchlogs.CreateExportTaskInput, optFns ...func(*Options)) (*cloudwatchlogs.CreateExportTaskOutput, error)
+	// Starts an import from a data source to CloudWatch Log and creates a managed log
+	// group as the destination for the imported data. Currently, [CloudTrail Event Data Store]is the only
+	// supported data source.
+	//
+	// The import task must satisfy the following constraints:
+	//
+	//   - The specified source must be in an ACTIVE state.
+	//
+	//   - The API caller must have permissions to access the data in the provided
+	//     source and to perform iam:PassRole on the provided import role which has the
+	//     same permissions, as described below.
+	//
+	//   - The provided IAM role must trust the "cloudtrail.amazonaws.com" principal
+	//     and have the following permissions:
+	//
+	//   - cloudtrail:GetEventDataStoreData
+	//
+	//   - logs:CreateLogGroup
+	//
+	//   - logs:CreateLogStream
+	//
+	//   - logs:PutResourcePolicy
+	//
+	//   - (If source has an associated AWS KMS Key) kms:Decrypt
+	//
+	//   - (If source has an associated AWS KMS Key) kms:GenerateDataKey
+	//
+	// Example IAM policy for provided import role:
+	//
+	// [ { "Effect": "Allow", "Action": "iam:PassRole", "Resource":
+	//
+	//	"arn:aws:iam::123456789012:role/apiCallerCredentials", "Condition": {
+	//	"StringLike": { "iam:AssociatedResourceARN":
+	//	"arn:aws:logs:us-east-1:123456789012:log-group:aws/cloudtrail/f1d45bff-d0e3-4868-b5d9-2eb678aa32fb:*"
+	//	} } }, { "Effect": "Allow", "Action": [ "cloudtrail:GetEventDataStoreData" ],
+	//	"Resource": [
+	//	"arn:aws:cloudtrail:us-east-1:123456789012:eventdatastore/f1d45bff-d0e3-4868-b5d9-2eb678aa32fb"
+	//	] }, { "Effect": "Allow", "Action": [ "logs:CreateImportTask",
+	//	"logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutResourcePolicy" ],
+	//	"Resource": [ "arn:aws:logs:us-east-1:123456789012:log-group:/aws/cloudtrail/*"
+	//	] }, { "Effect": "Allow", "Action": [ "kms:Decrypt", "kms:GenerateDataKey" ],
+	//	"Resource": [
+	//	"arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012" ]
+	//	} ]
+	//
+	//	- If the import source has a customer managed key, the
+	//	"cloudtrail.amazonaws.com" principal needs permissions to perform kms:Decrypt
+	//	and kms:GenerateDataKey.
+	//
+	//	- There can be no more than 3 active imports per account at a given time.
+	//
+	//	- The startEventTime must be less than or equal to endEventTime.
+	//
+	//	- The data being imported must be within the specified source's retention
+	//	period.
+	//
+	// [CloudTrail Event Data Store]: https://docs.aws.amazon.com/awscloudtrail/latest/userguide/query-event-data-store.html
+	CreateImportTask(ctx context.Context, params *cloudwatchlogs.CreateImportTaskInput, optFns ...func(*Options)) (*cloudwatchlogs.CreateImportTaskOutput, error)
 	// Creates an anomaly detector that regularly scans one or more log groups and
 	// look for patterns and anomalies in the logs.
 	//
@@ -231,13 +296,17 @@ type CloudWatchLogs interface {
 	//
 	//   - Don't use ':' (colon) or '*' (asterisk) characters.
 	CreateLogStream(ctx context.Context, params *cloudwatchlogs.CreateLogStreamInput, optFns ...func(*Options)) (*cloudwatchlogs.CreateLogStreamOutput, error)
-	// Creates a new Scheduled Query that runs CloudWatch Logs Insights queries on a
-	// schedule and delivers results to specified destinations.
+	// Creates a scheduled query that runs CloudWatch Logs Insights queries at regular
+	// intervals. Scheduled queries enable proactive monitoring by automatically
+	// executing queries to detect patterns and anomalies in your log data. Query
+	// results can be delivered to Amazon S3 for analysis or further processing.
 	CreateScheduledQuery(ctx context.Context, params *cloudwatchlogs.CreateScheduledQueryInput, optFns ...func(*Options)) (*cloudwatchlogs.CreateScheduledQueryOutput, error)
 	// Deletes a CloudWatch Logs account policy. This stops the account-wide policy
-	// from applying to log groups in the account. If you delete a data protection
-	// policy or subscription filter policy, any log-group level policies of those
-	// types remain in effect.
+	// from applying to log groups or data sources in the account. If you delete a data
+	// protection policy or subscription filter policy, any log-group level policies of
+	// those types remain in effect. This operation supports deletion of data
+	// source-based field index policies, including facet configurations, in addition
+	// to log group-based policies.
 	//
 	// To use this operation, you must be signed on with the correct permissions
 	// depending on the type of policy that you are deleting.
@@ -253,6 +322,11 @@ type CloudWatchLogs interface {
 	//
 	//   - To delete a field index policy, you must have the logs:DeleteIndexPolicy and
 	//     logs:DeleteAccountPolicy permissions.
+	//
+	// If you delete a field index policy that included facet configurations, those
+	//
+	//	facets will no longer be available for interactive exploration in the CloudWatch
+	//	Logs Insights console. However, facet data is retained for up to 30 days.
 	//
 	// If you delete a field index policy, the indexing of the log events that
 	// happened before you deleted the policy will still be used for up to 30 days to
@@ -302,14 +376,21 @@ type CloudWatchLogs interface {
 	// will still be used for as many as 30 days to improve CloudWatch Logs Insights
 	// queries.
 	//
+	// If the deleted policy included facet configurations, those facets will no
+	// longer be available for interactive exploration in the CloudWatch Logs Insights
+	// console for this log group. However, facet data is retained for up to 30 days.
+	//
 	// You can't use this operation to delete an account-level index policy. Instead,
-	// use [DeletAccountPolicy].
+	// use [DeleteAccountPolicy].
 	//
 	// If you delete a log-group level field index policy and there is an
 	// account-level field index policy, in a few minutes the log group begins using
-	// that account-wide policy to index new incoming log events.
+	// that account-wide policy to index new incoming log events. This operation only
+	// affects log group-level policies, including any facet configurations, and
+	// preserves any data source-based account policies that may apply to the log
+	// group.
 	//
-	// [DeletAccountPolicy]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_DeleteAccountPolicy.html
+	// [DeleteAccountPolicy]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_DeleteAccountPolicy.html
 	DeleteIndexPolicy(ctx context.Context, params *cloudwatchlogs.DeleteIndexPolicyInput, optFns ...func(*Options)) (*cloudwatchlogs.DeleteIndexPolicyOutput, error)
 	// Deletes the integration between CloudWatch Logs and OpenSearch Service. If your
 	// integration has active vended logs dashboards, you must specify true for the
@@ -344,8 +425,8 @@ type CloudWatchLogs interface {
 	// Log events do not expire if they belong to log groups without a retention
 	// policy.
 	DeleteRetentionPolicy(ctx context.Context, params *cloudwatchlogs.DeleteRetentionPolicyInput, optFns ...func(*Options)) (*cloudwatchlogs.DeleteRetentionPolicyOutput, error)
-	// Deletes an existing scheduled query and all its associated configurations. This
-	// operation permanently removes the scheduled query and cannot be undone.
+	// Deletes a scheduled query and stops all future executions. This operation also
+	// removes any configured actions and associated resources.
 	DeleteScheduledQuery(ctx context.Context, params *cloudwatchlogs.DeleteScheduledQueryInput, optFns ...func(*Options)) (*cloudwatchlogs.DeleteScheduledQueryOutput, error)
 	// Deletes the specified subscription filter.
 	DeleteSubscriptionFilter(ctx context.Context, params *cloudwatchlogs.DeleteSubscriptionFilterInput, optFns ...func(*Options)) (*cloudwatchlogs.DeleteSubscriptionFilterOutput, error)
@@ -409,6 +490,13 @@ type CloudWatchLogs interface {
 	//
 	// [PutIndexPolicy]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutIndexPolicy.html
 	DescribeFieldIndexes(ctx context.Context, params *cloudwatchlogs.DescribeFieldIndexesInput, optFns ...func(*Options)) (*cloudwatchlogs.DescribeFieldIndexesOutput, error)
+	// Gets detailed information about the individual batches within an import task,
+	// including their status and any error messages. For CloudTrail Event Data Store
+	// sources, a batch refers to a subset of stored events grouped by their eventTime.
+	DescribeImportTaskBatches(ctx context.Context, params *cloudwatchlogs.DescribeImportTaskBatchesInput, optFns ...func(*Options)) (*cloudwatchlogs.DescribeImportTaskBatchesOutput, error)
+	// Lists and describes import tasks, with optional filtering by import status and
+	// source ARN.
+	DescribeImportTasks(ctx context.Context, params *cloudwatchlogs.DescribeImportTasksInput, optFns ...func(*Options)) (*cloudwatchlogs.DescribeImportTasksOutput, error)
 	// Returns the field index policies of the specified log group. For more
 	// information about field index policies, see [PutIndexPolicy].
 	//
@@ -424,8 +512,9 @@ type CloudWatchLogs interface {
 	// [PutIndexPolicy]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutIndexPolicy.html
 	// [DescribeAccountPolicies]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_DescribeAccountPolicies.html
 	DescribeIndexPolicies(ctx context.Context, params *cloudwatchlogs.DescribeIndexPoliciesInput, optFns ...func(*Options)) (*cloudwatchlogs.DescribeIndexPoliciesOutput, error)
-	// Returns information about log groups. You can return all your log groups or
-	// filter the results by prefix. The results are ASCII-sorted by log group name.
+	// Returns information about log groups, including data sources that ingest into
+	// each log group. You can return all your log groups or filter the results by
+	// prefix. The results are ASCII-sorted by log group name.
 	//
 	// CloudWatch Logs doesn't support IAM policies that control access to the
 	// DescribeLogGroups action by using the aws:ResourceTag/key-name  condition key.
@@ -464,6 +553,11 @@ type CloudWatchLogs interface {
 	// Returns a list of CloudWatch Logs Insights queries that are scheduled, running,
 	// or have been run recently in this account. You can request all queries or limit
 	// it to queries of a specific log group or queries with a certain status.
+	//
+	// This operation includes both interactive queries started directly by users and
+	// automated queries executed by scheduled query configurations. Scheduled query
+	// executions appear in the results alongside manually initiated queries, providing
+	// visibility into all query activity in your account.
 	DescribeQueries(ctx context.Context, params *cloudwatchlogs.DescribeQueriesInput, optFns ...func(*Options)) (*cloudwatchlogs.DescribeQueriesOutput, error)
 	// This operation returns a paginated list of your saved CloudWatch Logs Insights
 	// query definitions. You can retrieve query definitions from the current account
@@ -503,6 +597,9 @@ type CloudWatchLogs interface {
 	//
 	// [StartQuery]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_StartQuery.html
 	DisassociateKmsKey(ctx context.Context, params *cloudwatchlogs.DisassociateKmsKeyInput, optFns ...func(*Options)) (*cloudwatchlogs.DisassociateKmsKeyOutput, error)
+	// Disassociates a data source from an S3 Table Integration, removing query access
+	// and deleting all associated data from the integration.
+	DisassociateSourceFromS3TableIntegration(ctx context.Context, params *cloudwatchlogs.DisassociateSourceFromS3TableIntegrationInput, optFns ...func(*Options)) (*cloudwatchlogs.DisassociateSourceFromS3TableIntegrationOutput, error)
 	// Lists log events from the specified log group. You can list all the log events
 	// or filter the results using one or more of the following:
 	//
@@ -622,9 +719,16 @@ type CloudWatchLogs interface {
 	// [CloudWatch Logs query.]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html
 	// [Live Tail]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogs_LiveTail.html
 	GetLogEvents(ctx context.Context, params *cloudwatchlogs.GetLogEventsInput, optFns ...func(*Options)) (*cloudwatchlogs.GetLogEventsOutput, error)
+	// Discovers available fields for a specific data source and type. The response
+	// includes any field modifications introduced through pipelines, such as new
+	// fields or changed field types.
+	GetLogFields(ctx context.Context, params *cloudwatchlogs.GetLogFieldsInput, optFns ...func(*Options)) (*cloudwatchlogs.GetLogFieldsOutput, error)
 	// Returns a list of the fields that are included in log events in the specified
 	// log group. Includes the percentage of log events that contain each field. The
 	// search is limited to a time period that you specify.
+	//
+	// This operation is used for discovering fields within log group events. For
+	// discovering fields across data sources, use the GetLogFields operation.
 	//
 	// You can specify the log group to search by using either logGroupIdentifier or
 	// logGroupName . You must specify one of these parameters, but you can't specify
@@ -677,6 +781,11 @@ type CloudWatchLogs interface {
 	// returns only partial results. If you see a value of Scheduled or Running for
 	// the status, you can retry the operation later to see the final results.
 	//
+	// This operation is used both for retrieving results from interactive queries and
+	// from automated scheduled query executions. Scheduled queries use GetQueryResults
+	// internally to retrieve query results for processing and delivery to configured
+	// destinations.
+	//
 	// If you are using CloudWatch cross-account observability, you can use this
 	// operation in a monitoring account to start queries in linked source accounts.
 	// For more information, see [CloudWatch cross-account observability].
@@ -686,11 +795,11 @@ type CloudWatchLogs interface {
 	// [CloudWatch Logs quotas]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/cloudwatch_limits_cwl.html
 	// [StartQuery]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_StartQuery.html
 	GetQueryResults(ctx context.Context, params *cloudwatchlogs.GetQueryResultsInput, optFns ...func(*Options)) (*cloudwatchlogs.GetQueryResultsOutput, error)
-	// Returns detailed information about a specified scheduled query, including its
-	// configuration, current state, and execution history.
+	// Retrieves details about a specific scheduled query, including its
+	// configuration, execution status, and metadata.
 	GetScheduledQuery(ctx context.Context, params *cloudwatchlogs.GetScheduledQueryInput, optFns ...func(*Options)) (*cloudwatchlogs.GetScheduledQueryOutput, error)
 	// Retrieves the execution history of a scheduled query within a specified time
-	// range, including execution status and destination processing metadata.
+	// range, including query results and destination processing status.
 	GetScheduledQueryHistory(ctx context.Context, params *cloudwatchlogs.GetScheduledQueryHistoryInput, optFns ...func(*Options)) (*cloudwatchlogs.GetScheduledQueryHistoryOutput, error)
 	// Returns the information about the log transformer associated with this log
 	// group.
@@ -700,6 +809,21 @@ type CloudWatchLogs interface {
 	//
 	// [DescribeAccountPolicies]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_DescribeAccountPolicies.html
 	GetTransformer(ctx context.Context, params *cloudwatchlogs.GetTransformerInput, optFns ...func(*Options)) (*cloudwatchlogs.GetTransformerOutput, error)
+	// Returns an aggregate summary of all log groups in the Region grouped by
+	// specified data source characteristics. Supports optional filtering by log group
+	// class, name patterns, and data sources. If you perform this action in a
+	// monitoring account, you can also return aggregated summaries of log groups from
+	// source accounts that are linked to the monitoring account. For more information
+	// about using cross-account observability to set up monitoring accounts and source
+	// accounts, see [CloudWatch cross-account observability].
+	//
+	// The operation aggregates log groups by data source name and type and optionally
+	// format, providing counts of log groups that share these characteristics. The
+	// operation paginates results. By default, it returns up to 50 results and
+	// includes a token to retrieve more results.
+	//
+	// [CloudWatch cross-account observability]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account.html
+	ListAggregateLogGroupSummaries(ctx context.Context, params *cloudwatchlogs.ListAggregateLogGroupSummariesInput, optFns ...func(*Options)) (*cloudwatchlogs.ListAggregateLogGroupSummariesOutput, error)
 	// Returns a list of anomalies that log anomaly detectors have found. For details
 	// about the structure format of each anomaly object that is returned, see the
 	// example in this section.
@@ -716,8 +840,12 @@ type CloudWatchLogs interface {
 	// more information about using cross-account observability to set up monitoring
 	// accounts and source accounts, see [CloudWatch cross-account observability].
 	//
-	// You can optionally filter the list by log group class and by using regular
-	// expressions in your request to match strings in the log group names.
+	// You can optionally filter the list by log group class, by using regular
+	// expressions in your request to match strings in the log group names, by using
+	// the fieldIndexes parameter to filter log groups based on which field indexes are
+	// configured, by using the dataSources parameter to filter log groups by data
+	// source types, and by using the fieldIndexNames parameter to filter by specific
+	// field index names.
 	//
 	// This operation is paginated. By default, your first use of this operation
 	// returns 50 results, and includes a token to use in a subsequent operation to
@@ -734,9 +862,13 @@ type CloudWatchLogs interface {
 	//
 	// [Create field indexes to improve query performance and reduce costs]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogs-Field-Indexing.html
 	ListLogGroupsForQuery(ctx context.Context, params *cloudwatchlogs.ListLogGroupsForQueryInput, optFns ...func(*Options)) (*cloudwatchlogs.ListLogGroupsForQueryOutput, error)
-	// Lists all scheduled queries in the current AWS account and region with optional
-	// filtering by state.
+	// Lists all scheduled queries in your account and region. You can filter results
+	// by state to show only enabled or disabled queries.
 	ListScheduledQueries(ctx context.Context, params *cloudwatchlogs.ListScheduledQueriesInput, optFns ...func(*Options)) (*cloudwatchlogs.ListScheduledQueriesOutput, error)
+	// Returns a list of data source associations for a specified S3 Table
+	// Integration, showing which data sources are currently associated for query
+	// access.
+	ListSourcesForS3TableIntegration(ctx context.Context, params *cloudwatchlogs.ListSourcesForS3TableIntegrationInput, optFns ...func(*Options)) (*cloudwatchlogs.ListSourcesForS3TableIntegrationOutput, error)
 	// Displays the tags associated with a CloudWatch Logs resource. Currently, log
 	// groups and destinations support tagging.
 	ListTagsForResource(ctx context.Context, params *cloudwatchlogs.ListTagsForResourceInput, optFns ...func(*Options)) (*cloudwatchlogs.ListTagsForResourceOutput, error)
@@ -751,7 +883,13 @@ type CloudWatchLogs interface {
 	ListTagsLogGroup(ctx context.Context, params *cloudwatchlogs.ListTagsLogGroupInput, optFns ...func(*Options)) (*cloudwatchlogs.ListTagsLogGroupOutput, error)
 	// Creates an account-level data protection policy, subscription filter policy,
 	// field index policy, transformer policy, or metric extraction policy that applies
-	// to all log groups or a subset of log groups in the account.
+	// to all log groups, a subset of log groups, or a data source name and type
+	// combination in the account.
+	//
+	// For field index policies, you can configure indexed fields as facets to enable
+	// interactive exploration of your logs. Facets provide value distributions and
+	// counts for indexed fields in the CloudWatch Logs Insights console without
+	// requiring query execution. For more information, see [Use facets to group and explore logs].
 	//
 	// To use this operation, you must be signed on with the correct permissions
 	// depending on the type of policy that you are creating.
@@ -767,6 +905,9 @@ type CloudWatchLogs interface {
 	//
 	//   - To create a field index policy, you must have the logs:PutIndexPolicy and
 	//     logs:PutAccountPolicy permissions.
+	//
+	//   - To configure facets for field index policies, you must have the
+	//     logs:PutIndexPolicy and logs:PutAccountPolicy permissions.
 	//
 	//   - To create a metric extraction policy, you must have the
 	//     logs:PutMetricExtractionPolicy and logs:PutAccountPolicy permissions.
@@ -872,8 +1013,57 @@ type CloudWatchLogs interface {
 	// selectionCriteria parameter. If you have multiple account-level transformer
 	// policies with selection criteria, no two of them can use the same or overlapping
 	// log group name prefixes. For example, if you have one policy filtered to log
-	// groups that start with my-log , you can't have another field index policy
+	// groups that start with my-log , you can't have another transformer policy
 	// filtered to my-logpprod or my-logging .
+	//
+	// You can also set up a transformer at the log-group level. For more information,
+	// see [PutTransformer]. If there is both a log-group level transformer created with PutTransformer
+	// and an account-level transformer that could apply to the same log group, the log
+	// group uses only the log-group level transformer. It ignores the account-level
+	// transformer.
+	//
+	// # Field index policy
+	//
+	// You can use field index policies to create indexes on fields found in log
+	// events for a log group or data source name and type combination. Creating field
+	// indexes can help lower the scan volume for CloudWatch Logs Insights queries that
+	// reference those fields, because these queries attempt to skip the processing of
+	// log events that are known to not match the indexed field. Good fields to index
+	// are fields that you often need to query for and fields or values that match only
+	// a small fraction of the total log events. Common examples of indexes include
+	// request ID, session ID, user IDs, or instance IDs. For more information, see [Create field indexes to improve query performance and reduce costs]
+	//
+	// To find the fields that are in your log group events, use the [GetLogGroupFields] operation. To
+	// find the fields for a data source use the [GetLogFields]operation.
+	//
+	// For example, suppose you have created a field index for requestId . Then, any
+	// CloudWatch Logs Insights query on that log group that includes requestId =
+	// value or requestId in [value, value, ...] will attempt to process only the log
+	// events where the indexed field matches the specified value.
+	//
+	// Matches of log events to the names of indexed fields are case-sensitive. For
+	// example, an indexed field of RequestId won't match a log event containing
+	// requestId .
+	//
+	// You can have one account-level field index policy that applies to all log
+	// groups in the account. Or you can create as many as 20 account-level field index
+	// policies that are each scoped to a subset of log groups using LogGroupNamePrefix
+	// with the selectionCriteria parameter. You can have another 20 account-level
+	// field index policies using DataSourceName and DataSourceType for the
+	// selectionCriteria parameter. If you have multiple account-level index policies
+	// with LogGroupNamePrefix selection criteria, no two of them can use the same or
+	// overlapping log group name prefixes. For example, if you have one policy
+	// filtered to log groups that start with my-log, you can't have another field
+	// index policy filtered to my-logpprod or my-logging. Similarly, if you have
+	// multiple account-level index policies with DataSourceName and DataSourceType
+	// selection criteria, no two of them can use the same data source name and type
+	// combination. For example, if you have one policy filtered to the data source
+	// name amazon_vpc and data source type flow you cannot create another policy with
+	// this combination.
+	//
+	// If you create an account-level field index policy in a monitoring account in
+	// cross-account observability, the policy is applied only to the monitoring
+	// account and not to any source accounts.
 	//
 	// CloudWatch Logs provides default field indexes for all log groups in the
 	// Standard log class. Default field indexes are automatically available for the
@@ -887,57 +1077,78 @@ type CloudWatchLogs interface {
 	//
 	//   - @source.log
 	//
+	//   - @data_source_name
+	//
+	//   - @data_source_type
+	//
+	//   - @data_format
+	//
 	//   - traceId
 	//
+	//   - severityText
+	//
+	//   - attributes.session.id
+	//
+	// CloudWatch Logs provides default field indexes for certain data source name and
+	// type combinations as well. Default field indexes are automatically available for
+	// the following data source name and type combinations as identified in the
+	// following list:
+	//
+	//	  amazon_vpc.flow
+	//
+	//	- action
+	//
+	//	- logStatus
+	//
+	//	- region
+	//
+	//	- flowDirection
+	//
+	//	- type
+	//
+	//	  amazon_route53.resolver_query
+	//
+	//	- transport
+	//
+	//	- rcode
+	//
+	//	  aws_waf.access
+	//
+	//	- action
+	//
+	//	- httpRequest.country
+	//
+	// aws_cloudtrail.data , aws_cloudtrail.management
+	//
+	//   - eventSource
+	//
+	//   - eventName
+	//
+	//   - awsRegion
+	//
+	//   - userAgent
+	//
+	//   - errorCode
+	//
+	//   - eventType
+	//
+	//   - managementEvent
+	//
+	//   - readOnly
+	//
+	//   - eventCategory
+	//
+	//   - requestId
+	//
 	// Default field indexes are in addition to any custom field indexes you define
-	// within your policy. Default field indexes are not counted towards your field
-	// index quota.
-	//
-	// You can also set up a transformer at the log-group level. For more information,
-	// see [PutTransformer]. If there is both a log-group level transformer created with PutTransformer
-	// and an account-level transformer that could apply to the same log group, the log
-	// group uses only the log-group level transformer. It ignores the account-level
-	// transformer.
-	//
-	// # Field index policy
-	//
-	// You can use field index policies to create indexes on fields found in log
-	// events in the log group. Creating field indexes can help lower the scan volume
-	// for CloudWatch Logs Insights queries that reference those fields, because these
-	// queries attempt to skip the processing of log events that are known to not match
-	// the indexed field. Good fields to index are fields that you often need to query
-	// for and fields or values that match only a small fraction of the total log
-	// events. Common examples of indexes include request ID, session ID, user IDs, or
-	// instance IDs. For more information, see [Create field indexes to improve query performance and reduce costs]
-	//
-	// To find the fields that are in your log group events, use the [GetLogGroupFields] operation.
-	//
-	// For example, suppose you have created a field index for requestId . Then, any
-	// CloudWatch Logs Insights query on that log group that includes requestId =
-	// value or requestId in [value, value, ...] will attempt to process only the log
-	// events where the indexed field matches the specified value.
-	//
-	// Matches of log events to the names of indexed fields are case-sensitive. For
-	// example, an indexed field of RequestId won't match a log event containing
-	// requestId .
-	//
-	// You can have one account-level field index policy that applies to all log
-	// groups in the account. Or you can create as many as 20 account-level field index
-	// policies that are each scoped to a subset of log groups with the
-	// selectionCriteria parameter. If you have multiple account-level index policies
-	// with selection criteria, no two of them can use the same or overlapping log
-	// group name prefixes. For example, if you have one policy filtered to log groups
-	// that start with my-log , you can't have another field index policy filtered to
-	// my-logpprod or my-logging .
-	//
-	// If you create an account-level field index policy in a monitoring account in
-	// cross-account observability, the policy is applied only to the monitoring
-	// account and not to any source accounts.
+	// within your policy. Default field indexes are not counted towards your [field index quota].
 	//
 	// If you want to create a field index policy for a single log group, you can use [PutIndexPolicy]
-	// instead of PutAccountPolicy . If you do so, that log group will use only that
-	// log-group level policy, and will ignore the account-level policy that you create
-	// with [PutAccountPolicy].
+	// instead of PutAccountPolicy . If you do so, that log group will use that
+	// log-group level policy and any account-level policies that match at the data
+	// source level; any account-level policy that matches at the log group level (for
+	// example, no selection criteria or log group name prefix selection criteria) will
+	// be ignored.
 	//
 	// # Metric extraction policy
 	//
@@ -995,15 +1206,17 @@ type CloudWatchLogs interface {
 	//
 	// [PutDestination]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDestination.html
 	// [PutTransformer]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutTransformer.html
-	// [PutIndexPolicy]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutIndexPolicy.html
+	// [GetLogFields]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_GetLogFields.html
 	// [PutDataProtectionPolicy]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDataProtectionPolicy.html
-	// [Protect sensitive log data with masking]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/mask-sensitive-log-data.html
 	// [FilterLogEvents]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_FilterLogEvents.html
-	// [GetLogGroupFields]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_GetLogGroupFields.html
 	// [Processors that you can use]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatch-Logs-Transformation.html#CloudWatch-Logs-Transformation-Processors
-	// [PutAccountPolicy]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutAccountPolicy.html
-	// [Create field indexes to improve query performance and reduce costs]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogs-Field-Indexing.html
 	// [GetLogEvents]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_GetLogEvents.html
+	// [field index quota]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogs-Field-Indexing-Syntax
+	// [PutIndexPolicy]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutIndexPolicy.html
+	// [Protect sensitive log data with masking]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/mask-sensitive-log-data.html
+	// [GetLogGroupFields]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_GetLogGroupFields.html
+	// [Use facets to group and explore logs]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogs-Facets.html
+	// [Create field indexes to improve query performance and reduce costs]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogs-Field-Indexing.html
 	PutAccountPolicy(ctx context.Context, params *cloudwatchlogs.PutAccountPolicyInput, optFns ...func(*Options)) (*cloudwatchlogs.PutAccountPolicyOutput, error)
 	// Creates a data protection policy for the specified log group. A data protection
 	// policy can help safeguard sensitive data that's ingested by the log group by
@@ -1183,6 +1396,12 @@ type CloudWatchLogs interface {
 	// events. Common examples of indexes include request ID, session ID, userID, and
 	// instance IDs. For more information, see [Create field indexes to improve query performance and reduce costs].
 	//
+	// You can configure indexed fields as facets to enable interactive exploration
+	// and filtering of your logs in the CloudWatch Logs Insights console. Facets allow
+	// you to view value distributions and counts for indexed fields without running
+	// queries. When you create a field index, you can optionally set it as a facet to
+	// enable this interactive analysis capability. For more information, see [Use facets to group and explore logs].
+	//
 	// To find the fields that are in your log group events, use the [GetLogGroupFields] operation.
 	//
 	// For example, suppose you have created a field index for requestId . Then, any
@@ -1219,15 +1438,17 @@ type CloudWatchLogs interface {
 	// .
 	//
 	// Log group-level field index policies created with PutIndexPolicy override
-	// account-level field index policies created with [PutAccountPolicy]. If you use PutIndexPolicy to
-	// create a field index policy for a log group, that log group uses only that
-	// policy. The log group ignores any account-wide field index policy that you might
-	// have created.
+	// account-level field index policies created with [PutAccountPolicy]that apply to log groups. If
+	// you use PutIndexPolicy to create a field index policy for a log group, that log
+	// group uses only that policy for log group-level indexing, including any facet
+	// configurations. The log group ignores any account-wide field index policy that
+	// applies to log groups, but data source-based account policies may still apply.
 	//
 	// [Log classes]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatch_Logs_Log_Classes.html
 	// [GetLogGroupFields]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_GetLogGroupFields.html
 	// [PutAccountPolicy]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutAccountPolicy.html
 	// [Create field indexes to improve query performance and reduce costs]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogs-Field-Indexing.html
+	// [Use facets to group and explore logs]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogs-Facets.html
 	PutIndexPolicy(ctx context.Context, params *cloudwatchlogs.PutIndexPolicyInput, optFns ...func(*Options)) (*cloudwatchlogs.PutIndexPolicyOutput, error)
 	// Creates an integration between CloudWatch Logs and another service in this
 	// account. Currently, only integrations with OpenSearch Service are supported, and
@@ -1512,14 +1733,20 @@ type CloudWatchLogs interface {
 	// [SessionTimeoutException]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_StartLiveTailResponseStream.html#CWL-Type-StartLiveTailResponseStream-SessionTimeoutException
 	// [SessionStreamingException]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_StartLiveTailResponseStream.html#CWL-Type-StartLiveTailResponseStream-SessionStreamingException
 	StartLiveTail(ctx context.Context, params *cloudwatchlogs.StartLiveTailInput, optFns ...func(*Options)) (*cloudwatchlogs.StartLiveTailOutput, error)
-	// Starts a query of one or more log groups using CloudWatch Logs Insights. You
-	// specify the log groups and time range to query and the query string to use.
+	// Starts a query of one or more log groups or data sources using CloudWatch Logs
+	// Insights. You specify the log groups or data sources and time range to query and
+	// the query string to use. You can query up to 10 data sources in a single query.
 	//
 	// For more information, see [CloudWatch Logs Insights Query Syntax].
 	//
 	// After you run a query using StartQuery , the query results are stored by
 	// CloudWatch Logs. You can use [GetQueryResults]to retrieve the results of a query, using the
 	// queryId that StartQuery returns.
+	//
+	// Interactive queries started with StartQuery share concurrency limits with
+	// automated scheduled query executions. Both types of queries count toward the
+	// same regional concurrent query quota, so high scheduled query activity may
+	// affect the availability of concurrent slots for interactive queries.
 	//
 	// To specify the log groups to query, a StartQuery operation must include one of
 	// the following:
@@ -1529,7 +1756,8 @@ type CloudWatchLogs interface {
 	//
 	//   - Or the queryString must include a SOURCE command to select log groups for
 	//     the query. The SOURCE command can select log groups based on log group name
-	//     prefix, account ID, and log class.
+	//     prefix, account ID, and log class, or select data sources using dataSource
+	//     syntax in LogsQL, PPL, and SQL.
 	//
 	// For more information about the SOURCE command, see [SOURCE].
 	//
@@ -1559,6 +1787,11 @@ type CloudWatchLogs interface {
 	// Stops a CloudWatch Logs Insights query that is in progress. If the query has
 	// already ended, the operation returns an error indicating that the specified
 	// query is not running.
+	//
+	// This operation can be used to cancel both interactive queries and individual
+	// scheduled query executions. When used with scheduled queries, StopQuery cancels
+	// only the specific execution identified by the query ID, not the scheduled query
+	// configuration itself.
 	StopQuery(ctx context.Context, params *cloudwatchlogs.StopQueryInput, optFns ...func(*Options)) (*cloudwatchlogs.StopQueryOutput, error)
 	// The TagLogGroup operation is on the path to deprecation. We recommend that you
 	// use [TagResource]instead.
@@ -1650,9 +1883,9 @@ type CloudWatchLogs interface {
 	UpdateDeliveryConfiguration(ctx context.Context, params *cloudwatchlogs.UpdateDeliveryConfigurationInput, optFns ...func(*Options)) (*cloudwatchlogs.UpdateDeliveryConfigurationOutput, error)
 	// Updates an existing log anomaly detector.
 	UpdateLogAnomalyDetector(ctx context.Context, params *cloudwatchlogs.UpdateLogAnomalyDetectorInput, optFns ...func(*Options)) (*cloudwatchlogs.UpdateLogAnomalyDetectorOutput, error)
-	// Updates the configuration of an existing scheduled query. This operation
-	// follows PUT semantics, replacing the existing configuration with the provided
-	// values.
+	// Updates an existing scheduled query with new configuration. This operation uses
+	// PUT semantics, allowing modification of query parameters, schedule, and
+	// destinations.
 	UpdateScheduledQuery(ctx context.Context, params *cloudwatchlogs.UpdateScheduledQueryInput, optFns ...func(*Options)) (*cloudwatchlogs.UpdateScheduledQueryOutput, error)
 }
 
