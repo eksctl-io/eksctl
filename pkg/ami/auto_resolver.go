@@ -35,6 +35,10 @@ func MakeImageSearchPatterns(version string) map[string]map[int]string {
 			ImageClassNeuron:  fmt.Sprintf("amazon-eks-gpu-node-%s-*", version),
 			ImageClassARM:     fmt.Sprintf("amazon-eks-arm64-node-%s-*", version),
 		},
+		api.NodeImageFamilyUbuntuPro2604: {
+			ImageClassGeneral: fmt.Sprintf("ubuntu-eks-pro/k8s_%s/images/*26.04-amd64*", version),
+			ImageClassARM:     fmt.Sprintf("ubuntu-eks-pro/k8s_%s/images/*26.04-arm64*", version),
+		},
 		api.NodeImageFamilyUbuntuPro2404: {
 			ImageClassGeneral: fmt.Sprintf("ubuntu-eks-pro/k8s_%s/images/*24.04-amd64*", version),
 			ImageClassARM:     fmt.Sprintf("ubuntu-eks-pro/k8s_%s/images/*24.04-arm64*", version),
@@ -46,6 +50,10 @@ func MakeImageSearchPatterns(version string) map[string]map[int]string {
 		api.NodeImageFamilyUbuntuPro2004: {
 			ImageClassGeneral: fmt.Sprintf("ubuntu-eks-pro/k8s_%s/images/*20.04-amd64*", version),
 			ImageClassARM:     fmt.Sprintf("ubuntu-eks-pro/k8s_%s/images/*20.04-arm64*", version),
+		},
+		api.NodeImageFamilyUbuntu2604: {
+			ImageClassGeneral: fmt.Sprintf("ubuntu-eks/k8s_%s/images/*26.04-amd64*", version),
+			ImageClassARM:     fmt.Sprintf("ubuntu-eks/k8s_%s/images/*26.04-arm64*", version),
 		},
 		api.NodeImageFamilyUbuntu2404: {
 			ImageClassGeneral: fmt.Sprintf("ubuntu-eks/k8s_%s/images/*24.04-amd64*", version),
@@ -83,7 +91,7 @@ func MakeImageSearchPatterns(version string) map[string]map[int]string {
 // OwnerAccountID returns the AWS account ID that owns worker AMI.
 func OwnerAccountID(imageFamily, region string) (string, error) {
 	switch imageFamily {
-	case api.NodeImageFamilyUbuntuPro2404, api.NodeImageFamilyUbuntu2404, api.NodeImageFamilyUbuntuPro2204, api.NodeImageFamilyUbuntu2204, api.NodeImageFamilyUbuntuPro2004, api.NodeImageFamilyUbuntu2004:
+	case api.NodeImageFamilyUbuntuPro2604, api.NodeImageFamilyUbuntu2604, api.NodeImageFamilyUbuntuPro2404, api.NodeImageFamilyUbuntu2404, api.NodeImageFamilyUbuntuPro2204, api.NodeImageFamilyUbuntu2204, api.NodeImageFamilyUbuntuPro2004, api.NodeImageFamilyUbuntu2004:
 		return ownerIDUbuntuFamily, nil
 	case api.NodeImageFamilyAmazonLinux2023, api.NodeImageFamilyAmazonLinux2:
 		return api.EKSResourceAccountID(region), nil
