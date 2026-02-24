@@ -212,6 +212,8 @@ const (
 	DefaultNodeImageFamily         = NodeImageFamilyAmazonLinux2023
 	NodeImageFamilyAmazonLinux2023 = "AmazonLinux2023"
 	NodeImageFamilyAmazonLinux2    = "AmazonLinux2"
+	NodeImageFamilyUbuntuPro2604   = "UbuntuPro2604"
+	NodeImageFamilyUbuntu2604      = "Ubuntu2604"
 	NodeImageFamilyUbuntuPro2404   = "UbuntuPro2404"
 	NodeImageFamilyUbuntu2404      = "Ubuntu2404"
 	NodeImageFamilyUbuntuPro2204   = "UbuntuPro2204"
@@ -598,6 +600,8 @@ func SupportedAMIFamilies() []string {
 	return []string{
 		NodeImageFamilyAmazonLinux2023,
 		NodeImageFamilyAmazonLinux2,
+		NodeImageFamilyUbuntuPro2604,
+		NodeImageFamilyUbuntu2604,
 		NodeImageFamilyUbuntuPro2404,
 		NodeImageFamilyUbuntu2404,
 		NodeImageFamilyUbuntuPro2204,
