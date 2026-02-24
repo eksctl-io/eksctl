@@ -484,7 +484,12 @@ func generatePolymorphicProperty(typename string, name string, property Property
 		"convertToGoType":     convertTypeToGo,
 		"convertToPureGoType": convertTypeToPureGo,
 	}).ParseFiles("generate/templates/polymorphic-property.template")
-
+	if err != nil {
+		jsonProperty, _ := json.Marshal(property)
+		fmt.Println("Error: Creating new template from property:")
+		fmt.Printf("%s\n%s\n", string(jsonProperty), err)
+		os.Exit(1)
+	}
 	nameParts := strings.Split(name, "_")
 
 	types := append([]string{}, property.PrimitiveTypes...)
