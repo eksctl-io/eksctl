@@ -205,6 +205,14 @@ func (v *IPv6VPCResourceSet) createSubnet(az, azFormatted string, i, cidrPartiti
 			Value: gfnt.NewString("1"),
 		}},
 	}
+	if private && v.clusterConfig.Karpenter != nil && v.clusterConfig.Karpenter.Version != "" {
+		if discoveryValue, ok := v.clusterConfig.Metadata.Tags["karpenter.sh/discovery"]; ok {
+			subnet.Tags = append(subnet.Tags, cloudformation.Tag{
+				Key:   gfnt.NewString("karpenter.sh/discovery"),
+				Value: gfnt.NewString(discoveryValue),
+			})
+		}
+	}
 	maybeSetHostnameType(v.clusterConfig.VPC, subnet)
 	return v.rs.newResource(subnetKey, subnet)
 

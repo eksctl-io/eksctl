@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
@@ -374,6 +375,100 @@ var _ = Describe("Create", func() {
 				Expect(fakeKarpenterInstaller.InstallCallCount()).To(Equal(1))
 				_, _, instanceProfile := fakeKarpenterInstaller.InstallArgsForCall(0)
 				Expect(instanceProfile).To(Equal("profile"))
+			})
+		})
+		When("karpenter.sh/discovery tag is set in metadata.tags", func() {
+			BeforeEach(func() {
+				cfg.Metadata.Tags = map[string]string{
+					"karpenter.sh/discovery": clusterName,
+				}
+				fakeCluster := testutils.NewFakeCluster(clusterName, ekstypes.ClusterStatusActive)
+				fakeCluster.ResourcesVpcConfig.ClusterSecurityGroupId = aws.String("sg-cluster-1234")
+				p.MockEKS().On("DescribeCluster", mock.Anything, mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
+					return *input.Name == clusterName
+				})).Return(&awseks.DescribeClusterOutput{
+					Cluster: fakeCluster,
+				}, nil)
+			})
+			It("should tag the cluster security group with karpenter.sh/discovery", func() {
+				fakeKarpenterInstaller.InstallReturns(nil)
+				p.MockEC2().On("CreateTags", mock.Anything, &ec2.CreateTagsInput{
+					Resources: []string{"sg-cluster-1234"},
+					Tags: []ec2types.Tag{
+						{
+							Key:   aws.String("karpenter.sh/discovery"),
+							Value: aws.String(clusterName),
+						},
+					},
+				}).Return(&ec2.CreateTagsOutput{}, nil)
+				install := &karpenteractions.Installer{
+					StackManager:       fakeStackManager,
+					CTL:                ctl,
+					Config:             cfg,
+					KarpenterInstaller: fakeKarpenterInstaller,
+					ClientSet:          fakeClientSet,
+				}
+				Expect(install.Create(context.Background())).To(Succeed())
+				p.MockEC2().AssertCalled(GinkgoT(), "CreateTags", mock.Anything, &ec2.CreateTagsInput{
+					Resources: []string{"sg-cluster-1234"},
+					Tags: []ec2types.Tag{
+						{
+							Key:   aws.String("karpenter.sh/discovery"),
+							Value: aws.String(clusterName),
+						},
+					},
+				})
+			})
+		})
+		When("karpenter.sh/discovery tag is set but DescribeCluster fails", func() {
+			BeforeEach(func() {
+				cfg.Metadata.Tags = map[string]string{
+					"karpenter.sh/discovery": clusterName,
+				}
+				p.MockEKS().On("DescribeCluster", mock.Anything, mock.Anything).Return(nil, errors.New("describe failed"))
+			})
+			It("errors", func() {
+				install := &karpenteractions.Installer{
+					StackManager:       fakeStackManager,
+					CTL:                ctl,
+					Config:             cfg,
+					KarpenterInstaller: fakeKarpenterInstaller,
+					ClientSet:          fakeClientSet,
+				}
+				err := install.Create(context.Background())
+				Expect(err).To(MatchError(ContainSubstring("failed to describe cluster to get security group")))
+			})
+		})
+		When("karpenter.sh/discovery tag is set but tagging cluster SG fails", func() {
+			BeforeEach(func() {
+				cfg.Metadata.Tags = map[string]string{
+					"karpenter.sh/discovery": clusterName,
+				}
+				fakeCluster := testutils.NewFakeCluster(clusterName, ekstypes.ClusterStatusActive)
+				fakeCluster.ResourcesVpcConfig.ClusterSecurityGroupId = aws.String("sg-cluster-1234")
+				// Allow subnet tagging to succeed, but fail on cluster SG tagging
+				p.MockEKS().On("DescribeCluster", mock.Anything, mock.Anything).Return(&awseks.DescribeClusterOutput{
+					Cluster: fakeCluster,
+				}, nil)
+				p.MockEC2().On("CreateTags", mock.Anything, mock.MatchedBy(func(input *ec2.CreateTagsInput) bool {
+					for _, r := range input.Resources {
+						if r == "sg-cluster-1234" {
+							return true
+						}
+					}
+					return false
+				})).Return(nil, errors.New("tag failed"))
+			})
+			It("errors", func() {
+				install := &karpenteractions.Installer{
+					StackManager:       fakeStackManager,
+					CTL:                ctl,
+					Config:             cfg,
+					KarpenterInstaller: fakeKarpenterInstaller,
+					ClientSet:          fakeClientSet,
+				}
+				err := install.Create(context.Background())
+				Expect(err).To(MatchError(ContainSubstring("failed to tag cluster security group")))
 			})
 		})
 	})
