@@ -144,6 +144,10 @@ var expectedTemplate = `{
                 "iam:DeleteInstanceProfile",
                 "iam:TagInstanceProfile",
                 "iam:AddRoleToInstanceProfile",
+                "iam:RemoveRoleFromInstanceProfile",
+                "iam:ListInstanceProfiles",
+                "iam:ListInstanceProfilesForRole",
+                "eks:DescribeCluster",
                 "ssm:GetParameter",
                 "pricing:GetProducts"
               ],
@@ -300,6 +304,10 @@ var expectedTemplateWithPermissionBoundary = `{
                 "iam:DeleteInstanceProfile",
                 "iam:TagInstanceProfile",
                 "iam:AddRoleToInstanceProfile",
+                "iam:RemoveRoleFromInstanceProfile",
+                "iam:ListInstanceProfiles",
+                "iam:ListInstanceProfilesForRole",
+                "eks:DescribeCluster",
                 "ssm:GetParameter",
                 "pricing:GetProducts"
               ],
@@ -481,6 +489,10 @@ var expectedTemplateWithSpotInterruptionQueue = `{
                 "iam:DeleteInstanceProfile",
                 "iam:TagInstanceProfile",
                 "iam:AddRoleToInstanceProfile",
+                "iam:RemoveRoleFromInstanceProfile",
+                "iam:ListInstanceProfiles",
+                "iam:ListInstanceProfilesForRole",
+                "eks:DescribeCluster",
                 "ssm:GetParameter",
                 "pricing:GetProducts"
               ],

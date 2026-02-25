@@ -50,13 +50,18 @@ const (
 	ec2DescribeImages                = "ec2:DescribeImages"
 	ec2DescribeSpotPriceHistory      = "ec2:DescribeSpotPriceHistory"
 	// IAM
-	iamPassRole                 = "iam:PassRole"
-	iamCreateServiceLinkedRole  = "iam:CreateServiceLinkedRole"
-	iamGetInstanceProfile       = "iam:GetInstanceProfile"
-	iamCreateInstanceProfile    = "iam:CreateInstanceProfile"
-	iamDeleteInstanceProfile    = "iam:DeleteInstanceProfile"
-	iamTagInstanceProfile       = "iam:TagInstanceProfile"
-	iamAddRoleToInstanceProfile = "iam:AddRoleToInstanceProfile"
+	iamPassRole                      = "iam:PassRole"
+	iamCreateServiceLinkedRole       = "iam:CreateServiceLinkedRole"
+	iamGetInstanceProfile            = "iam:GetInstanceProfile"
+	iamCreateInstanceProfile         = "iam:CreateInstanceProfile"
+	iamDeleteInstanceProfile         = "iam:DeleteInstanceProfile"
+	iamTagInstanceProfile            = "iam:TagInstanceProfile"
+	iamAddRoleToInstanceProfile      = "iam:AddRoleToInstanceProfile"
+	iamRemoveRoleFromInstanceProfile = "iam:RemoveRoleFromInstanceProfile"
+	iamListInstanceProfiles          = "iam:ListInstanceProfiles"
+	iamListInstanceProfilesForRole   = "iam:ListInstanceProfilesForRole"
+	// EKS
+	eksDescribeCluster = "eks:DescribeCluster"
 	// SSM
 	ssmGetParameter = "ssm:GetParameter"
 	// Pricing
@@ -177,6 +182,10 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 				iamDeleteInstanceProfile,
 				iamTagInstanceProfile,
 				iamAddRoleToInstanceProfile,
+				iamRemoveRoleFromInstanceProfile,
+				iamListInstanceProfiles,
+				iamListInstanceProfilesForRole,
+				eksDescribeCluster,
 				ssmGetParameter,
 				pricingGetProducts,
 			},

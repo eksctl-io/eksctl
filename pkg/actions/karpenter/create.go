@@ -9,6 +9,10 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
@@ -79,6 +83,32 @@ func (i *Installer) Create(ctx context.Context) error {
 	}
 	if err := acm.Save(); err != nil {
 		return fmt.Errorf("failed to save the identity config: %w", err)
+	}
+
+	// Tag the cluster security group with karpenter.sh/discovery if the tag is configured.
+	// EKS does not propagate cluster tags to the cluster security group, so we need to do this explicitly.
+	if discoveryValue, ok := i.Config.Metadata.Tags["karpenter.sh/discovery"]; ok {
+		describeOutput, err := i.CTL.AWSProvider.EKS().DescribeCluster(ctx, &awseks.DescribeClusterInput{
+			Name: aws.String(i.Config.Metadata.Name),
+		})
+		if err != nil {
+			return fmt.Errorf("failed to describe cluster to get security group: %w", err)
+		}
+		clusterSGID := aws.ToString(describeOutput.Cluster.ResourcesVpcConfig.ClusterSecurityGroupId)
+		if clusterSGID != "" {
+			logger.Info("tagging cluster security group %s with karpenter.sh/discovery=%s", clusterSGID, discoveryValue)
+			if _, err := i.CTL.AWSProvider.EC2().CreateTags(ctx, &ec2.CreateTagsInput{
+				Resources: []string{clusterSGID},
+				Tags: []ec2types.Tag{
+					{
+						Key:   aws.String("karpenter.sh/discovery"),
+						Value: aws.String(discoveryValue),
+					},
+				},
+			}); err != nil {
+				return fmt.Errorf("failed to tag cluster security group: %w", err)
+			}
+		}
 	}
 
 	// Install Karpenter

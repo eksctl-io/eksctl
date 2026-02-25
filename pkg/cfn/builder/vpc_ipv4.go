@@ -299,6 +299,14 @@ func (v *IPv4VPCResourceSet) addSubnets(refRT *gfnt.Value, topology api.SubnetTo
 				Key:   gfnt.NewString("kubernetes.io/role/internal-elb"),
 				Value: gfnt.NewString("1"),
 			}}
+			if v.clusterConfig.Karpenter != nil && v.clusterConfig.Karpenter.Version != "" {
+				if discoveryValue, ok := v.clusterConfig.Metadata.Tags["karpenter.sh/discovery"]; ok {
+					subnet.Tags = append(subnet.Tags, gfncfn.Tag{
+						Key:   gfnt.NewString("karpenter.sh/discovery"),
+						Value: gfnt.NewString(discoveryValue),
+					})
+				}
+			}
 		case api.SubnetTopologyPublic:
 			subnet.Tags = []gfncfn.Tag{{
 				Key:   gfnt.NewString("kubernetes.io/role/elb"),
