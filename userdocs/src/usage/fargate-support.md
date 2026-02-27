@@ -80,7 +80,7 @@ To learn more about selectors see [Designing Fargate profiles](#designing-fargat
 
 ## Creating a cluster with Fargate support using a config file
 
-The following config file declares an EKS cluster with both a nodegroup composed of one EC2 `m5.large` instance and two
+The following config file declares an EKS cluster with both a nodegroup composed of one EC2 `t3.medium` instance and two
 Fargate profiles. All pods defined in the `default` and `kube-system` namespaces will run on Fargate. All pods in the
 `dev` namespace that also have the label `dev=passed` will also run on Fargate. Any other pods will be scheduled on the
 node in `ng-1`.
@@ -97,7 +97,7 @@ metadata:
 
 nodeGroups:
   - name: ng-1
-    instanceType: m5.large
+    instanceType: t3.medium
     desiredCapacity: 1
 
 fargateProfiles:

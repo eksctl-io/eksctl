@@ -386,7 +386,7 @@ func TestManagedNodeGroupNodeRepairConfig(t *testing.T) {
 			ng := &api.ManagedNodeGroup{
 				NodeGroupBase: &api.NodeGroupBase{
 					Name:         "test-ng",
-					InstanceType: "m5.large",
+					InstanceType: "t3.medium",
 				},
 				NodeRepairConfig: tt.nodeRepairConfig,
 			}

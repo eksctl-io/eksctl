@@ -96,7 +96,7 @@
                 "alpha.eksctl.io/cluster-name": "lt",
                 "alpha.eksctl.io/nodegroup-name": "ssh-enabled"
             },
-            "InstanceTypes": ["m5.large"],
+            "InstanceTypes": ["t3.medium"],
             "NodeRole": {
                 "Fn::GetAtt": [
                     "NodeInstanceRole",

@@ -144,7 +144,7 @@ metadata:
 
 managedNodeGroups:
 - name: basic-ng
-  instanceType: m5.large
+  instanceType: t3.medium
   desiredCapacity: 3
   nodeRepairConfig:
     enabled: true

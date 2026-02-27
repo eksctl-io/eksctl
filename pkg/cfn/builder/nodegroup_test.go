@@ -787,7 +787,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 				Expect(properties.LaunchTemplateData.IamInstanceProfile.Arn).To(Equal(makeIamInstanceProfileRef()))
 				Expect(properties.LaunchTemplateData.ImageID).To(Equal("ami-123"))
 				Expect(properties.LaunchTemplateData.UserData).To(Equal("lovely data right here"))
-				Expect(properties.LaunchTemplateData.InstanceType).To(Equal("m5.large"))
+				Expect(properties.LaunchTemplateData.InstanceType).To(Equal("t3.medium"))
 				Expect(properties.LaunchTemplateData.MetadataOptions.HTTPPutResponseHopLimit).To(Equal(float64(2)))
 				Expect(properties.LaunchTemplateData.MetadataOptions.HTTPTokens).To(Equal("required"))
 				Expect(properties.LaunchTemplateData.TagSpecifications).To(HaveLen(3))

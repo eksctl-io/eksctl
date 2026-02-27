@@ -52,7 +52,7 @@ metadata:
 
 nodeGroups:
   - name: ng2-private
-    instanceType: m5.large
+    instanceType: t3.medium
     desiredCapacity: 1
     iam:
       instanceProfileARN: "arn:aws:iam::123:instance-profile/eksctl-test-cluster-a-3-nodegroup-ng2-private-NodeInstanceProfile-Y4YKHLNINMXC"

@@ -43,7 +43,7 @@ var _ = Describe("Instance Selector Validation", func() {
 						VCPUs:  2,
 						Memory: "4",
 					},
-					InstanceType: "m5.large",
+					InstanceType: "t3.medium",
 				},
 			},
 			errMsg: `instanceType should be "mixed" or unset`,
@@ -51,11 +51,11 @@ var _ = Describe("Instance Selector Validation", func() {
 		Entry("invalid use of instanceSelector and instancesDistribution", &instanceSelectorCase{
 			ng: &NodeGroup{
 				NodeGroupBase: &NodeGroupBase{
-					InstanceType:     "m5.large",
+					InstanceType:     "t3.medium",
 					InstanceSelector: &InstanceSelector{},
 				},
 				InstancesDistribution: &NodeGroupInstancesDistribution{
-					InstanceTypes: []string{"m5.large"},
+					InstanceTypes: []string{"t3.medium"},
 				},
 			},
 			errMsg: `instanceType should be "mixed" or unset`,
@@ -63,7 +63,7 @@ var _ = Describe("Instance Selector Validation", func() {
 		Entry("instancesDistribution without instanceTypes and instanceSelector", &instanceSelectorCase{
 			ng: &NodeGroup{
 				NodeGroupBase: &NodeGroupBase{
-					InstanceType:     "m5.large",
+					InstanceType:     "t3.medium",
 					InstanceSelector: &InstanceSelector{},
 				},
 				InstancesDistribution: &NodeGroupInstancesDistribution{},
@@ -79,7 +79,7 @@ var _ = Describe("Instance Selector Validation", func() {
 					},
 				},
 				InstancesDistribution: &NodeGroupInstancesDistribution{
-					InstanceTypes: []string{"m5.large"},
+					InstanceTypes: []string{"t3.medium"},
 				},
 			},
 		}),

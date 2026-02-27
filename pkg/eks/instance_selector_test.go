@@ -159,8 +159,8 @@ var _ = Describe("Instance Selector", func() {
 				VCPUs:  2,
 				Memory: "4",
 			},
-			createFakeInstanceSelector: makeInstanceSelector("m5.large", "m5.xlarge"),
-			expectedInstanceTypes:      []string{"m5.large", "m5.xlarge"},
+			createFakeInstanceSelector: makeInstanceSelector("t3.medium", "t3.large"),
+			expectedInstanceTypes:      []string{"t3.medium", "t3.large"},
 		}),
 
 		Entry("mismatching instanceTypes and instance selector criteria for unmanaged nodegroup", instanceSelectorCase{
