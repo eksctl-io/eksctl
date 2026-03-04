@@ -9050,6 +9050,154 @@ func (_c *EC2_CreateRouteTable_Call) RunAndReturn(run func(context.Context, *ec2
 	return _c
 }
 
+// CreateSecondaryNetwork provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) CreateSecondaryNetwork(ctx context.Context, params *ec2.CreateSecondaryNetworkInput, optFns ...func(*ec2.Options)) (*ec2.CreateSecondaryNetworkOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateSecondaryNetwork")
+	}
+
+	var r0 *ec2.CreateSecondaryNetworkOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateSecondaryNetworkInput, ...func(*ec2.Options)) (*ec2.CreateSecondaryNetworkOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateSecondaryNetworkInput, ...func(*ec2.Options)) *ec2.CreateSecondaryNetworkOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateSecondaryNetworkOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateSecondaryNetworkInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EC2_CreateSecondaryNetwork_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateSecondaryNetwork'
+type EC2_CreateSecondaryNetwork_Call struct {
+	*mock.Call
+}
+
+// CreateSecondaryNetwork is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ec2.CreateSecondaryNetworkInput
+//   - optFns ...func(*ec2.Options)
+func (_e *EC2_Expecter) CreateSecondaryNetwork(ctx interface{}, params interface{}, optFns ...interface{}) *EC2_CreateSecondaryNetwork_Call {
+	return &EC2_CreateSecondaryNetwork_Call{Call: _e.mock.On("CreateSecondaryNetwork",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EC2_CreateSecondaryNetwork_Call) Run(run func(ctx context.Context, params *ec2.CreateSecondaryNetworkInput, optFns ...func(*ec2.Options))) *EC2_CreateSecondaryNetwork_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ec2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ec2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ec2.CreateSecondaryNetworkInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EC2_CreateSecondaryNetwork_Call) Return(_a0 *ec2.CreateSecondaryNetworkOutput, _a1 error) *EC2_CreateSecondaryNetwork_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EC2_CreateSecondaryNetwork_Call) RunAndReturn(run func(context.Context, *ec2.CreateSecondaryNetworkInput, ...func(*ec2.Options)) (*ec2.CreateSecondaryNetworkOutput, error)) *EC2_CreateSecondaryNetwork_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateSecondarySubnet provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) CreateSecondarySubnet(ctx context.Context, params *ec2.CreateSecondarySubnetInput, optFns ...func(*ec2.Options)) (*ec2.CreateSecondarySubnetOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateSecondarySubnet")
+	}
+
+	var r0 *ec2.CreateSecondarySubnetOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateSecondarySubnetInput, ...func(*ec2.Options)) (*ec2.CreateSecondarySubnetOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateSecondarySubnetInput, ...func(*ec2.Options)) *ec2.CreateSecondarySubnetOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateSecondarySubnetOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateSecondarySubnetInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EC2_CreateSecondarySubnet_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateSecondarySubnet'
+type EC2_CreateSecondarySubnet_Call struct {
+	*mock.Call
+}
+
+// CreateSecondarySubnet is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ec2.CreateSecondarySubnetInput
+//   - optFns ...func(*ec2.Options)
+func (_e *EC2_Expecter) CreateSecondarySubnet(ctx interface{}, params interface{}, optFns ...interface{}) *EC2_CreateSecondarySubnet_Call {
+	return &EC2_CreateSecondarySubnet_Call{Call: _e.mock.On("CreateSecondarySubnet",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EC2_CreateSecondarySubnet_Call) Run(run func(ctx context.Context, params *ec2.CreateSecondarySubnetInput, optFns ...func(*ec2.Options))) *EC2_CreateSecondarySubnet_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ec2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ec2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ec2.CreateSecondarySubnetInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EC2_CreateSecondarySubnet_Call) Return(_a0 *ec2.CreateSecondarySubnetOutput, _a1 error) *EC2_CreateSecondarySubnet_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EC2_CreateSecondarySubnet_Call) RunAndReturn(run func(context.Context, *ec2.CreateSecondarySubnetInput, ...func(*ec2.Options)) (*ec2.CreateSecondarySubnetOutput, error)) *EC2_CreateSecondarySubnet_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateSecurityGroup provides a mock function with given fields: ctx, params, optFns
 func (_m *EC2) CreateSecurityGroup(ctx context.Context, params *ec2.CreateSecurityGroupInput, optFns ...func(*ec2.Options)) (*ec2.CreateSecurityGroupOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -15854,6 +16002,154 @@ func (_c *EC2_DeleteRouteTable_Call) Return(_a0 *ec2.DeleteRouteTableOutput, _a1
 }
 
 func (_c *EC2_DeleteRouteTable_Call) RunAndReturn(run func(context.Context, *ec2.DeleteRouteTableInput, ...func(*ec2.Options)) (*ec2.DeleteRouteTableOutput, error)) *EC2_DeleteRouteTable_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteSecondaryNetwork provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) DeleteSecondaryNetwork(ctx context.Context, params *ec2.DeleteSecondaryNetworkInput, optFns ...func(*ec2.Options)) (*ec2.DeleteSecondaryNetworkOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteSecondaryNetwork")
+	}
+
+	var r0 *ec2.DeleteSecondaryNetworkOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteSecondaryNetworkInput, ...func(*ec2.Options)) (*ec2.DeleteSecondaryNetworkOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteSecondaryNetworkInput, ...func(*ec2.Options)) *ec2.DeleteSecondaryNetworkOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteSecondaryNetworkOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteSecondaryNetworkInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EC2_DeleteSecondaryNetwork_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteSecondaryNetwork'
+type EC2_DeleteSecondaryNetwork_Call struct {
+	*mock.Call
+}
+
+// DeleteSecondaryNetwork is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ec2.DeleteSecondaryNetworkInput
+//   - optFns ...func(*ec2.Options)
+func (_e *EC2_Expecter) DeleteSecondaryNetwork(ctx interface{}, params interface{}, optFns ...interface{}) *EC2_DeleteSecondaryNetwork_Call {
+	return &EC2_DeleteSecondaryNetwork_Call{Call: _e.mock.On("DeleteSecondaryNetwork",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EC2_DeleteSecondaryNetwork_Call) Run(run func(ctx context.Context, params *ec2.DeleteSecondaryNetworkInput, optFns ...func(*ec2.Options))) *EC2_DeleteSecondaryNetwork_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ec2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ec2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ec2.DeleteSecondaryNetworkInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EC2_DeleteSecondaryNetwork_Call) Return(_a0 *ec2.DeleteSecondaryNetworkOutput, _a1 error) *EC2_DeleteSecondaryNetwork_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EC2_DeleteSecondaryNetwork_Call) RunAndReturn(run func(context.Context, *ec2.DeleteSecondaryNetworkInput, ...func(*ec2.Options)) (*ec2.DeleteSecondaryNetworkOutput, error)) *EC2_DeleteSecondaryNetwork_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteSecondarySubnet provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) DeleteSecondarySubnet(ctx context.Context, params *ec2.DeleteSecondarySubnetInput, optFns ...func(*ec2.Options)) (*ec2.DeleteSecondarySubnetOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteSecondarySubnet")
+	}
+
+	var r0 *ec2.DeleteSecondarySubnetOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteSecondarySubnetInput, ...func(*ec2.Options)) (*ec2.DeleteSecondarySubnetOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteSecondarySubnetInput, ...func(*ec2.Options)) *ec2.DeleteSecondarySubnetOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteSecondarySubnetOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteSecondarySubnetInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EC2_DeleteSecondarySubnet_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteSecondarySubnet'
+type EC2_DeleteSecondarySubnet_Call struct {
+	*mock.Call
+}
+
+// DeleteSecondarySubnet is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ec2.DeleteSecondarySubnetInput
+//   - optFns ...func(*ec2.Options)
+func (_e *EC2_Expecter) DeleteSecondarySubnet(ctx interface{}, params interface{}, optFns ...interface{}) *EC2_DeleteSecondarySubnet_Call {
+	return &EC2_DeleteSecondarySubnet_Call{Call: _e.mock.On("DeleteSecondarySubnet",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EC2_DeleteSecondarySubnet_Call) Run(run func(ctx context.Context, params *ec2.DeleteSecondarySubnetInput, optFns ...func(*ec2.Options))) *EC2_DeleteSecondarySubnet_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ec2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ec2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ec2.DeleteSecondarySubnetInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EC2_DeleteSecondarySubnet_Call) Return(_a0 *ec2.DeleteSecondarySubnetOutput, _a1 error) *EC2_DeleteSecondarySubnet_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EC2_DeleteSecondarySubnet_Call) RunAndReturn(run func(context.Context, *ec2.DeleteSecondarySubnetInput, ...func(*ec2.Options)) (*ec2.DeleteSecondarySubnetOutput, error)) *EC2_DeleteSecondarySubnet_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -28286,6 +28582,228 @@ func (_c *EC2_DescribeScheduledInstances_Call) Return(_a0 *ec2.DescribeScheduled
 }
 
 func (_c *EC2_DescribeScheduledInstances_Call) RunAndReturn(run func(context.Context, *ec2.DescribeScheduledInstancesInput, ...func(*ec2.Options)) (*ec2.DescribeScheduledInstancesOutput, error)) *EC2_DescribeScheduledInstances_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DescribeSecondaryInterfaces provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) DescribeSecondaryInterfaces(ctx context.Context, params *ec2.DescribeSecondaryInterfacesInput, optFns ...func(*ec2.Options)) (*ec2.DescribeSecondaryInterfacesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DescribeSecondaryInterfaces")
+	}
+
+	var r0 *ec2.DescribeSecondaryInterfacesOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeSecondaryInterfacesInput, ...func(*ec2.Options)) (*ec2.DescribeSecondaryInterfacesOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeSecondaryInterfacesInput, ...func(*ec2.Options)) *ec2.DescribeSecondaryInterfacesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeSecondaryInterfacesOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeSecondaryInterfacesInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EC2_DescribeSecondaryInterfaces_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeSecondaryInterfaces'
+type EC2_DescribeSecondaryInterfaces_Call struct {
+	*mock.Call
+}
+
+// DescribeSecondaryInterfaces is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ec2.DescribeSecondaryInterfacesInput
+//   - optFns ...func(*ec2.Options)
+func (_e *EC2_Expecter) DescribeSecondaryInterfaces(ctx interface{}, params interface{}, optFns ...interface{}) *EC2_DescribeSecondaryInterfaces_Call {
+	return &EC2_DescribeSecondaryInterfaces_Call{Call: _e.mock.On("DescribeSecondaryInterfaces",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EC2_DescribeSecondaryInterfaces_Call) Run(run func(ctx context.Context, params *ec2.DescribeSecondaryInterfacesInput, optFns ...func(*ec2.Options))) *EC2_DescribeSecondaryInterfaces_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ec2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ec2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ec2.DescribeSecondaryInterfacesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EC2_DescribeSecondaryInterfaces_Call) Return(_a0 *ec2.DescribeSecondaryInterfacesOutput, _a1 error) *EC2_DescribeSecondaryInterfaces_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EC2_DescribeSecondaryInterfaces_Call) RunAndReturn(run func(context.Context, *ec2.DescribeSecondaryInterfacesInput, ...func(*ec2.Options)) (*ec2.DescribeSecondaryInterfacesOutput, error)) *EC2_DescribeSecondaryInterfaces_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DescribeSecondaryNetworks provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) DescribeSecondaryNetworks(ctx context.Context, params *ec2.DescribeSecondaryNetworksInput, optFns ...func(*ec2.Options)) (*ec2.DescribeSecondaryNetworksOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DescribeSecondaryNetworks")
+	}
+
+	var r0 *ec2.DescribeSecondaryNetworksOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeSecondaryNetworksInput, ...func(*ec2.Options)) (*ec2.DescribeSecondaryNetworksOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeSecondaryNetworksInput, ...func(*ec2.Options)) *ec2.DescribeSecondaryNetworksOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeSecondaryNetworksOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeSecondaryNetworksInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EC2_DescribeSecondaryNetworks_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeSecondaryNetworks'
+type EC2_DescribeSecondaryNetworks_Call struct {
+	*mock.Call
+}
+
+// DescribeSecondaryNetworks is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ec2.DescribeSecondaryNetworksInput
+//   - optFns ...func(*ec2.Options)
+func (_e *EC2_Expecter) DescribeSecondaryNetworks(ctx interface{}, params interface{}, optFns ...interface{}) *EC2_DescribeSecondaryNetworks_Call {
+	return &EC2_DescribeSecondaryNetworks_Call{Call: _e.mock.On("DescribeSecondaryNetworks",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EC2_DescribeSecondaryNetworks_Call) Run(run func(ctx context.Context, params *ec2.DescribeSecondaryNetworksInput, optFns ...func(*ec2.Options))) *EC2_DescribeSecondaryNetworks_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ec2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ec2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ec2.DescribeSecondaryNetworksInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EC2_DescribeSecondaryNetworks_Call) Return(_a0 *ec2.DescribeSecondaryNetworksOutput, _a1 error) *EC2_DescribeSecondaryNetworks_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EC2_DescribeSecondaryNetworks_Call) RunAndReturn(run func(context.Context, *ec2.DescribeSecondaryNetworksInput, ...func(*ec2.Options)) (*ec2.DescribeSecondaryNetworksOutput, error)) *EC2_DescribeSecondaryNetworks_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DescribeSecondarySubnets provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) DescribeSecondarySubnets(ctx context.Context, params *ec2.DescribeSecondarySubnetsInput, optFns ...func(*ec2.Options)) (*ec2.DescribeSecondarySubnetsOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DescribeSecondarySubnets")
+	}
+
+	var r0 *ec2.DescribeSecondarySubnetsOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeSecondarySubnetsInput, ...func(*ec2.Options)) (*ec2.DescribeSecondarySubnetsOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeSecondarySubnetsInput, ...func(*ec2.Options)) *ec2.DescribeSecondarySubnetsOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeSecondarySubnetsOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeSecondarySubnetsInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EC2_DescribeSecondarySubnets_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeSecondarySubnets'
+type EC2_DescribeSecondarySubnets_Call struct {
+	*mock.Call
+}
+
+// DescribeSecondarySubnets is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ec2.DescribeSecondarySubnetsInput
+//   - optFns ...func(*ec2.Options)
+func (_e *EC2_Expecter) DescribeSecondarySubnets(ctx interface{}, params interface{}, optFns ...interface{}) *EC2_DescribeSecondarySubnets_Call {
+	return &EC2_DescribeSecondarySubnets_Call{Call: _e.mock.On("DescribeSecondarySubnets",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EC2_DescribeSecondarySubnets_Call) Run(run func(ctx context.Context, params *ec2.DescribeSecondarySubnetsInput, optFns ...func(*ec2.Options))) *EC2_DescribeSecondarySubnets_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ec2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ec2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ec2.DescribeSecondarySubnetsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EC2_DescribeSecondarySubnets_Call) Return(_a0 *ec2.DescribeSecondarySubnetsOutput, _a1 error) *EC2_DescribeSecondarySubnets_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EC2_DescribeSecondarySubnets_Call) RunAndReturn(run func(context.Context, *ec2.DescribeSecondarySubnetsInput, ...func(*ec2.Options)) (*ec2.DescribeSecondarySubnetsOutput, error)) *EC2_DescribeSecondarySubnets_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -97,6 +97,80 @@ func (_c *CloudWatchLogs_AssociateKmsKey_Call) RunAndReturn(run func(context.Con
 	return _c
 }
 
+// AssociateSourceToS3TableIntegration provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudWatchLogs) AssociateSourceToS3TableIntegration(ctx context.Context, params *cloudwatchlogs.AssociateSourceToS3TableIntegrationInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.AssociateSourceToS3TableIntegrationOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AssociateSourceToS3TableIntegration")
+	}
+
+	var r0 *cloudwatchlogs.AssociateSourceToS3TableIntegrationOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudwatchlogs.AssociateSourceToS3TableIntegrationInput, ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.AssociateSourceToS3TableIntegrationOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudwatchlogs.AssociateSourceToS3TableIntegrationInput, ...func(*cloudwatchlogs.Options)) *cloudwatchlogs.AssociateSourceToS3TableIntegrationOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudwatchlogs.AssociateSourceToS3TableIntegrationOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudwatchlogs.AssociateSourceToS3TableIntegrationInput, ...func(*cloudwatchlogs.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CloudWatchLogs_AssociateSourceToS3TableIntegration_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AssociateSourceToS3TableIntegration'
+type CloudWatchLogs_AssociateSourceToS3TableIntegration_Call struct {
+	*mock.Call
+}
+
+// AssociateSourceToS3TableIntegration is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudwatchlogs.AssociateSourceToS3TableIntegrationInput
+//   - optFns ...func(*cloudwatchlogs.Options)
+func (_e *CloudWatchLogs_Expecter) AssociateSourceToS3TableIntegration(ctx interface{}, params interface{}, optFns ...interface{}) *CloudWatchLogs_AssociateSourceToS3TableIntegration_Call {
+	return &CloudWatchLogs_AssociateSourceToS3TableIntegration_Call{Call: _e.mock.On("AssociateSourceToS3TableIntegration",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudWatchLogs_AssociateSourceToS3TableIntegration_Call) Run(run func(ctx context.Context, params *cloudwatchlogs.AssociateSourceToS3TableIntegrationInput, optFns ...func(*cloudwatchlogs.Options))) *CloudWatchLogs_AssociateSourceToS3TableIntegration_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudwatchlogs.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudwatchlogs.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudwatchlogs.AssociateSourceToS3TableIntegrationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudWatchLogs_AssociateSourceToS3TableIntegration_Call) Return(_a0 *cloudwatchlogs.AssociateSourceToS3TableIntegrationOutput, _a1 error) *CloudWatchLogs_AssociateSourceToS3TableIntegration_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudWatchLogs_AssociateSourceToS3TableIntegration_Call) RunAndReturn(run func(context.Context, *cloudwatchlogs.AssociateSourceToS3TableIntegrationInput, ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.AssociateSourceToS3TableIntegrationOutput, error)) *CloudWatchLogs_AssociateSourceToS3TableIntegration_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CancelExportTask provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudWatchLogs) CancelExportTask(ctx context.Context, params *cloudwatchlogs.CancelExportTaskInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.CancelExportTaskOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -167,6 +241,80 @@ func (_c *CloudWatchLogs_CancelExportTask_Call) Return(_a0 *cloudwatchlogs.Cance
 }
 
 func (_c *CloudWatchLogs_CancelExportTask_Call) RunAndReturn(run func(context.Context, *cloudwatchlogs.CancelExportTaskInput, ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.CancelExportTaskOutput, error)) *CloudWatchLogs_CancelExportTask_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CancelImportTask provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudWatchLogs) CancelImportTask(ctx context.Context, params *cloudwatchlogs.CancelImportTaskInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.CancelImportTaskOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CancelImportTask")
+	}
+
+	var r0 *cloudwatchlogs.CancelImportTaskOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudwatchlogs.CancelImportTaskInput, ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.CancelImportTaskOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudwatchlogs.CancelImportTaskInput, ...func(*cloudwatchlogs.Options)) *cloudwatchlogs.CancelImportTaskOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudwatchlogs.CancelImportTaskOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudwatchlogs.CancelImportTaskInput, ...func(*cloudwatchlogs.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CloudWatchLogs_CancelImportTask_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CancelImportTask'
+type CloudWatchLogs_CancelImportTask_Call struct {
+	*mock.Call
+}
+
+// CancelImportTask is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudwatchlogs.CancelImportTaskInput
+//   - optFns ...func(*cloudwatchlogs.Options)
+func (_e *CloudWatchLogs_Expecter) CancelImportTask(ctx interface{}, params interface{}, optFns ...interface{}) *CloudWatchLogs_CancelImportTask_Call {
+	return &CloudWatchLogs_CancelImportTask_Call{Call: _e.mock.On("CancelImportTask",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudWatchLogs_CancelImportTask_Call) Run(run func(ctx context.Context, params *cloudwatchlogs.CancelImportTaskInput, optFns ...func(*cloudwatchlogs.Options))) *CloudWatchLogs_CancelImportTask_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudwatchlogs.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudwatchlogs.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudwatchlogs.CancelImportTaskInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudWatchLogs_CancelImportTask_Call) Return(_a0 *cloudwatchlogs.CancelImportTaskOutput, _a1 error) *CloudWatchLogs_CancelImportTask_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudWatchLogs_CancelImportTask_Call) RunAndReturn(run func(context.Context, *cloudwatchlogs.CancelImportTaskInput, ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.CancelImportTaskOutput, error)) *CloudWatchLogs_CancelImportTask_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -315,6 +463,80 @@ func (_c *CloudWatchLogs_CreateExportTask_Call) Return(_a0 *cloudwatchlogs.Creat
 }
 
 func (_c *CloudWatchLogs_CreateExportTask_Call) RunAndReturn(run func(context.Context, *cloudwatchlogs.CreateExportTaskInput, ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.CreateExportTaskOutput, error)) *CloudWatchLogs_CreateExportTask_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateImportTask provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudWatchLogs) CreateImportTask(ctx context.Context, params *cloudwatchlogs.CreateImportTaskInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.CreateImportTaskOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateImportTask")
+	}
+
+	var r0 *cloudwatchlogs.CreateImportTaskOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudwatchlogs.CreateImportTaskInput, ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.CreateImportTaskOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudwatchlogs.CreateImportTaskInput, ...func(*cloudwatchlogs.Options)) *cloudwatchlogs.CreateImportTaskOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudwatchlogs.CreateImportTaskOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudwatchlogs.CreateImportTaskInput, ...func(*cloudwatchlogs.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CloudWatchLogs_CreateImportTask_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateImportTask'
+type CloudWatchLogs_CreateImportTask_Call struct {
+	*mock.Call
+}
+
+// CreateImportTask is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudwatchlogs.CreateImportTaskInput
+//   - optFns ...func(*cloudwatchlogs.Options)
+func (_e *CloudWatchLogs_Expecter) CreateImportTask(ctx interface{}, params interface{}, optFns ...interface{}) *CloudWatchLogs_CreateImportTask_Call {
+	return &CloudWatchLogs_CreateImportTask_Call{Call: _e.mock.On("CreateImportTask",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudWatchLogs_CreateImportTask_Call) Run(run func(ctx context.Context, params *cloudwatchlogs.CreateImportTaskInput, optFns ...func(*cloudwatchlogs.Options))) *CloudWatchLogs_CreateImportTask_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudwatchlogs.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudwatchlogs.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudwatchlogs.CreateImportTaskInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudWatchLogs_CreateImportTask_Call) Return(_a0 *cloudwatchlogs.CreateImportTaskOutput, _a1 error) *CloudWatchLogs_CreateImportTask_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudWatchLogs_CreateImportTask_Call) RunAndReturn(run func(context.Context, *cloudwatchlogs.CreateImportTaskInput, ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.CreateImportTaskOutput, error)) *CloudWatchLogs_CreateImportTask_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2613,6 +2835,154 @@ func (_c *CloudWatchLogs_DescribeFieldIndexes_Call) RunAndReturn(run func(contex
 	return _c
 }
 
+// DescribeImportTaskBatches provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudWatchLogs) DescribeImportTaskBatches(ctx context.Context, params *cloudwatchlogs.DescribeImportTaskBatchesInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.DescribeImportTaskBatchesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DescribeImportTaskBatches")
+	}
+
+	var r0 *cloudwatchlogs.DescribeImportTaskBatchesOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudwatchlogs.DescribeImportTaskBatchesInput, ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.DescribeImportTaskBatchesOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudwatchlogs.DescribeImportTaskBatchesInput, ...func(*cloudwatchlogs.Options)) *cloudwatchlogs.DescribeImportTaskBatchesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudwatchlogs.DescribeImportTaskBatchesOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudwatchlogs.DescribeImportTaskBatchesInput, ...func(*cloudwatchlogs.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CloudWatchLogs_DescribeImportTaskBatches_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeImportTaskBatches'
+type CloudWatchLogs_DescribeImportTaskBatches_Call struct {
+	*mock.Call
+}
+
+// DescribeImportTaskBatches is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudwatchlogs.DescribeImportTaskBatchesInput
+//   - optFns ...func(*cloudwatchlogs.Options)
+func (_e *CloudWatchLogs_Expecter) DescribeImportTaskBatches(ctx interface{}, params interface{}, optFns ...interface{}) *CloudWatchLogs_DescribeImportTaskBatches_Call {
+	return &CloudWatchLogs_DescribeImportTaskBatches_Call{Call: _e.mock.On("DescribeImportTaskBatches",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudWatchLogs_DescribeImportTaskBatches_Call) Run(run func(ctx context.Context, params *cloudwatchlogs.DescribeImportTaskBatchesInput, optFns ...func(*cloudwatchlogs.Options))) *CloudWatchLogs_DescribeImportTaskBatches_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudwatchlogs.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudwatchlogs.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudwatchlogs.DescribeImportTaskBatchesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudWatchLogs_DescribeImportTaskBatches_Call) Return(_a0 *cloudwatchlogs.DescribeImportTaskBatchesOutput, _a1 error) *CloudWatchLogs_DescribeImportTaskBatches_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudWatchLogs_DescribeImportTaskBatches_Call) RunAndReturn(run func(context.Context, *cloudwatchlogs.DescribeImportTaskBatchesInput, ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.DescribeImportTaskBatchesOutput, error)) *CloudWatchLogs_DescribeImportTaskBatches_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DescribeImportTasks provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudWatchLogs) DescribeImportTasks(ctx context.Context, params *cloudwatchlogs.DescribeImportTasksInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.DescribeImportTasksOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DescribeImportTasks")
+	}
+
+	var r0 *cloudwatchlogs.DescribeImportTasksOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudwatchlogs.DescribeImportTasksInput, ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.DescribeImportTasksOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudwatchlogs.DescribeImportTasksInput, ...func(*cloudwatchlogs.Options)) *cloudwatchlogs.DescribeImportTasksOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudwatchlogs.DescribeImportTasksOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudwatchlogs.DescribeImportTasksInput, ...func(*cloudwatchlogs.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CloudWatchLogs_DescribeImportTasks_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeImportTasks'
+type CloudWatchLogs_DescribeImportTasks_Call struct {
+	*mock.Call
+}
+
+// DescribeImportTasks is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudwatchlogs.DescribeImportTasksInput
+//   - optFns ...func(*cloudwatchlogs.Options)
+func (_e *CloudWatchLogs_Expecter) DescribeImportTasks(ctx interface{}, params interface{}, optFns ...interface{}) *CloudWatchLogs_DescribeImportTasks_Call {
+	return &CloudWatchLogs_DescribeImportTasks_Call{Call: _e.mock.On("DescribeImportTasks",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudWatchLogs_DescribeImportTasks_Call) Run(run func(ctx context.Context, params *cloudwatchlogs.DescribeImportTasksInput, optFns ...func(*cloudwatchlogs.Options))) *CloudWatchLogs_DescribeImportTasks_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudwatchlogs.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudwatchlogs.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudwatchlogs.DescribeImportTasksInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudWatchLogs_DescribeImportTasks_Call) Return(_a0 *cloudwatchlogs.DescribeImportTasksOutput, _a1 error) *CloudWatchLogs_DescribeImportTasks_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudWatchLogs_DescribeImportTasks_Call) RunAndReturn(run func(context.Context, *cloudwatchlogs.DescribeImportTasksInput, ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.DescribeImportTasksOutput, error)) *CloudWatchLogs_DescribeImportTasks_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeIndexPolicies provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudWatchLogs) DescribeIndexPolicies(ctx context.Context, params *cloudwatchlogs.DescribeIndexPoliciesInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.DescribeIndexPoliciesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3275,6 +3645,80 @@ func (_c *CloudWatchLogs_DisassociateKmsKey_Call) Return(_a0 *cloudwatchlogs.Dis
 }
 
 func (_c *CloudWatchLogs_DisassociateKmsKey_Call) RunAndReturn(run func(context.Context, *cloudwatchlogs.DisassociateKmsKeyInput, ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.DisassociateKmsKeyOutput, error)) *CloudWatchLogs_DisassociateKmsKey_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DisassociateSourceFromS3TableIntegration provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudWatchLogs) DisassociateSourceFromS3TableIntegration(ctx context.Context, params *cloudwatchlogs.DisassociateSourceFromS3TableIntegrationInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.DisassociateSourceFromS3TableIntegrationOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DisassociateSourceFromS3TableIntegration")
+	}
+
+	var r0 *cloudwatchlogs.DisassociateSourceFromS3TableIntegrationOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudwatchlogs.DisassociateSourceFromS3TableIntegrationInput, ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.DisassociateSourceFromS3TableIntegrationOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudwatchlogs.DisassociateSourceFromS3TableIntegrationInput, ...func(*cloudwatchlogs.Options)) *cloudwatchlogs.DisassociateSourceFromS3TableIntegrationOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudwatchlogs.DisassociateSourceFromS3TableIntegrationOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudwatchlogs.DisassociateSourceFromS3TableIntegrationInput, ...func(*cloudwatchlogs.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CloudWatchLogs_DisassociateSourceFromS3TableIntegration_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DisassociateSourceFromS3TableIntegration'
+type CloudWatchLogs_DisassociateSourceFromS3TableIntegration_Call struct {
+	*mock.Call
+}
+
+// DisassociateSourceFromS3TableIntegration is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudwatchlogs.DisassociateSourceFromS3TableIntegrationInput
+//   - optFns ...func(*cloudwatchlogs.Options)
+func (_e *CloudWatchLogs_Expecter) DisassociateSourceFromS3TableIntegration(ctx interface{}, params interface{}, optFns ...interface{}) *CloudWatchLogs_DisassociateSourceFromS3TableIntegration_Call {
+	return &CloudWatchLogs_DisassociateSourceFromS3TableIntegration_Call{Call: _e.mock.On("DisassociateSourceFromS3TableIntegration",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudWatchLogs_DisassociateSourceFromS3TableIntegration_Call) Run(run func(ctx context.Context, params *cloudwatchlogs.DisassociateSourceFromS3TableIntegrationInput, optFns ...func(*cloudwatchlogs.Options))) *CloudWatchLogs_DisassociateSourceFromS3TableIntegration_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudwatchlogs.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudwatchlogs.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudwatchlogs.DisassociateSourceFromS3TableIntegrationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudWatchLogs_DisassociateSourceFromS3TableIntegration_Call) Return(_a0 *cloudwatchlogs.DisassociateSourceFromS3TableIntegrationOutput, _a1 error) *CloudWatchLogs_DisassociateSourceFromS3TableIntegration_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudWatchLogs_DisassociateSourceFromS3TableIntegration_Call) RunAndReturn(run func(context.Context, *cloudwatchlogs.DisassociateSourceFromS3TableIntegrationInput, ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.DisassociateSourceFromS3TableIntegrationOutput, error)) *CloudWatchLogs_DisassociateSourceFromS3TableIntegration_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -3945,6 +4389,80 @@ func (_c *CloudWatchLogs_GetLogEvents_Call) RunAndReturn(run func(context.Contex
 	return _c
 }
 
+// GetLogFields provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudWatchLogs) GetLogFields(ctx context.Context, params *cloudwatchlogs.GetLogFieldsInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.GetLogFieldsOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetLogFields")
+	}
+
+	var r0 *cloudwatchlogs.GetLogFieldsOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudwatchlogs.GetLogFieldsInput, ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.GetLogFieldsOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudwatchlogs.GetLogFieldsInput, ...func(*cloudwatchlogs.Options)) *cloudwatchlogs.GetLogFieldsOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudwatchlogs.GetLogFieldsOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudwatchlogs.GetLogFieldsInput, ...func(*cloudwatchlogs.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CloudWatchLogs_GetLogFields_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetLogFields'
+type CloudWatchLogs_GetLogFields_Call struct {
+	*mock.Call
+}
+
+// GetLogFields is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudwatchlogs.GetLogFieldsInput
+//   - optFns ...func(*cloudwatchlogs.Options)
+func (_e *CloudWatchLogs_Expecter) GetLogFields(ctx interface{}, params interface{}, optFns ...interface{}) *CloudWatchLogs_GetLogFields_Call {
+	return &CloudWatchLogs_GetLogFields_Call{Call: _e.mock.On("GetLogFields",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudWatchLogs_GetLogFields_Call) Run(run func(ctx context.Context, params *cloudwatchlogs.GetLogFieldsInput, optFns ...func(*cloudwatchlogs.Options))) *CloudWatchLogs_GetLogFields_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudwatchlogs.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudwatchlogs.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudwatchlogs.GetLogFieldsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudWatchLogs_GetLogFields_Call) Return(_a0 *cloudwatchlogs.GetLogFieldsOutput, _a1 error) *CloudWatchLogs_GetLogFields_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudWatchLogs_GetLogFields_Call) RunAndReturn(run func(context.Context, *cloudwatchlogs.GetLogFieldsInput, ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.GetLogFieldsOutput, error)) *CloudWatchLogs_GetLogFields_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetLogGroupFields provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudWatchLogs) GetLogGroupFields(ctx context.Context, params *cloudwatchlogs.GetLogGroupFieldsInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.GetLogGroupFieldsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -4463,6 +4981,80 @@ func (_c *CloudWatchLogs_GetTransformer_Call) RunAndReturn(run func(context.Cont
 	return _c
 }
 
+// ListAggregateLogGroupSummaries provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudWatchLogs) ListAggregateLogGroupSummaries(ctx context.Context, params *cloudwatchlogs.ListAggregateLogGroupSummariesInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.ListAggregateLogGroupSummariesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListAggregateLogGroupSummaries")
+	}
+
+	var r0 *cloudwatchlogs.ListAggregateLogGroupSummariesOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudwatchlogs.ListAggregateLogGroupSummariesInput, ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.ListAggregateLogGroupSummariesOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudwatchlogs.ListAggregateLogGroupSummariesInput, ...func(*cloudwatchlogs.Options)) *cloudwatchlogs.ListAggregateLogGroupSummariesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudwatchlogs.ListAggregateLogGroupSummariesOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudwatchlogs.ListAggregateLogGroupSummariesInput, ...func(*cloudwatchlogs.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CloudWatchLogs_ListAggregateLogGroupSummaries_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListAggregateLogGroupSummaries'
+type CloudWatchLogs_ListAggregateLogGroupSummaries_Call struct {
+	*mock.Call
+}
+
+// ListAggregateLogGroupSummaries is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudwatchlogs.ListAggregateLogGroupSummariesInput
+//   - optFns ...func(*cloudwatchlogs.Options)
+func (_e *CloudWatchLogs_Expecter) ListAggregateLogGroupSummaries(ctx interface{}, params interface{}, optFns ...interface{}) *CloudWatchLogs_ListAggregateLogGroupSummaries_Call {
+	return &CloudWatchLogs_ListAggregateLogGroupSummaries_Call{Call: _e.mock.On("ListAggregateLogGroupSummaries",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudWatchLogs_ListAggregateLogGroupSummaries_Call) Run(run func(ctx context.Context, params *cloudwatchlogs.ListAggregateLogGroupSummariesInput, optFns ...func(*cloudwatchlogs.Options))) *CloudWatchLogs_ListAggregateLogGroupSummaries_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudwatchlogs.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudwatchlogs.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudwatchlogs.ListAggregateLogGroupSummariesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudWatchLogs_ListAggregateLogGroupSummaries_Call) Return(_a0 *cloudwatchlogs.ListAggregateLogGroupSummariesOutput, _a1 error) *CloudWatchLogs_ListAggregateLogGroupSummaries_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudWatchLogs_ListAggregateLogGroupSummaries_Call) RunAndReturn(run func(context.Context, *cloudwatchlogs.ListAggregateLogGroupSummariesInput, ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.ListAggregateLogGroupSummariesOutput, error)) *CloudWatchLogs_ListAggregateLogGroupSummaries_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListAnomalies provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudWatchLogs) ListAnomalies(ctx context.Context, params *cloudwatchlogs.ListAnomaliesInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.ListAnomaliesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -4903,6 +5495,80 @@ func (_c *CloudWatchLogs_ListScheduledQueries_Call) Return(_a0 *cloudwatchlogs.L
 }
 
 func (_c *CloudWatchLogs_ListScheduledQueries_Call) RunAndReturn(run func(context.Context, *cloudwatchlogs.ListScheduledQueriesInput, ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.ListScheduledQueriesOutput, error)) *CloudWatchLogs_ListScheduledQueries_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListSourcesForS3TableIntegration provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudWatchLogs) ListSourcesForS3TableIntegration(ctx context.Context, params *cloudwatchlogs.ListSourcesForS3TableIntegrationInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.ListSourcesForS3TableIntegrationOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListSourcesForS3TableIntegration")
+	}
+
+	var r0 *cloudwatchlogs.ListSourcesForS3TableIntegrationOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudwatchlogs.ListSourcesForS3TableIntegrationInput, ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.ListSourcesForS3TableIntegrationOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudwatchlogs.ListSourcesForS3TableIntegrationInput, ...func(*cloudwatchlogs.Options)) *cloudwatchlogs.ListSourcesForS3TableIntegrationOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudwatchlogs.ListSourcesForS3TableIntegrationOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudwatchlogs.ListSourcesForS3TableIntegrationInput, ...func(*cloudwatchlogs.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CloudWatchLogs_ListSourcesForS3TableIntegration_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListSourcesForS3TableIntegration'
+type CloudWatchLogs_ListSourcesForS3TableIntegration_Call struct {
+	*mock.Call
+}
+
+// ListSourcesForS3TableIntegration is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudwatchlogs.ListSourcesForS3TableIntegrationInput
+//   - optFns ...func(*cloudwatchlogs.Options)
+func (_e *CloudWatchLogs_Expecter) ListSourcesForS3TableIntegration(ctx interface{}, params interface{}, optFns ...interface{}) *CloudWatchLogs_ListSourcesForS3TableIntegration_Call {
+	return &CloudWatchLogs_ListSourcesForS3TableIntegration_Call{Call: _e.mock.On("ListSourcesForS3TableIntegration",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudWatchLogs_ListSourcesForS3TableIntegration_Call) Run(run func(ctx context.Context, params *cloudwatchlogs.ListSourcesForS3TableIntegrationInput, optFns ...func(*cloudwatchlogs.Options))) *CloudWatchLogs_ListSourcesForS3TableIntegration_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudwatchlogs.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudwatchlogs.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudwatchlogs.ListSourcesForS3TableIntegrationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudWatchLogs_ListSourcesForS3TableIntegration_Call) Return(_a0 *cloudwatchlogs.ListSourcesForS3TableIntegrationOutput, _a1 error) *CloudWatchLogs_ListSourcesForS3TableIntegration_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudWatchLogs_ListSourcesForS3TableIntegration_Call) RunAndReturn(run func(context.Context, *cloudwatchlogs.ListSourcesForS3TableIntegrationInput, ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.ListSourcesForS3TableIntegrationOutput, error)) *CloudWatchLogs_ListSourcesForS3TableIntegration_Call {
 	_c.Call.Return(run)
 	return _c
 }

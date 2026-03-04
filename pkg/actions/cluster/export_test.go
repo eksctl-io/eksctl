@@ -1,6 +1,7 @@
 package cluster
 
 import (
+	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
@@ -22,6 +23,14 @@ func (c *UnownedCluster) SetNewNodeGroupDrainer(newNodeGroupDrainer func(clientS
 
 func (c *OwnedCluster) SetNewNodeGroupDrainer(newNodeGroupDrainer func(kubernetes.Interface) NodeGroupDrainer) {
 	c.newNodeGroupDrainer = newNodeGroupDrainer
+}
+
+func (c *OwnedCluster) MockKubeProvider(k eks.KubeProvider) {
+	c.ctl.KubeProvider = k
+}
+
+func (c *UnownedCluster) MockKubeProvider(k eks.KubeProvider) {
+	c.ctl.KubeProvider = k
 }
 
 func SetProviderConstructor(f ProviderConstructor) {

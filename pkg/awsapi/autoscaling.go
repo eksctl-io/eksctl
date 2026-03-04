@@ -64,7 +64,7 @@ type ASG interface {
 	// [AttachTrafficSources]: https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_AttachTrafficSources.html
 	// [Use Elastic Load Balancing to distribute traffic across the instances in your Auto Scaling group]: https://docs.aws.amazon.com/autoscaling/ec2/userguide/autoscaling-load-balancer.html
 	AttachLoadBalancerTargetGroups(ctx context.Context, params *autoscaling.AttachLoadBalancerTargetGroupsInput, optFns ...func(*Options)) (*autoscaling.AttachLoadBalancerTargetGroupsOutput, error)
-	// This API operation is superseded by [https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_AttachTrafficSources.html], which can attach multiple traffic sources
+	// This API operation is superseded by [AttachTrafficSources], which can attach multiple traffic sources
 	// types. We recommend using AttachTrafficSources to simplify how you manage
 	// traffic sources. However, we continue to support AttachLoadBalancers . You can
 	// use both the original AttachLoadBalancers API operation and AttachTrafficSources
@@ -84,7 +84,7 @@ type ASG interface {
 	//
 	// [DetachLoadBalancers]: https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_DetachLoadBalancers.html
 	// [DescribeLoadBalancers]: https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_DescribeLoadBalancers.html
-	// [https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_AttachTrafficSources.html]: https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_AttachTrafficSources.html
+	// [AttachTrafficSources]: https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_AttachTrafficSources.html
 	// [Use Elastic Load Balancing to distribute traffic across the instances in your Auto Scaling group]: https://docs.aws.amazon.com/autoscaling/ec2/userguide/autoscaling-load-balancer.html
 	AttachLoadBalancers(ctx context.Context, params *autoscaling.AttachLoadBalancersInput, optFns ...func(*Options)) (*autoscaling.AttachLoadBalancersOutput, error)
 	// Attaches one or more traffic sources to the specified Auto Scaling group.
@@ -519,7 +519,7 @@ type ASG interface {
 	//
 	// [AttachLoadBalancerTargetGroups]: https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_AttachLoadBalancerTargetGroups.html
 	// [DescribeLoadBalancerTargetGroups]: https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_DescribeLoadBalancerTargetGroups.html
-	// [DetachTrafficSources]: https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_DescribeTrafficSources.html
+	// [DetachTrafficSources]: https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_DetachTrafficSources.html
 	// [AttachTrafficSources]: https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_AttachTrafficSources.html
 	DetachLoadBalancerTargetGroups(ctx context.Context, params *autoscaling.DetachLoadBalancerTargetGroupsInput, optFns ...func(*Options)) (*autoscaling.DetachLoadBalancerTargetGroupsOutput, error)
 	// This API operation is superseded by [DetachTrafficSources], which can detach multiple traffic sources

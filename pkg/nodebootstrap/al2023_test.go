@@ -407,6 +407,7 @@ spec:
   containerd: {}
   instance:
     localStorage: {}
+    network: {}
   kubelet:
     config:
       clusterDNS:
@@ -433,6 +434,7 @@ spec:
   containerd: {}
   instance:
     localStorage: {}
+    network: {}
   kubelet:
     config:
       clusterDNS:
@@ -457,6 +459,7 @@ spec:
   containerd: {}
   instance:
     localStorage: {}
+    network: {}
   kubelet:
     config:
       clusterDNS:
@@ -481,6 +484,7 @@ spec:
   containerd: {}
   instance:
     localStorage: {}
+    network: {}
   kubelet:
     config:
       clusterDNS:

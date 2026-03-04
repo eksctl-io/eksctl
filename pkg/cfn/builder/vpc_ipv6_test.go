@@ -687,6 +687,41 @@ var _ = Describe("IPv6 VPC builder", func() {
 			}))
 		})
 	})
+
+	Context("when Karpenter is enabled with discovery tag", func() {
+		BeforeEach(func() {
+			cfg.Karpenter = &api.Karpenter{
+				Version: "1.9.0",
+			}
+			cfg.Metadata.Tags = map[string]string{
+				"karpenter.sh/discovery": "test-cluster",
+			}
+		})
+
+		It("adds karpenter.sh/discovery tag to private subnets only", func() {
+			vpcRs := builder.NewIPv6VPCResourceSet(builder.NewRS(), cfg, nil)
+			vpcTemplate, err := createAndRenderTemplate(vpcRs)
+			Expect(err).NotTo(HaveOccurred())
+
+			privateSubnetA := builder.PrivateSubnetKey + azAFormatted
+			Expect(vpcTemplate.Resources[privateSubnetA].Properties.Tags).To(ContainElement(fakes.Tag{
+				Key:   "karpenter.sh/discovery",
+				Value: "test-cluster",
+			}))
+
+			privateSubnetB := builder.PrivateSubnetKey + azBFormatted
+			Expect(vpcTemplate.Resources[privateSubnetB].Properties.Tags).To(ContainElement(fakes.Tag{
+				Key:   "karpenter.sh/discovery",
+				Value: "test-cluster",
+			}))
+
+			publicSubnetA := builder.PublicSubnetKey + azAFormatted
+			Expect(vpcTemplate.Resources[publicSubnetA].Properties.Tags).NotTo(ContainElement(fakes.Tag{
+				Key:   "karpenter.sh/discovery",
+				Value: "test-cluster",
+			}))
+		})
+	})
 })
 
 func createAndRenderTemplate(vpcRs *builder.IPv6VPCResourceSet) (*fakes.FakeTemplate, error) {

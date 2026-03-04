@@ -168,6 +168,34 @@ var _ = Describe("VPC Template Builder", func() {
 			Expect(vpcTemplate.Resources[rtaPrivateB].Properties.RouteTableID).To(Equal(makeRef(privRouteTableB)))
 		})
 
+		Context("when Karpenter is enabled with discovery tag", func() {
+			BeforeEach(func() {
+				cfg.Karpenter = &api.Karpenter{
+					Version: "1.9.0",
+				}
+				cfg.Metadata.Tags = map[string]string{
+					"karpenter.sh/discovery": "test-cluster",
+				}
+			})
+
+			It("adds karpenter.sh/discovery tag to private subnets", func() {
+				Expect(vpcTemplate.Resources[privateSubnetRef1].Properties.Tags[0].Key).To(Equal("kubernetes.io/role/internal-elb"))
+				Expect(vpcTemplate.Resources[privateSubnetRef1].Properties.Tags[0].Value).To(Equal("1"))
+				Expect(vpcTemplate.Resources[privateSubnetRef1].Properties.Tags[1].Key).To(Equal("karpenter.sh/discovery"))
+				Expect(vpcTemplate.Resources[privateSubnetRef1].Properties.Tags[1].Value).To(Equal("test-cluster"))
+
+				Expect(vpcTemplate.Resources[privateSubnetRef2].Properties.Tags[0].Key).To(Equal("kubernetes.io/role/internal-elb"))
+				Expect(vpcTemplate.Resources[privateSubnetRef2].Properties.Tags[0].Value).To(Equal("1"))
+				Expect(vpcTemplate.Resources[privateSubnetRef2].Properties.Tags[1].Key).To(Equal("karpenter.sh/discovery"))
+				Expect(vpcTemplate.Resources[privateSubnetRef2].Properties.Tags[1].Value).To(Equal("test-cluster"))
+			})
+
+			It("does not add karpenter.sh/discovery tag to public subnets", func() {
+				Expect(vpcTemplate.Resources[publicSubnetRef1].Properties.Tags[0].Key).To(Equal("kubernetes.io/role/elb"))
+				Expect(vpcTemplate.Resources[publicSubnetRef1].Properties.Tags).To(HaveLen(2)) // elb + Name only
+			})
+		})
+
 		Context("highly available nat is set", func() {
 			BeforeEach(func() {
 				*cfg.VPC.NAT.Gateway = api.ClusterHighlyAvailableNAT
