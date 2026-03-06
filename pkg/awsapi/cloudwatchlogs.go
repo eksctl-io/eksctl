@@ -179,9 +179,10 @@ type CloudWatchLogs interface {
 	//
 	//   - logs:PutResourcePolicy
 	//
-	//   - (If source has an associated AWS KMS Key) kms:Decrypt
+	//   - (If source has an associated Amazon Web Services KMS Key) kms:Decrypt
 	//
-	//   - (If source has an associated AWS KMS Key) kms:GenerateDataKey
+	//   - (If source has an associated Amazon Web Services KMS Key)
+	//     kms:GenerateDataKey
 	//
 	// Example IAM policy for provided import role:
 	//
@@ -760,6 +761,15 @@ type CloudWatchLogs interface {
 	// original JSON structure where the large field was located. For example, this
 	// could be @ptr.$['input']['message'] , @ptr.$['AAA']['BBB']['CCC']['DDD'] ,
 	// @ptr.$['AAA'] , or any other path matching your log structure.
+	//
+	// The GetLogObject API routes requests using SDK host prefix injection. SDK
+	// versions released before April 1, 2026 route to
+	// streaming-logs.Region.amazonaws.com , which does not support VPC endpoints. SDK
+	// versions released on or after April 1, 2026 route to
+	// stream-logs.Region.amazonaws.com , which supports VPC endpoints. To set up a VPC
+	// endpoint for this API, see [Creating a VPC endpoint for CloudWatch Logs].
+	//
+	// [Creating a VPC endpoint for CloudWatch Logs]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/cloudwatch-logs-and-interface-VPC.html#create-VPC-endpoint-for-CloudWatchLogs
 	GetLogObject(ctx context.Context, params *cloudwatchlogs.GetLogObjectInput, optFns ...func(*Options)) (*cloudwatchlogs.GetLogObjectOutput, error)
 	// Retrieves all of the fields and values of a single log event. All fields are
 	// retrieved, even if the original query that produced the logRecordPointer
@@ -1161,11 +1171,11 @@ type CloudWatchLogs interface {
 	// When a policy disables EMF metric creation for a log group, log events in the
 	// EMF format are still ingested, but no CloudWatch Metrics are created from them.
 	//
-	// Creating a policy disables metrics for AWS features that use EMF to create
-	// metrics, such as CloudWatch Container Insights and CloudWatch Application
-	// Signals. To prevent turning off those features by accident, we recommend that
-	// you exclude the underlying log-groups through a selection-criteria such as
-	// LogGroupNamePrefix NOT IN ["/aws/containerinsights",
+	// Creating a policy disables metrics for Amazon Web Services features that use
+	// EMF to create metrics, such as CloudWatch Container Insights and CloudWatch
+	// Application Signals. To prevent turning off those features by accident, we
+	// recommend that you exclude the underlying log-groups through a
+	// selection-criteria such as LogGroupNamePrefix NOT IN ["/aws/containerinsights",
 	// "/aws/ecs/containerinsights", "/aws/application-signals/data"] .
 	//
 	// Each account can have either one account-level metric extraction policy that
@@ -1218,6 +1228,14 @@ type CloudWatchLogs interface {
 	// [Use facets to group and explore logs]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogs-Facets.html
 	// [Create field indexes to improve query performance and reduce costs]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogs-Field-Indexing.html
 	PutAccountPolicy(ctx context.Context, params *cloudwatchlogs.PutAccountPolicyInput, optFns ...func(*Options)) (*cloudwatchlogs.PutAccountPolicyOutput, error)
+	// Enables or disables bearer token authentication for the specified log group.
+	// When enabled on a log group, bearer token authentication is enabled on
+	// operations until it is explicitly disabled.
+	//
+	// For information about the parameters that are common to all actions, see [Common Parameters].
+	//
+	// [Common Parameters]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/CommonParameters.html
+	PutBearerTokenAuthentication(ctx context.Context, params *cloudwatchlogs.PutBearerTokenAuthenticationInput, optFns ...func(*Options)) (*cloudwatchlogs.PutBearerTokenAuthenticationOutput, error)
 	// Creates a data protection policy for the specified log group. A data protection
 	// policy can help safeguard sensitive data that's ingested by the log group by
 	// auditing and masking the sensitive log data.
@@ -1715,9 +1733,12 @@ type CloudWatchLogs interface {
 	//	- A [SessionTimeoutException]object is returned when the session times out, after it has been kept
 	//	open for three hours.
 	//
-	// The StartLiveTail API routes requests to streaming-logs.Region.amazonaws.com
-	// using SDK host prefix injection. VPC endpoint support is not available for this
-	// API.
+	// The StartLiveTail API routes requests using SDK host prefix injection. SDK
+	// versions released before April 1, 2026 route to
+	// streaming-logs.Region.amazonaws.com , which does not support VPC endpoints. SDK
+	// versions released on or after April 1, 2026 route to
+	// stream-logs.Region.amazonaws.com , which supports VPC endpoints. To set up a VPC
+	// endpoint for this API, see [Creating a VPC endpoint for CloudWatch Logs].
 	//
 	// You can end a session before it times out by closing the session stream or by
 	// closing the client that is receiving the stream. The session also ends if the
@@ -1728,6 +1749,7 @@ type CloudWatchLogs interface {
 	// [LiveTailSessionStart]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_LiveTailSessionStart.html
 	// [LiveTailSessionUpdate]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_LiveTailSessionUpdate.html
 	// [Use Live Tail to view logs in near real time]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogs_LiveTail.html
+	// [Creating a VPC endpoint for CloudWatch Logs]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/cloudwatch-logs-and-interface-VPC.html#create-VPC-endpoint-for-CloudWatchLogs
 	// [Start a Live Tail session using an Amazon Web Services SDK]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/example_cloudwatch-logs_StartLiveTail_section.html
 	//
 	// [SessionTimeoutException]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_StartLiveTailResponseStream.html#CWL-Type-StartLiveTailResponseStream-SessionTimeoutException
@@ -1888,3 +1910,4 @@ type CloudWatchLogs interface {
 	// destinations.
 	UpdateScheduledQuery(ctx context.Context, params *cloudwatchlogs.UpdateScheduledQueryInput, optFns ...func(*Options)) (*cloudwatchlogs.UpdateScheduledQueryOutput, error)
 }
+

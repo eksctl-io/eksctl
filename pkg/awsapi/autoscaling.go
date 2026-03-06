@@ -926,3 +926,4 @@ type ASG interface {
 	// [PutScalingPolicy]: https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_PutScalingPolicy.html
 	UpdateAutoScalingGroup(ctx context.Context, params *autoscaling.UpdateAutoScalingGroupInput, optFns ...func(*Options)) (*autoscaling.UpdateAutoScalingGroupOutput, error)
 }
+
