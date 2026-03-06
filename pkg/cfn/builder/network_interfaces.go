@@ -51,9 +51,13 @@ func buildNetworkInterfaces(
 		var numEFAs = math.MaxFloat64
 		for _, it := range info.InstanceTypes {
 			networkInfo := it.NetworkInfo
-			numEFAs = math.Min(float64(aws.ToInt32(networkInfo.MaximumNetworkCards)), numEFAs)
 			if !aws.ToBool(networkInfo.EfaSupported) {
 				return fmt.Errorf("instance type %s does not support EFA", it.InstanceType)
+			}
+			if networkInfo.EfaInfo != nil && networkInfo.EfaInfo.MaximumEfaInterfaces != nil {
+				numEFAs = math.Min(float64(aws.ToInt32(networkInfo.EfaInfo.MaximumEfaInterfaces)), numEFAs)
+			} else {
+				numEFAs = math.Min(float64(aws.ToInt32(networkInfo.MaximumNetworkCards)), numEFAs)
 			}
 		}
 
