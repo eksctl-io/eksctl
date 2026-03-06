@@ -143,6 +143,50 @@ func TestBuildNetworkInterfaces(t *testing.T) {
 			expectedInterfaceType:     "efa",
 		},
 		{
+			name:          "EFA nodegroup with MaximumEfaInterfaces less than MaximumNetworkCards",
+			instanceTypes: []string{"p6-b300.48xlarge"},
+			efaEnabled:    true,
+			securityGroups: []*gfnt.Value{
+				gfnt.NewString("sg-12345"),
+			},
+			mockInstanceTypes: []ec2types.InstanceTypeInfo{
+				{
+					InstanceType: "p6-b300.48xlarge",
+					NetworkInfo: &ec2types.NetworkInfo{
+						MaximumNetworkCards: aws.Int32(17),
+						EfaSupported:        aws.Bool(true),
+						EfaInfo: &ec2types.EfaInfo{
+							MaximumEfaInterfaces: aws.Int32(8),
+						},
+					},
+				},
+			},
+			expectedNetworkInterfaces: 8,
+			expectedInterfaceType:     "efa",
+		},
+		{
+			name:          "EFA nodegroup with EfaInfo present and matching MaximumNetworkCards",
+			instanceTypes: []string{"p5.48xlarge"},
+			efaEnabled:    true,
+			securityGroups: []*gfnt.Value{
+				gfnt.NewString("sg-12345"),
+			},
+			mockInstanceTypes: []ec2types.InstanceTypeInfo{
+				{
+					InstanceType: "p5.48xlarge",
+					NetworkInfo: &ec2types.NetworkInfo{
+						MaximumNetworkCards: aws.Int32(32),
+						EfaSupported:        aws.Bool(true),
+						EfaInfo: &ec2types.EfaInfo{
+							MaximumEfaInterfaces: aws.Int32(32),
+						},
+					},
+				},
+			},
+			expectedNetworkInterfaces: 32,
+			expectedInterfaceType:     "efa",
+		},
+		{
 			name:          "EFA nodegroup with custom EFA security groups (1.32 scenario)",
 			instanceTypes: []string{"c5n.18xlarge"},
 			efaEnabled:    true,
