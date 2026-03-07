@@ -454,6 +454,38 @@ var _ = Describe("template builder for IAM", func() {
 
 			Expect(t).To(HaveOutputWithValue(outputs.IAMServiceAccountRoleName, `{ "Fn::GetAtt": "Role1.Arn" }`))
 		})
+
+		It("can construct an iamrole template for pod identity with a custom inline policy name", func() {
+			spec := &api.PodIdentityAssociation{
+				Namespace:            "kube-system",
+				ServiceAccountName:   "aws-node",
+				PermissionPolicyName: "PodIdentityPolicy",
+				PermissionPolicy: cft.MakePolicyDocument(
+					cft.MapOfInterfaces{
+						"Effect": "Allow",
+						"Action": []string{
+							"ec2:DescribeNetworkInterfaces",
+						},
+						"Resource": "*",
+					},
+				),
+			}
+
+			rs := builder.NewIAMRoleResourceSetForPodIdentity(spec)
+
+			templateBody := []byte{}
+
+			Expect(rs).To(RenderWithoutErrors(&templateBody))
+
+			t := cft.NewTemplate()
+
+			Expect(t).To(LoadBytesWithoutErrors(templateBody))
+
+			Expect(t).To(HaveResource(outputs.IAMServiceAccountRoleName, "AWS::IAM::Role"))
+			Expect(t).To(HaveResource("PodIdentityPolicy", "AWS::IAM::Policy"))
+			Expect(t).NotTo(HaveResource("Policy1", "AWS::IAM::Policy"))
+			Expect(t).To(HaveResourceWithPropertyValue("PodIdentityPolicy", "PolicyName", `{ "Fn::Sub": "${AWS::StackName}-PodIdentityPolicy" }`))
+		})
 	})
 })
 

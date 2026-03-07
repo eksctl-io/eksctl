@@ -2788,6 +2788,76 @@ var _ = Describe("ClusterConfig validation", func() {
 				ServiceAccountRoleARN: "role-1",
 			},
 		}, ""),
+		Entry("permissionPolicyName without permissionPolicy", []*api.Addon{
+			{
+				Name: api.VPCCNIAddon,
+				PodIdentityAssociations: &[]api.PodIdentityAssociation{
+					{
+						ServiceAccountName:   "aws-node",
+						PermissionPolicyName: "my-policy",
+					},
+				},
+			},
+		}, "permissionPolicyName requires permissionPolicy to be set"),
+		Entry("permissionPolicyName with only special characters", []*api.Addon{
+			{
+				Name: api.VPCCNIAddon,
+				PodIdentityAssociations: &[]api.PodIdentityAssociation{
+					{
+						ServiceAccountName:   "aws-node",
+						PermissionPolicyName: "---!!!",
+						PermissionPolicy:     api.InlineDocument{"Version": "2012-10-17"},
+					},
+				},
+			},
+		}, `permissionPolicyName "---!!!" must contain at least one alphanumeric character`),
+		Entry("valid permissionPolicyName with permissionPolicy", []*api.Addon{
+			{
+				Name: api.VPCCNIAddon,
+				PodIdentityAssociations: &[]api.PodIdentityAssociation{
+					{
+						ServiceAccountName:   "aws-node",
+						PermissionPolicyName: "my-policy",
+						PermissionPolicy:     api.InlineDocument{"Version": "2012-10-17"},
+					},
+				},
+			},
+		}, ""),
+	)
+
+	DescribeTable("iam pod identity association permissionPolicyName", func(pias []api.PodIdentityAssociation, expectedErr string) {
+		clusterConfig := api.NewClusterConfig()
+		clusterConfig.IAM.PodIdentityAssociations = pias
+		err := api.ValidateClusterConfig(clusterConfig)
+		if expectedErr != "" {
+			Expect(err).To(MatchError(ContainSubstring(expectedErr)))
+		} else {
+			Expect(err).NotTo(HaveOccurred())
+		}
+	},
+		Entry("permissionPolicyName without permissionPolicy", []api.PodIdentityAssociation{
+			{
+				Namespace:            "kube-system",
+				ServiceAccountName:   "aws-node",
+				PermissionPolicyName: "my-policy",
+			},
+		}, "permissionPolicyName requires permissionPolicy to be set"),
+		Entry("permissionPolicyName with only special characters", []api.PodIdentityAssociation{
+			{
+				Namespace:            "kube-system",
+				ServiceAccountName:   "aws-node",
+				PermissionPolicyName: "---!!!",
+				PermissionPolicy:     api.InlineDocument{"Version": "2012-10-17"},
+			},
+		}, `permissionPolicyName "---!!!" must contain at least one alphanumeric character`),
+		Entry("valid permissionPolicyName", []api.PodIdentityAssociation{
+			{
+				Namespace:            "kube-system",
+				ServiceAccountName:   "aws-node",
+				PermissionPolicyName: "my-policy",
+				PermissionPolicy:     api.InlineDocument{"Version": "2012-10-17"},
+			},
+		}, ""),
 	)
 })
 
