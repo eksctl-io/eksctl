@@ -6,6 +6,6 @@
     "region": "eu-north-1"
   },
   "nodeGroups": [
-    { "name": "ng-1", "instanceType": "m5.large", "desiredCapacity": 10 }
+    { "name": "ng-1", "instanceType": "t3.medium", "desiredCapacity": 10 }
   ]
 }

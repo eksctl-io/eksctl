@@ -74,7 +74,7 @@ Examples:
 ```
 [ℹ]  using region eu-west-1
 [ℹ]  using "ami-0ce0ec06e682ee10e" for nodes
-[ℹ]  2 nodes m5.large
+[ℹ]  2 nodes t3.medium
 [ℹ]  EBS volumes 20go
 [ℹ]  free tier "yes"
 [ℹ]  usage type "utilization"

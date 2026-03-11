@@ -9,7 +9,7 @@ eksctl create cluster
 ```
 
 That will create an EKS cluster in your default region (as specified by your AWS CLI configuration) with one managed
-nodegroup containing two m5.large nodes.
+nodegroup containing two t3.medium nodes.
 
 ???+ note
     eksctl now creates a managed nodegroup by default when a config file isn't used. To create a self-managed nodegroup,
@@ -47,13 +47,13 @@ metadata:
 
 nodeGroups:
   - name: ng-1
-    instanceType: m5.large
+    instanceType: t3.medium
     desiredCapacity: 10
     volumeSize: 80
     ssh:
       allow: true # will use ~/.ssh/id_rsa.pub as the default ssh key
   - name: ng-2
-    instanceType: m5.xlarge
+    instanceType: t3.large
     desiredCapacity: 2
     volumeSize: 100
     ssh:

@@ -34,14 +34,14 @@ nodeGroups:
     amiFamily: AmazonLinux2
     ami: auto
   - name: ng2
-    instanceType: m5.large
+    instanceType: t3.medium
     amiFamily: AmazonLinux2
     ami: ami-custom1234
 managedNodeGroups:
   - name: m-ng-2
     amiFamily: AmazonLinux2
     ami: ami-custom1234
-    instanceType: m5.large
+    instanceType: t3.medium
     overrideBootstrapCommand: |
       #!/bin/bash
       /etc/eks/bootstrap.sh <cluster-name>
@@ -80,11 +80,11 @@ Config file example:
 ```yaml
 nodeGroups:
   - name: ng1
-    instanceType: m5.large
+    instanceType: t3.medium
     amiFamily: AmazonLinux2
 managedNodeGroups:
   - name: m-ng-2
-    instanceType: m5.large
+    instanceType: t3.medium
     amiFamily: Ubuntu2204
 ```
 

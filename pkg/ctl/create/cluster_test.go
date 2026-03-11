@@ -102,7 +102,7 @@ var _ = Describe("create cluster", func() {
 			Entry("with authenticator-role-arn flag", "--authenticator-role-arn", "arn::dummy::123/role"),
 			Entry("with auto-kubeconfig flag", "--auto-kubeconfig"),
 			// common node group flags
-			Entry("with node-type flag", "--node-type", "m5.large"),
+			Entry("with node-type flag", "--node-type", "t3.medium"),
 			Entry("with nodes flag", "--nodes", "2"),
 			Entry("with nodes-min flag", "--nodes-min", "2"),
 			Entry("with nodes-max flag", "--nodes-max", "2"),
@@ -180,7 +180,7 @@ var _ = Describe("create cluster", func() {
 			Entry("with authenticator-role-arn flag", "--authenticator-role-arn", "arn::dummy::123/role"),
 			Entry("with auto-kubeconfig flag", "--auto-kubeconfig"),
 			// common node group flags
-			Entry("with node-type flag", "--node-type", "m5.large"),
+			Entry("with node-type flag", "--node-type", "t3.medium"),
 			Entry("with nodes flag", "--nodes", "2"),
 			Entry("with nodes-min flag", "--nodes-min", "2"),
 			Entry("with nodes-max flag", "--nodes-max", "2"),
