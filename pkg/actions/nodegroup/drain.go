@@ -43,7 +43,6 @@ func (d *Drainer) Drain(ctx context.Context, input *DrainInput) error {
 
 	g, ctx := errgroup.WithContext(ctx)
 	for _, nodegroup := range input.NodeGroups {
-		nodegroup := nodegroup
 		g.Go(func() error {
 			nodeGroupDrainer := drain.NewNodeGroupDrainer(d.ClientSet, nodegroup, input.MaxGracePeriod, input.NodeDrainWaitPeriod, input.PodEvictionWaitPeriod, input.Undo, input.DisableEviction, input.Parallel)
 			return nodeGroupDrainer.Drain(ctx, sem)

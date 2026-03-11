@@ -262,7 +262,7 @@ func mockForCreateFargateProfileWithWait(numRetries int) *mocksv2.EKS {
 	mockClient := mocksv2.EKS{}
 	mockCreateFargateProfile(&mockClient)
 	// Simulate a couple calls to AWS' API before the profile actually gets created:
-	for i := 0; i < numRetries; i++ {
+	for range numRetries {
 		mockDescribeFargateProfile(&mockClient, "default", "CREATING")
 	}
 	mockDescribeFargateProfile(&mockClient, "default", "ACTIVE") // At this point, the profile has been created.
@@ -522,7 +522,7 @@ func mockForDeleteFargateProfileWithWait(name string, numRetries int) *mocksv2.E
 	mockClient := mocksv2.EKS{}
 	mockDeleteFargateProfile(&mockClient, name)
 	// Simulate a couple calls to AWS' API before the profile actually gets deleted:
-	for i := 0; i < numRetries; i++ {
+	for range numRetries {
 		mockListFargateProfiles(&mockClient, name, "default")
 	}
 	mockListFargateProfiles(&mockClient, "default") // At this point, the profile has been deleted.

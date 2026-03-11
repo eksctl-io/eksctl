@@ -20,7 +20,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
-	utilstrings "github.com/weaveworks/eksctl/pkg/utils/strings"
 )
 
 // AddConfigFileFlag adds common --config-file flag
@@ -467,7 +466,7 @@ func validateZonesAndNodeZones(cmd *cobra.Command) error {
 		nodeZones := strings.Split(strings.Trim(nodeZonesFlag.Value.String(), "[]"), ",")
 		zones := strings.Split(strings.Trim(zonesFlag.Value.String(), "[]"), ",")
 		for _, zone := range nodeZones {
-			if !utilstrings.Contains(zones, zone) {
+			if !slices.Contains(zones, zone) {
 				return fmt.Errorf("node-zones %s must be a subset of zones %s; %q was not found in zones", nodeZones, zones, zone)
 			}
 		}
@@ -1168,7 +1167,7 @@ func validateSupportedConfigFields(obj interface{}, supportedFields []string, un
 	t := v.Type()
 	for fieldNumber := 0; fieldNumber < v.NumField(); fieldNumber++ {
 		if !emptyConfigField(v.Field(fieldNumber)) {
-			if !contains(supportedFields, t.Field(fieldNumber).Name) {
+			if !slices.Contains(supportedFields, t.Field(fieldNumber).Name) {
 				unsupportedFields = append(unsupportedFields, t.Field(fieldNumber).Name)
 			}
 		}
@@ -1190,15 +1189,6 @@ func emptyConfigField(v reflect.Value) bool {
 		return v.IsNil()
 	case reflect.Bool:
 		return !v.Bool()
-	}
-	return false
-}
-
-func contains(supportedFields []string, fieldName string) bool {
-	for _, f := range supportedFields {
-		if f == fieldName {
-			return true
-		}
 	}
 	return false
 }

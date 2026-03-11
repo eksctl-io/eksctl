@@ -1,6 +1,9 @@
 package v1alpha5
 
-import "fmt"
+import (
+	"fmt"
+	"slices"
+)
 
 // Partitions.
 const (
@@ -153,10 +156,8 @@ var Partitions = partitions{
 
 func (p partitions) partitionFromRegion(region string) *partition {
 	for _, pt := range p {
-		for _, r := range pt.regions {
-			if r == region {
-				return &pt
-			}
+		if slices.Contains(pt.regions, region) {
+			return &pt
 		}
 	}
 	return nil

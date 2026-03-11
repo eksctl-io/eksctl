@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -276,10 +277,7 @@ func (c *StackCollection) PropagateManagedNodeGroupTagsToASG(ngName string, ngTa
 		var chunkedASGTags [][]asTypes.Tag
 		chunkSize := builder.MaximumCreatedTagNumberPerCall
 		for start := 0; start < len(asgTags); start += chunkSize {
-			end := start + chunkSize
-			if end > len(asgTags) {
-				end = len(asgTags)
-			}
+			end := min(start+chunkSize, len(asgTags))
 			chunkedASGTags = append(chunkedASGTags, asgTags[start:end])
 		}
 		// ...then create all of them in a loop
@@ -532,12 +530,7 @@ func (c *StackCollection) ListStacksWithStatuses(ctx context.Context, statusFilt
 
 // StackStatusIsNotTransitional will return true when stack status is non-transitional
 func (*StackCollection) StackStatusIsNotTransitional(s *Stack) bool {
-	for _, state := range nonTransitionalReadyStackStatuses() {
-		if s.StackStatus == state {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(nonTransitionalReadyStackStatuses(), s.StackStatus)
 }
 
 func nonTransitionalReadyStackStatuses() []types.StackStatus {

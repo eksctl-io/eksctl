@@ -492,8 +492,8 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				Expect(js).To(ContainElement(HavePrefix("AWS_SESSION_OBJECT=")))
 
 				for _, envVar := range js {
-					if strings.HasPrefix(envVar, "AWS_SESSION_OBJECT=") {
-						err := json.Unmarshal([]byte(strings.TrimPrefix(envVar, "AWS_SESSION_OBJECT=")), &so)
+					if after, ok := strings.CutPrefix(envVar, "AWS_SESSION_OBJECT="); ok {
+						err := json.Unmarshal([]byte(after), &so)
 						Expect(err).ShouldNot(HaveOccurred())
 					}
 				}

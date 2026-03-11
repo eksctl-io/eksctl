@@ -37,7 +37,7 @@ func NewNamespaceYAML(name string) []byte {
 		},
 		"\n")
 
-	return []byte(fmt.Sprintf(nsFmt, name))
+	return fmt.Appendf(nil, nsFmt, name)
 }
 
 // CheckNamespaceExists check if a namespace with a given name already exists, and

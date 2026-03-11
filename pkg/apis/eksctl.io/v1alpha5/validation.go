@@ -385,10 +385,8 @@ func validateCloudWatchLogging(clusterConfig *ClusterConfig) error {
 		}
 	}
 	if logRetentionDays := clusterConfig.CloudWatch.ClusterLogging.LogRetentionInDays; logRetentionDays != 0 {
-		for _, v := range LogRetentionInDaysValues {
-			if v == logRetentionDays {
-				return nil
-			}
+		if slices.Contains(LogRetentionInDaysValues, logRetentionDays) {
+			return nil
 		}
 		return fmt.Errorf("invalid value %d for logRetentionInDays; supported values are %v", logRetentionDays, LogRetentionInDaysValues)
 	}
@@ -468,14 +466,7 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 			return errors.New("vpc.hostnameType is not supported with a pre-existing VPC")
 		}
 		var hostnameType ec2types.HostnameType
-		found := false
-		for _, h := range hostnameType.Values() {
-			if h == ec2types.HostnameType(c.VPC.HostnameType) {
-				found = true
-				break
-			}
-		}
-		if !found {
+		if !slices.Contains(hostnameType.Values(), ec2types.HostnameType(c.VPC.HostnameType)) {
 			return fmt.Errorf("invalid value %q for vpc.hostnameType; supported values are %v", c.VPC.HostnameType, hostnameType.Values())
 		}
 	}
@@ -1614,12 +1605,7 @@ func validateNodeGroupKubeletExtraConfig(kubeletConfig *InlineDocument) error {
 }
 
 func isSupportedAMIFamily(imageFamily string) bool {
-	for _, image := range SupportedAMIFamilies() {
-		if imageFamily == image {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(SupportedAMIFamilies(), imageFamily)
 }
 
 func supportedAMIFamiliesForOS(isOSImage func(string) bool) []string {

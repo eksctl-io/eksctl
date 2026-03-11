@@ -245,7 +245,7 @@ var _ = Describe("Drain", func() {
 				},
 			}
 
-			for i := 0; i < 2; i++ {
+			for i := range 2 {
 				fakeEvictor.GetPodsForEvictionReturnsOnCall(i, &evictor.PodDeleteList{
 					Items: []evictor.PodDelete{
 						{

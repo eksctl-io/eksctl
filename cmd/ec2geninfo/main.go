@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"slices"
 	"text/template"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -157,11 +158,8 @@ func getEC2Instances(region string, instances map[string]InstanceInfo) (map[stri
 
 			cbrSupported := false
 			if inst.SupportedUsageClasses != nil {
-				for _, usageClass := range inst.SupportedUsageClasses {
-					if usageClass == types.UsageClassTypeCapacityBlock {
-						cbrSupported = true
-						break
-					}
+				if slices.Contains(inst.SupportedUsageClasses, types.UsageClassTypeCapacityBlock) {
+					cbrSupported = true
 				}
 			}
 

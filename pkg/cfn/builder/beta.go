@@ -4,6 +4,7 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"maps"
 	"os"
 	"strings"
 
@@ -44,12 +45,8 @@ func addBetaResources(stsAPI awsapi.STS, stackName string, clusterTemplate *gfn.
 	if err != nil {
 		return err
 	}
-	for resourceName, resource := range template.Resources {
-		clusterTemplate.Resources[resourceName] = resource
-	}
-	for key, output := range template.Outputs {
-		clusterTemplate.Outputs[key] = output
-	}
+	maps.Copy(clusterTemplate.Resources, template.Resources)
+	maps.Copy(clusterTemplate.Outputs, template.Outputs)
 	customResource := clusterTemplate.Resources["ControlPlane"].(*gfn.CustomResource)
 	if g.AccessConfig != nil {
 		customResource.Properties["AccessConfig"] = g.AccessConfig

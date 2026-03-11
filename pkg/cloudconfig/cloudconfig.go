@@ -103,7 +103,7 @@ func (c *CloudConfig) Encode() (string, error) {
 		return "", err
 	}
 
-	data = append([]byte(fmt.Sprintln(header)), data...)
+	data = append(fmt.Appendln(nil, header), data...)
 
 	return encodeUserData(data)
 }

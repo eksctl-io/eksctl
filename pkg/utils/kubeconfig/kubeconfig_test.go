@@ -342,8 +342,8 @@ var _ = Describe("Kubeconfig", func() {
 		var wg sync.WaitGroup
 		multiplier := 3
 		iters := 10
-		for i := 0; i < multiplier; i++ {
-			for k := 0; k < iters; k++ {
+		for range multiplier {
+			for range iters {
 				wg.Add(1)
 				go func() {
 					defer wg.Done()

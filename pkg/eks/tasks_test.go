@@ -161,7 +161,6 @@ var _ = Describe("ClusterTasksForNodeGroups", func() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc // capture range variable
 		It("returns the expected tasks", func() {
 			provider := mockprovider.NewMockProvider()
 			cfg := &v1alpha5.ClusterConfig{

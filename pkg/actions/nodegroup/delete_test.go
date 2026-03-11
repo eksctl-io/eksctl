@@ -77,7 +77,6 @@ var _ = Describe("Delete", func() {
 			deleteNgTaskRuns atomic.Uint32
 		)
 		for _, stack := range dt.stacks {
-			stack := stack
 			deleteNgTasks = append(deleteNgTasks, &taskfakes.FakeTask{
 				DescribeStub: func() string {
 					return "delete " + stack.NodeGroupName
