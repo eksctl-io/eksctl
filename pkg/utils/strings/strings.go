@@ -1,6 +1,9 @@
 package strings
 
-import "strings"
+import (
+	"slices"
+	"strings"
+)
 
 // Pointer returns a pointer to the provided string.
 func Pointer(s string) *string {
@@ -97,11 +100,8 @@ func ToValuesArray(in []*string) []string {
 }
 
 // Contains returns true if the value is contained in the string list.
+//
+// Deprecated: use [slices.Contains] instead.
 func Contains(list []string, value string) bool {
-	for _, v := range list {
-		if v == value {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(list, value)
 }

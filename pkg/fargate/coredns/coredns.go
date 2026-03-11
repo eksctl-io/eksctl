@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -33,10 +34,8 @@ const (
 // EKS' coredns deployment should be scheduled onto Fargate.
 func IsSchedulableOnFargate(profiles []*api.FargateProfile) bool {
 	for _, profile := range profiles {
-		for _, selector := range profile.Selectors {
-			if selectsCoreDNS(selector) {
-				return true
-			}
+		if slices.ContainsFunc(profile.Selectors, selectsCoreDNS) {
+			return true
 		}
 	}
 	return false

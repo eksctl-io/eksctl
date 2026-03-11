@@ -210,8 +210,7 @@ func createToolHandler(cmd *cobra.Command) server.ToolHandlerFunc {
 			case "stringSlice", "stringArray", "intSlice", "intArray":
 				// Handle arrays as comma-separated values
 				if value := request.GetString(name, ""); value != "" {
-					values := strings.Split(value, ",")
-					for _, v := range values {
+					for v := range strings.SplitSeq(value, ",") {
 						args = append(args, "--"+name, strings.TrimSpace(v))
 					}
 				}

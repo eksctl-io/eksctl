@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
@@ -91,9 +92,7 @@ func (m *Service) UpdateLabels(ctx context.Context, nodeGroupName string, labels
 		return err
 	}
 
-	for k, v := range labelsToAdd {
-		newLabels[k] = v
-	}
+	maps.Copy(newLabels, labelsToAdd)
 
 	for _, k := range labelsToRemove {
 		delete(newLabels, k)

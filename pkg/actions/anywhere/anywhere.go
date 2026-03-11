@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"slices"
 
 	"github.com/weaveworks/eksctl/pkg/version"
 )
@@ -26,10 +27,8 @@ func IsAnywhereCommand(args []string) (bool, error) {
 
 	// if they have any args/flags before the anywhere command we should error
 	// e.g. eksctl --foo=bar anywhere should error
-	for _, arg := range args {
-		if arg == "anywhere" {
-			return false, fmt.Errorf("flags cannot be placed before the anywhere command")
-		}
+	if slices.Contains(args, "anywhere") {
+		return false, fmt.Errorf("flags cannot be placed before the anywhere command")
 	}
 
 	return false, nil

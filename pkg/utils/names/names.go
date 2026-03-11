@@ -67,7 +67,7 @@ func useNameOrGenerate(a, b string, generate func() string) string {
 // characters in the provided set.
 func RandomName(length int, chars string) string {
 	randomName := make([]byte, length)
-	for i := 0; i < length; i++ {
+	for i := range length {
 		randomName[i] = chars[r.Intn(len(chars))]
 	}
 	return string(randomName)

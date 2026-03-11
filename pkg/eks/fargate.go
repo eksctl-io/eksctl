@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
@@ -63,11 +64,9 @@ func (t *fargateProfilesTask) Do(errCh chan error) error {
 
 // Check if the target Fargate Profile already exists
 func targetFargateProfileExists(target string, profiles []string, clusterName string) bool {
-	for _, profileName := range profiles {
-		if target == profileName {
-			logger.Info("Fargate profile %q already exists on EKS cluster %q", target, clusterName)
-			return true
-		}
+	if slices.Contains(profiles, target) {
+		logger.Info("Fargate profile %q already exists on EKS cluster %q", target, clusterName)
+		return true
 	}
 	return false
 }

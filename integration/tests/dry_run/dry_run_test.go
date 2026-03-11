@@ -167,7 +167,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 	parseOutput := func(output []byte) (*api.ClusterConfig, *api.ClusterConfig) {
 		actual, err := eks.ParseConfig(output)
 		Expect(err).NotTo(HaveOccurred())
-		defaultConfig, err := eks.ParseConfig([]byte(fmt.Sprintf(defaultClusterConfig, params.ClusterName)))
+		defaultConfig, err := eks.ParseConfig(fmt.Appendf(nil, defaultClusterConfig, params.ClusterName))
 		Expect(err).NotTo(HaveOccurred())
 		return actual, defaultConfig
 	}

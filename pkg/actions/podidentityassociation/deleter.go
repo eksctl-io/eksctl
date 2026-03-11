@@ -118,7 +118,6 @@ func (d *Deleter) DeleteTasks(ctx context.Context, podIDs []Identifier) (*tasks.
 	}
 
 	for _, podID := range podIDs {
-		podID := podID
 		piaDeletionTasks := &tasks.TaskTree{
 			Parallel:  false,
 			IsSubTask: true,

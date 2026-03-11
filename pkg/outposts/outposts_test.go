@@ -71,7 +71,7 @@ var _ = Describe("Outposts Service", func() {
 			By("fetching the smallest available instance type")
 			count := 5
 			doneCh = runAssertion(count, func(wg *sync.WaitGroup) {
-				for i := 0; i < count; i++ {
+				for range count {
 					go func() {
 						defer GinkgoRecover()
 						defer wg.Done()

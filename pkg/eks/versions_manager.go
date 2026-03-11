@@ -78,12 +78,7 @@ func (cvm *ClusterVersionsManager) SupportedVersions() []string {
 }
 
 func (cvm *ClusterVersionsManager) IsSupportedVersion(version string) bool {
-	for _, v := range cvm.SupportedVersions() {
-		if version == v {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(cvm.SupportedVersions(), version)
 }
 
 func (cvm *ClusterVersionsManager) DeprecatedVersions() []string {
@@ -91,12 +86,7 @@ func (cvm *ClusterVersionsManager) DeprecatedVersions() []string {
 }
 
 func (cvm *ClusterVersionsManager) IsDeprecatedVersion(version string) bool {
-	for _, v := range cvm.DeprecatedVersions() {
-		if version == v {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(cvm.DeprecatedVersions(), version)
 }
 
 func (cvm *ClusterVersionsManager) DefaultVersion() string {

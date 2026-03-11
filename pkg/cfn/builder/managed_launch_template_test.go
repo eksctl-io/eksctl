@@ -60,7 +60,7 @@ var _ = Describe("ManagedNodeGroup builder", func() {
 			if !m.hasUserData {
 				return "", nil
 			}
-			userData := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf(`/etc/eks/bootstrap.sh %s`, clusterConfig.Metadata.Name)))
+			userData := base64.StdEncoding.EncodeToString(fmt.Appendf(nil, `/etc/eks/bootstrap.sh %s`, clusterConfig.Metadata.Name))
 			return userData, nil
 		}
 

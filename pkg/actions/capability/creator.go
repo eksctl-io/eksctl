@@ -6,6 +6,7 @@ import (
 	"encoding/base32"
 	"errors"
 	"fmt"
+	"maps"
 	"strings"
 	"time"
 
@@ -128,9 +129,7 @@ func (c *Creator) createCapabilityStack(ctx context.Context, capability *api.Cap
 		api.ClusterNameTag:    c.clusterName,
 		api.CapabilityNameTag: capability.Name,
 	}
-	for k, v := range capability.Tags {
-		tags[k] = v
-	}
+	maps.Copy(tags, capability.Tags)
 	if err := c.stackCreator.CreateStack(ctx, stackName, rs, tags, nil, stackErrCh); err != nil {
 		return err
 	}
@@ -154,9 +153,7 @@ func (c *Creator) createIAMRoleStack(ctx context.Context, capability *api.Capabi
 		api.CapabilityIAMRoleTag: capability.Name,
 	}
 
-	for k, v := range capability.Tags {
-		tags[k] = v
-	}
+	maps.Copy(tags, capability.Tags)
 
 	stackCh := make(chan error)
 	if err := c.stackCreator.CreateStack(ctx, stackName, rs, tags, nil, stackCh); err != nil {

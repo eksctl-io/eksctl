@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -1214,10 +1215,8 @@ func NewClusterIAM() *ClusterIAM {
 
 // AppendAvailabilityZone appends a new AZ to the set
 func (c *ClusterConfig) AppendAvailabilityZone(newAZ string) {
-	for _, az := range c.AvailabilityZones {
-		if az == newAZ {
-			return
-		}
+	if slices.Contains(c.AvailabilityZones, newAZ) {
+		return
 	}
 	c.AvailabilityZones = append(c.AvailabilityZones, newAZ)
 }
