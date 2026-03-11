@@ -55,7 +55,7 @@ func CreateAutoModeResourceSet() (*AutoModeResourceSet, error) {
 	if err != nil {
 		return nil, err
 	}
-	template.Mappings = map[string]interface{}{
+	template.Mappings = map[string]any{
 		servicePrincipalPartitionMapName: api.Partitions.ServicePrincipalPartitionMappings(),
 	}
 	return &AutoModeResourceSet{

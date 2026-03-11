@@ -33,7 +33,7 @@ func (b *Bottlerocket) UserData() (string, error) {
 		return "", err
 	}
 
-	settings, err := toml.TreeFromMap(map[string]interface{}{
+	settings, err := toml.TreeFromMap(map[string]any{
 		"settings": *ng.Bottlerocket.Settings,
 	})
 	if err != nil {
@@ -78,17 +78,17 @@ func setDerivedBottlerocketSettings(np api.NodePool) error {
 	return nil
 }
 
-func extractKubernetesSettings(np api.NodePool) (map[string]interface{}, error) {
+func extractKubernetesSettings(np api.NodePool) (map[string]any, error) {
 	settings := *np.BaseNodeGroup().Bottlerocket.Settings
 
-	var kubernetesSettings map[string]interface{}
+	var kubernetesSettings map[string]any
 	if val, ok := settings["kubernetes"]; ok {
-		kubernetesSettings, ok = val.(map[string]interface{})
+		kubernetesSettings, ok = val.(map[string]any)
 		if !ok {
 			return nil, fmt.Errorf("expected settings.kubernetes to be of type %T; got %T", kubernetesSettings, val)
 		}
 	} else {
-		kubernetesSettings = make(map[string]interface{})
+		kubernetesSettings = make(map[string]any)
 		settings["kubernetes"] = kubernetesSettings
 	}
 	return kubernetesSettings, nil

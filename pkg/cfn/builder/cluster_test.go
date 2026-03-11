@@ -78,7 +78,7 @@ var _ = Describe("Cluster Template Builder", func() {
 			Expect(controlPlane.Version).To(Equal(cfg.Metadata.Version))
 			Expect(controlPlane.ResourcesVpcConfig.SecurityGroupIDs[0]).To(ContainElement("ControlPlaneSecurityGroup"))
 			Expect(controlPlane.ResourcesVpcConfig.SubnetIDs).To(HaveLen(4))
-			Expect(controlPlane.RoleArn).To(ContainElement([]interface{}{"ServiceRole", "Arn"}))
+			Expect(controlPlane.RoleArn).To(ContainElement([]any{"ServiceRole", "Arn"}))
 			Expect(controlPlane.EncryptionConfig).To(BeNil())
 			Expect(controlPlane.UpgradePolicy).To(BeNil())
 			Expect(controlPlane.ControlPlaneScalingConfig).To(BeNil())
@@ -290,7 +290,7 @@ var _ = Describe("Cluster Template Builder", func() {
 					IPProtocol: "tcp",
 					FromPort:   443,
 					ToPort:     443,
-					GroupID: map[string]interface{}{
+					GroupID: map[string]any{
 						"Ref": "ControlPlaneSecurityGroup"},
 					Description: "Allow Extra CIDR 0 (192.168.0.0/24) to communicate to controlplane",
 				}))
@@ -301,7 +301,7 @@ var _ = Describe("Cluster Template Builder", func() {
 					IPProtocol: "tcp",
 					FromPort:   443,
 					ToPort:     443,
-					GroupID: map[string]interface{}{
+					GroupID: map[string]any{
 						"Ref": "ControlPlaneSecurityGroup"},
 					Description: "Allow Extra CIDR 1 (192.168.1.0/24) to communicate to controlplane",
 				}))
@@ -321,7 +321,7 @@ var _ = Describe("Cluster Template Builder", func() {
 					IPProtocol: "tcp",
 					FromPort:   443,
 					ToPort:     443,
-					GroupID: map[string]interface{}{
+					GroupID: map[string]any{
 						"Ref": "ControlPlaneSecurityGroup"},
 					Description: "Allow Extra IPv6 CIDR 0 (2002::1234:abcd:ffff:c0a8:101/64) to communicate to controlplane",
 				}))
@@ -332,7 +332,7 @@ var _ = Describe("Cluster Template Builder", func() {
 					IPProtocol: "tcp",
 					FromPort:   443,
 					ToPort:     443,
-					GroupID: map[string]interface{}{
+					GroupID: map[string]any{
 						"Ref": "ControlPlaneSecurityGroup"},
 					Description: "Allow Extra IPv6 CIDR 1 (2003::1234:abcd:ffff:c0a8:101/64) to communicate to controlplane",
 				}))
@@ -617,7 +617,7 @@ var _ = Describe("Cluster Template Builder", func() {
 					},
 					{
 						Key: "Name",
-						Value: map[string]interface{}{
+						Value: map[string]any{
 							"Fn::Sub": "${AWS::StackName}/ControlPlane",
 						},
 					},
@@ -777,10 +777,10 @@ var _ = Describe("Cluster Template Builder", func() {
 
 				Expect(clusterTemplate.Resources).To(HaveKey("HybridNodesIRARole"))
 				iraRole := clusterTemplate.Resources["HybridNodesIRARole"]
-				Expect(iraRole.Properties.ManagedPolicyArns).To(ContainElement(map[string]interface{}{
+				Expect(iraRole.Properties.ManagedPolicyArns).To(ContainElement(map[string]any{
 					"Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly",
 				}))
-				Expect(iraRole.Properties.ManagedPolicyArns).To(ContainElement(map[string]interface{}{
+				Expect(iraRole.Properties.ManagedPolicyArns).To(ContainElement(map[string]any{
 					"Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore",
 				}))
 
@@ -860,8 +860,8 @@ var _ = Describe("Cluster Template Builder", func() {
 	})
 })
 
-func makePolicyARNRef(policy string) map[string]interface{} {
-	return map[string]interface{}{
+func makePolicyARNRef(policy string) map[string]any {
+	return map[string]any{
 		"Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/" + policy,
 	}
 }

@@ -129,7 +129,7 @@ func extractLabels(template string) (map[string]string, error) {
 	if !labelsValue.Exists() {
 		return nil, errors.New("failed to find labels")
 	}
-	values, ok := labelsValue.Value().(map[string]interface{})
+	values, ok := labelsValue.Value().(map[string]any)
 	if !ok {
 		return nil, fmt.Errorf("unexpected type for labels: %T", labelsValue.Value())
 	}

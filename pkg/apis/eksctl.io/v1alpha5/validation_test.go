@@ -580,7 +580,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			cfg.IAM.ServiceAccounts[0].AttachPolicyARNs = []string{""}
 
 			cfg.IAM.ServiceAccounts[1].Name = "sa-2"
-			cfg.IAM.ServiceAccounts[1].AttachPolicy = map[string]interface{}{"Statement": "foo"}
+			cfg.IAM.ServiceAccounts[1].AttachPolicy = map[string]any{"Statement": "foo"}
 
 			err = api.ValidateClusterConfig(cfg)
 			Expect(err).NotTo(HaveOccurred())
@@ -594,7 +594,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			cfg.IAM.ServiceAccounts[0].AttachPolicyARNs = []string{""}
 
 			cfg.IAM.ServiceAccounts[1].Name = ""
-			cfg.IAM.ServiceAccounts[1].AttachPolicy = map[string]interface{}{"Statement": "foo"}
+			cfg.IAM.ServiceAccounts[1].AttachPolicy = map[string]any{"Statement": "foo"}
 
 			err = api.ValidateClusterConfig(cfg)
 			Expect(err).To(HaveOccurred())
@@ -633,13 +633,13 @@ var _ = Describe("ClusterConfig validation", func() {
 
 			cfg.IAM.ServiceAccounts[2].Name = "sa-2"
 			cfg.IAM.ServiceAccounts[2].Namespace = "ns-2"
-			cfg.IAM.ServiceAccounts[2].AttachPolicy = map[string]interface{}{"Statement": "foo"}
+			cfg.IAM.ServiceAccounts[2].AttachPolicy = map[string]any{"Statement": "foo"}
 
 			cfg.IAM.ServiceAccounts[3].Name = "sa-3"
-			cfg.IAM.ServiceAccounts[3].AttachPolicy = map[string]interface{}{"Statement": "foo"}
+			cfg.IAM.ServiceAccounts[3].AttachPolicy = map[string]any{"Statement": "foo"}
 
 			cfg.IAM.ServiceAccounts[4].Name = "sa-1"
-			cfg.IAM.ServiceAccounts[4].AttachPolicy = map[string]interface{}{"Statement": "foo"}
+			cfg.IAM.ServiceAccounts[4].AttachPolicy = map[string]any{"Statement": "foo"}
 
 			err = api.ValidateClusterConfig(cfg)
 			Expect(err).To(HaveOccurred())
@@ -2130,7 +2130,7 @@ var _ = Describe("ClusterConfig validation", func() {
 					NodeGroupBase: &api.NodeGroupBase{
 						Bottlerocket: &api.NodeGroupBottlerocket{
 							Settings: &api.InlineDocument{
-								"kubernetes": map[string]interface{}{
+								"kubernetes": map[string]any{
 									"node-labels": map[string]string{
 										"mylabel.example.com": "value",
 									},
@@ -2148,7 +2148,7 @@ var _ = Describe("ClusterConfig validation", func() {
 					NodeGroupBase: &api.NodeGroupBase{
 						Bottlerocket: &api.NodeGroupBottlerocket{
 							Settings: &api.InlineDocument{
-								"kubernetes": map[string]interface{}{
+								"kubernetes": map[string]any{
 									"cluster-dns-ip": "10.100.0.10",
 								},
 							},

@@ -595,7 +595,7 @@ var (
 
 	permissionPolicy = api.InlineDocument{
 		"Version": "2012-10-17",
-		"Statement": []map[string]interface{}{
+		"Statement": []map[string]any{
 			{
 				"Effect": "Allow",
 				"Action": []string{

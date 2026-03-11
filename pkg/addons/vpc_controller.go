@@ -96,8 +96,8 @@ func (v *VPCController) Deploy(ctx context.Context) (err error) {
 }
 
 type typeAssertionError struct {
-	expected interface{}
-	got      interface{}
+	expected any
+	got      any
 }
 
 func (t *typeAssertionError) Error() string {
@@ -232,10 +232,10 @@ func (v *VPCController) createCertSecrets(key, cert []byte) error {
 	return err
 }
 
-func makePolicyDocument() map[string]interface{} {
-	return map[string]interface{}{
+func makePolicyDocument() map[string]any {
+	return map[string]any{
 		"Version": "2012-10-17",
-		"Statement": []map[string]interface{}{
+		"Statement": []map[string]any{
 			{
 				"Effect": "Allow",
 				"Action": []string{

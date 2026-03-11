@@ -99,8 +99,8 @@ var _ = Describe("Managed Bottlerocket", func() {
 		Entry("retain user-specified admin container setting", bottlerocketEntry{
 			setFields: func(ng *api.ManagedNodeGroup) {
 				ng.Bottlerocket.Settings = &api.InlineDocument{
-					"host-containers": map[string]interface{}{
-						"admin": map[string]interface{}{
+					"host-containers": map[string]any{
+						"admin": map[string]any{
 							"enabled": true,
 						},
 					},
@@ -144,7 +144,7 @@ var _ = Describe("Managed Bottlerocket", func() {
 		Entry("cluster bootstrap settings set", bottlerocketEntry{
 			setFields: func(ng *api.ManagedNodeGroup) {
 				ng.Bottlerocket.Settings = &api.InlineDocument{
-					"kubernetes": map[string]interface{}{
+					"kubernetes": map[string]any{
 						"cluster-certificate": "test",
 						"api-server":          "https://test.com",
 						"cluster-name":        "test",
@@ -159,7 +159,7 @@ var _ = Describe("Managed Bottlerocket", func() {
 		Entry("labels and taints in Bottlerocket settings", bottlerocketEntry{
 			setFields: func(ng *api.ManagedNodeGroup) {
 				ng.Bottlerocket.Settings = &api.InlineDocument{
-					"kubernetes": map[string]interface{}{
+					"kubernetes": map[string]any{
 						"node-labels": map[string]string{
 							"key": "value",
 						},
@@ -177,8 +177,8 @@ var _ = Describe("Managed Bottlerocket", func() {
 			setFields: func(ng *api.ManagedNodeGroup) {
 				ng.Bottlerocket.EnableAdminContainer = api.Enabled()
 				ng.Bottlerocket.Settings = &api.InlineDocument{
-					"host-containers": map[string]interface{}{
-						"admin": map[string]interface{}{
+					"host-containers": map[string]any{
+						"admin": map[string]any{
 							"enabled": false,
 						},
 					},

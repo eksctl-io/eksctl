@@ -22,7 +22,7 @@ type existingStack struct {
 	stackNotFound     bool
 }
 
-func (m *existingStack) Match(actual interface{}) (success bool, err error) {
+func (m *existingStack) Match(actual any) (success bool, err error) {
 	if actual == nil {
 		return false, errors.New("input is nil")
 	}
@@ -40,11 +40,11 @@ func (m *existingStack) Match(actual interface{}) (success bool, err error) {
 	return found, nil
 }
 
-func (m *existingStack) FailureMessage(actual interface{}) (message string) {
+func (m *existingStack) FailureMessage(actual any) (message string) {
 	return fmt.Sprintf("Expected to find a Cloudformation stack named %s but it was NOT found", m.expectedStackName)
 }
 
-func (m *existingStack) NegatedFailureMessage(_ interface{}) (message string) {
+func (m *existingStack) NegatedFailureMessage(_ any) (message string) {
 	return fmt.Sprintf("Expected NOT to find a Cloudformation stack named %s but it was found", m.expectedStackName)
 }
 
@@ -66,7 +66,7 @@ type existingCluster struct {
 	actualStatus  string
 }
 
-func (m *existingCluster) Match(actual interface{}) (success bool, err error) {
+func (m *existingCluster) Match(actual any) (success bool, err error) {
 	if actual == nil {
 		return false, errors.New("input is nil")
 	}
@@ -108,7 +108,7 @@ func (m *existingCluster) Match(actual interface{}) (success bool, err error) {
 	return true, nil
 }
 
-func (m *existingCluster) FailureMessage(actual interface{}) (message string) {
+func (m *existingCluster) FailureMessage(actual any) (message string) {
 	if m.statusMismatch {
 		return fmt.Sprintf("Expected EKS cluster status: %s to equal actual EKS cluster status: %s", m.expectedStatus, m.actualStatus)
 	}
@@ -119,7 +119,7 @@ func (m *existingCluster) FailureMessage(actual interface{}) (message string) {
 	return fmt.Sprintf("Expected to find a cluster named %s but it was NOT found", m.expectedName)
 }
 
-func (m *existingCluster) NegatedFailureMessage(_ interface{}) (message string) {
+func (m *existingCluster) NegatedFailureMessage(_ any) (message string) {
 	if m.statusMismatch {
 		return fmt.Sprintf("Expected EKS cluster status: %s NOT to equal actual EKS cluster status: %s", m.expectedStatus, m.actualStatus)
 	}

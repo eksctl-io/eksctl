@@ -54,7 +54,7 @@ type Value struct {
 func NewValue(v json.Marshaler) *Value { return &Value{value: v} }
 
 // Raw returns the value as an empty interface
-func (v *Value) Raw() interface{} { return v.value }
+func (v *Value) Raw() any { return v.value }
 
 // String representation of the value
 func (v *Value) String() string {
@@ -69,7 +69,7 @@ func (v *Value) String() string {
 
 // UnmarshalJSON parses JSON data into a value
 func (v *Value) UnmarshalJSON(b []byte) error {
-	var raw interface{}
+	var raw any
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
@@ -82,9 +82,9 @@ func (v *Value) UnmarshalJSON(b []byte) error {
 		v.value = Double(r)
 	case bool:
 		v.value = Boolean(r)
-	case map[string]interface{}:
+	case map[string]any:
 		v.value = AnythingMap(r)
-	case []interface{}:
+	case []any:
 		v.value = AnythingSlice(r)
 	default:
 		return fmt.Errorf("cannot handle type %s", reflect.ValueOf(raw).Kind())
@@ -131,7 +131,7 @@ func (v AnythingMap) MarshalJSON() ([]byte, error) {
 }
 
 // Convert will serialise the receiver as JSON, and deserialise it into obj
-func (v AnythingMap) Convert(obj interface{}) error {
+func (v AnythingMap) Convert(obj any) error {
 	data, err := json.Marshal(MapOfInterfaces(v))
 	if err != nil {
 		return err
@@ -148,7 +148,7 @@ func (v AnythingSlice) MarshalJSON() ([]byte, error) {
 }
 
 // Convert will serialise the receiver as JSON, and deserialise it into obj
-func (v AnythingSlice) Convert(obj interface{}) error {
+func (v AnythingSlice) Convert(obj any) error {
 	data, err := json.Marshal(SliceOfInterfaces(v))
 	if err != nil {
 		return err
@@ -212,7 +212,7 @@ type Intrinsic struct {
 func (v Intrinsic) MarshalJSON() ([]byte, error) { return json.Marshal(&v.Value) }
 
 // MakeIntrinsic constructs an intrinsic
-func MakeIntrinsic(k string, v interface{}) *Value {
+func MakeIntrinsic(k string, v any) *Value {
 	return NewValue(Intrinsic{Value: MapOfInterfaces{k: v}})
 }
 

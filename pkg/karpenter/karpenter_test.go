@@ -48,21 +48,21 @@ var _ = Describe("Install", func() {
 			Expect(installerUnderTest.Install(context.Background(), "role-arn", "role/profile")).To(Succeed())
 			_, args := fakeHelmInstaller.InstallChartArgsForCall(0)
 			args.RegistryClient = &registry.Client{}
-			values := map[string]interface{}{
+			values := map[string]any{
 				clusterName:     cfg.Metadata.Name,
 				clusterEndpoint: cfg.Status.Endpoint,
-				serviceAccount: map[string]interface{}{
+				serviceAccount: map[string]any{
 					create: api.IsEnabled(cfg.Karpenter.CreateServiceAccount),
-					serviceAccountAnnotation: map[string]interface{}{
+					serviceAccountAnnotation: map[string]any{
 						api.AnnotationEKSRoleARN: "role-arn",
 					},
 					serviceAccountName: DefaultServiceAccountName,
 				},
-				aws: map[string]interface{}{
+				aws: map[string]any{
 					defaultInstanceProfile: "role/profile",
 				},
-				settings: map[string]interface{}{
-					aws: map[string]interface{}{
+				settings: map[string]any{
+					aws: map[string]any{
 						defaultInstanceProfile: "role/profile",
 						clusterName:            cfg.Metadata.Name,
 						clusterEndpoint:        cfg.Status.Endpoint,
@@ -85,8 +85,8 @@ var _ = Describe("Install", func() {
 			installerUnderTest.ClusterConfig.Karpenter.Version = "0.33.0"
 			Expect(installerUnderTest.Install(context.Background(), "dummy", "dummy")).To(Succeed())
 			_, opts := fakeHelmInstaller.InstallChartArgsForCall(0)
-			values := map[string]interface{}{
-				settings: map[string]interface{}{
+			values := map[string]any{
+				settings: map[string]any{
 					defaultInstanceProfile: "dummy",
 					clusterName:            cfg.Metadata.Name,
 					clusterEndpoint:        cfg.Status.Endpoint,
@@ -113,21 +113,21 @@ var _ = Describe("Install", func() {
 			It("add role to the values for the helm chart", func() {
 				Expect(installerUnderTest.Install(context.Background(), "role/account", "role/profile")).To(Succeed())
 				_, opts := fakeHelmInstaller.InstallChartArgsForCall(0)
-				values := map[string]interface{}{
+				values := map[string]any{
 					clusterName:     cfg.Metadata.Name,
 					clusterEndpoint: cfg.Status.Endpoint,
-					serviceAccount: map[string]interface{}{
+					serviceAccount: map[string]any{
 						create: api.IsEnabled(cfg.Karpenter.CreateServiceAccount),
-						serviceAccountAnnotation: map[string]interface{}{
+						serviceAccountAnnotation: map[string]any{
 							api.AnnotationEKSRoleARN: "role/account",
 						},
 						serviceAccountName: DefaultServiceAccountName,
 					},
-					aws: map[string]interface{}{
+					aws: map[string]any{
 						defaultInstanceProfile: "role/profile",
 					},
-					settings: map[string]interface{}{
-						aws: map[string]interface{}{
+					settings: map[string]any{
+						aws: map[string]any{
 							defaultInstanceProfile: "role/profile",
 							clusterName:            cfg.Metadata.Name,
 							clusterEndpoint:        cfg.Status.Endpoint,

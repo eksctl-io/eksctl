@@ -14,7 +14,7 @@ func (r *IAMPolicy) Type() string {
 }
 
 // Properties will return the properties of the resource
-func (r *IAMPolicy) Properties() interface{} {
+func (r *IAMPolicy) Properties() any {
 	return r
 }
 
@@ -25,7 +25,7 @@ type IAMRole struct {
 	Path string `json:",omitempty"`
 
 	AssumeRolePolicyDocument MapOfInterfaces `json:",omitempty"`
-	ManagedPolicyArns        []interface{}   `json:",omitempty"`
+	ManagedPolicyArns        []any           `json:",omitempty"`
 	PermissionsBoundary      string          `json:",omitempty"`
 }
 
@@ -35,6 +35,6 @@ func (r *IAMRole) Type() string {
 }
 
 // Properties will return the properties of the resource
-func (r *IAMRole) Properties() interface{} {
+func (r *IAMRole) Properties() any {
 	return r
 }

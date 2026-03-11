@@ -63,7 +63,7 @@ var _ = Describe("IPv6 VPC builder", func() {
 			Tags: []fakes.Tag{
 				{
 					Key:   "Name",
-					Value: map[string]interface{}{"Fn::Sub": "${AWS::StackName}/VPC"},
+					Value: map[string]any{"Fn::Sub": "${AWS::StackName}/VPC"},
 				},
 			},
 		}))
@@ -73,7 +73,7 @@ var _ = Describe("IPv6 VPC builder", func() {
 		Expect(vpcTemplate.Resources[builder.IPv6CIDRBlockKey].Type).To(Equal("AWS::EC2::VPCCidrBlock"))
 		Expect(vpcTemplate.Resources[builder.IPv6CIDRBlockKey].Properties).To(Equal(fakes.Properties{
 			AmazonProvidedIpv6CidrBlock: true,
-			VpcID:                       map[string]interface{}{"Ref": "VPC"},
+			VpcID:                       map[string]any{"Ref": "VPC"},
 		}))
 
 		By("creating the internet gateway")
@@ -83,7 +83,7 @@ var _ = Describe("IPv6 VPC builder", func() {
 			Tags: []fakes.Tag{
 				{
 					Key:   "Name",
-					Value: map[string]interface{}{"Fn::Sub": "${AWS::StackName}/InternetGateway"},
+					Value: map[string]any{"Fn::Sub": "${AWS::StackName}/InternetGateway"},
 				},
 			},
 		}))
@@ -92,15 +92,15 @@ var _ = Describe("IPv6 VPC builder", func() {
 		Expect(vpcTemplate.Resources).To(HaveKey(builder.GAKey))
 		Expect(vpcTemplate.Resources[builder.GAKey].Type).To(Equal("AWS::EC2::VPCGatewayAttachment"))
 		Expect(vpcTemplate.Resources[builder.GAKey].Properties).To(Equal(fakes.Properties{
-			InternetGatewayID: map[string]interface{}{"Ref": "InternetGateway"},
-			VpcID:             map[string]interface{}{"Ref": "VPC"},
+			InternetGatewayID: map[string]any{"Ref": "InternetGateway"},
+			VpcID:             map[string]any{"Ref": "VPC"},
 		}))
 
 		By("creating a VPC gateway attachment to associate the IGW with the VPC")
 		Expect(vpcTemplate.Resources).To(HaveKey(builder.EgressOnlyInternetGatewayKey))
 		Expect(vpcTemplate.Resources[builder.EgressOnlyInternetGatewayKey].Type).To(Equal("AWS::EC2::EgressOnlyInternetGateway"))
 		Expect(vpcTemplate.Resources[builder.EgressOnlyInternetGatewayKey].Properties).To(Equal(fakes.Properties{
-			VpcID: map[string]interface{}{"Ref": "VPC"},
+			VpcID: map[string]any{"Ref": "VPC"},
 		}))
 
 		By("creating the NAT gateway")
@@ -108,17 +108,17 @@ var _ = Describe("IPv6 VPC builder", func() {
 		Expect(vpcTemplate.Resources[builder.NATGatewayKey].Type).To(Equal("AWS::EC2::NatGateway"))
 		Expect(vpcTemplate.Resources[builder.NATGatewayKey].DependsOn).To(ConsistOf(builder.ElasticIPKey, builder.PublicSubnetKey+azAFormatted, builder.GAKey))
 		Expect(vpcTemplate.Resources[builder.NATGatewayKey].Properties).To(Equal(fakes.Properties{
-			AllocationID: map[string]interface{}{
-				"Fn::GetAtt": []interface{}{
+			AllocationID: map[string]any{
+				"Fn::GetAtt": []any{
 					builder.ElasticIPKey,
 					"AllocationId",
 				},
 			},
-			SubnetID: map[string]interface{}{"Ref": builder.PublicSubnetKey + azAFormatted},
+			SubnetID: map[string]any{"Ref": builder.PublicSubnetKey + azAFormatted},
 			Tags: []fakes.Tag{
 				{
 					Key:   "Name",
-					Value: map[string]interface{}{"Fn::Sub": fmt.Sprintf("${AWS::StackName}/%s", builder.NATGatewayKey)},
+					Value: map[string]any{"Fn::Sub": fmt.Sprintf("${AWS::StackName}/%s", builder.NATGatewayKey)},
 				},
 			},
 		}))
@@ -132,7 +132,7 @@ var _ = Describe("IPv6 VPC builder", func() {
 			Tags: []fakes.Tag{
 				{
 					Key:   "Name",
-					Value: map[string]interface{}{"Fn::Sub": fmt.Sprintf("${AWS::StackName}/%s", builder.ElasticIPKey)},
+					Value: map[string]any{"Fn::Sub": fmt.Sprintf("${AWS::StackName}/%s", builder.ElasticIPKey)},
 				},
 			},
 		}))
@@ -141,11 +141,11 @@ var _ = Describe("IPv6 VPC builder", func() {
 		Expect(vpcTemplate.Resources).To(HaveKey(builder.PubRouteTableKey))
 		Expect(vpcTemplate.Resources[builder.PubRouteTableKey].Type).To(Equal("AWS::EC2::RouteTable"))
 		Expect(vpcTemplate.Resources[builder.PubRouteTableKey].Properties).To(Equal(fakes.Properties{
-			VpcID: map[string]interface{}{"Ref": "VPC"},
+			VpcID: map[string]any{"Ref": "VPC"},
 			Tags: []fakes.Tag{
 				{
 					Key:   "Name",
-					Value: map[string]interface{}{"Fn::Sub": fmt.Sprintf("${AWS::StackName}/%s", builder.PubRouteTableKey)},
+					Value: map[string]any{"Fn::Sub": fmt.Sprintf("${AWS::StackName}/%s", builder.PubRouteTableKey)},
 				},
 			},
 		}))
@@ -156,8 +156,8 @@ var _ = Describe("IPv6 VPC builder", func() {
 		Expect(vpcTemplate.Resources[builder.PubSubRouteKey].DependsOn).To(ConsistOf(builder.GAKey))
 		Expect(vpcTemplate.Resources[builder.PubSubRouteKey].Properties).To(Equal(fakes.Properties{
 			DestinationCidrBlock: builder.InternetCIDR,
-			GatewayID:            map[string]interface{}{"Ref": builder.IGWKey},
-			RouteTableID:         map[string]interface{}{"Ref": builder.PubRouteTableKey},
+			GatewayID:            map[string]any{"Ref": builder.IGWKey},
+			RouteTableID:         map[string]any{"Ref": builder.PubRouteTableKey},
 		}))
 
 		By("creating public subnet route for IPv6 traffic to IPv6 CIDR")
@@ -167,8 +167,8 @@ var _ = Describe("IPv6 VPC builder", func() {
 		Expect(vpcTemplate.Resources[builder.PubSubIPv6RouteKey].DependsOn).To(ConsistOf(builder.GAKey))
 		Expect(vpcTemplate.Resources[builder.PubSubIPv6RouteKey].Properties).To(Equal(fakes.Properties{
 			DestinationIpv6CidrBlock: builder.InternetIPv6CIDR,
-			GatewayID:                map[string]interface{}{"Ref": builder.IGWKey},
-			RouteTableID:             map[string]interface{}{"Ref": builder.PubRouteTableKey},
+			GatewayID:                map[string]any{"Ref": builder.IGWKey},
+			RouteTableID:             map[string]any{"Ref": builder.PubRouteTableKey},
 		}))
 
 		By("creating a private route table for each AZ")
@@ -176,11 +176,11 @@ var _ = Describe("IPv6 VPC builder", func() {
 		Expect(vpcTemplate.Resources).To(HaveKey(privateRouteTableA))
 		Expect(vpcTemplate.Resources[privateRouteTableA].Type).To(Equal("AWS::EC2::RouteTable"))
 		Expect(vpcTemplate.Resources[privateRouteTableA].Properties).To(Equal(fakes.Properties{
-			VpcID: map[string]interface{}{"Ref": "VPC"},
+			VpcID: map[string]any{"Ref": "VPC"},
 			Tags: []fakes.Tag{
 				{
 					Key:   "Name",
-					Value: map[string]interface{}{"Fn::Sub": fmt.Sprintf("${AWS::StackName}/%s", privateRouteTableA)},
+					Value: map[string]any{"Fn::Sub": fmt.Sprintf("${AWS::StackName}/%s", privateRouteTableA)},
 				},
 			},
 		}))
@@ -188,11 +188,11 @@ var _ = Describe("IPv6 VPC builder", func() {
 		Expect(vpcTemplate.Resources).To(HaveKey(privateRouteTableB))
 		Expect(vpcTemplate.Resources[privateRouteTableB].Type).To(Equal("AWS::EC2::RouteTable"))
 		Expect(vpcTemplate.Resources[privateRouteTableB].Properties).To(Equal(fakes.Properties{
-			VpcID: map[string]interface{}{"Ref": "VPC"},
+			VpcID: map[string]any{"Ref": "VPC"},
 			Tags: []fakes.Tag{
 				{
 					Key:   "Name",
-					Value: map[string]interface{}{"Fn::Sub": fmt.Sprintf("${AWS::StackName}/%s", privateRouteTableB)},
+					Value: map[string]any{"Fn::Sub": fmt.Sprintf("${AWS::StackName}/%s", privateRouteTableB)},
 				},
 			},
 		}))
@@ -204,8 +204,8 @@ var _ = Describe("IPv6 VPC builder", func() {
 		Expect(vpcTemplate.Resources[privateRouteA].DependsOn).To(ConsistOf(builder.NATGatewayKey, builder.GAKey))
 		Expect(vpcTemplate.Resources[privateRouteA].Properties).To(Equal(fakes.Properties{
 			DestinationCidrBlock: builder.InternetCIDR,
-			NatGatewayID:         map[string]interface{}{"Ref": builder.NATGatewayKey},
-			RouteTableID:         map[string]interface{}{"Ref": privateRouteTableA},
+			NatGatewayID:         map[string]any{"Ref": builder.NATGatewayKey},
+			RouteTableID:         map[string]any{"Ref": privateRouteTableA},
 		}))
 
 		privateRouteB := builder.PrivateSubnetRouteKey + azBFormatted
@@ -214,8 +214,8 @@ var _ = Describe("IPv6 VPC builder", func() {
 		Expect(vpcTemplate.Resources[privateRouteB].DependsOn).To(ConsistOf(builder.NATGatewayKey, builder.GAKey))
 		Expect(vpcTemplate.Resources[privateRouteB].Properties).To(Equal(fakes.Properties{
 			DestinationCidrBlock: builder.InternetCIDR,
-			NatGatewayID:         map[string]interface{}{"Ref": builder.NATGatewayKey},
-			RouteTableID:         map[string]interface{}{"Ref": privateRouteTableB},
+			NatGatewayID:         map[string]any{"Ref": builder.NATGatewayKey},
+			RouteTableID:         map[string]any{"Ref": privateRouteTableB},
 		}))
 
 		By("creating a ipv6 route to the ingress only internet gateway for each private subnet in the AZs")
@@ -224,16 +224,16 @@ var _ = Describe("IPv6 VPC builder", func() {
 		Expect(vpcTemplate.Resources[privateRouteA].Type).To(Equal("AWS::EC2::Route"))
 		Expect(vpcTemplate.Resources[privateRouteA].Properties).To(Equal(fakes.Properties{
 			DestinationIpv6CidrBlock:    builder.InternetIPv6CIDR,
-			EgressOnlyInternetGatewayID: map[string]interface{}{"Ref": builder.EgressOnlyInternetGatewayKey},
-			RouteTableID:                map[string]interface{}{"Ref": privateRouteTableA},
+			EgressOnlyInternetGatewayID: map[string]any{"Ref": builder.EgressOnlyInternetGatewayKey},
+			RouteTableID:                map[string]any{"Ref": privateRouteTableA},
 		}))
 		privateRouteB = builder.PrivateSubnetIpv6RouteKey + azBFormatted
 		Expect(vpcTemplate.Resources).To(HaveKey(privateRouteB))
 		Expect(vpcTemplate.Resources[privateRouteB].Type).To(Equal("AWS::EC2::Route"))
 		Expect(vpcTemplate.Resources[privateRouteB].Properties).To(Equal(fakes.Properties{
 			DestinationIpv6CidrBlock:    builder.InternetIPv6CIDR,
-			EgressOnlyInternetGatewayID: map[string]interface{}{"Ref": builder.EgressOnlyInternetGatewayKey},
-			RouteTableID:                map[string]interface{}{"Ref": privateRouteTableB},
+			EgressOnlyInternetGatewayID: map[string]any{"Ref": builder.EgressOnlyInternetGatewayKey},
+			RouteTableID:                map[string]any{"Ref": privateRouteTableB},
 		}))
 
 		By("creating a public and private subnet for each AZ")
@@ -244,7 +244,7 @@ var _ = Describe("IPv6 VPC builder", func() {
 			Expect(vpcTemplate.Resources[subnetKey].Properties.AvailabilityZone).To(Equal(az))
 			Expect(vpcTemplate.Resources[subnetKey].Properties.MapPublicIPOnLaunch).To(Equal(mapPublicIpOnLaunch))
 
-			Expect(vpcTemplate.Resources[subnetKey].Properties.VpcID).To(Equal(map[string]interface{}{"Ref": "VPC"}))
+			Expect(vpcTemplate.Resources[subnetKey].Properties.VpcID).To(Equal(map[string]any{"Ref": "VPC"}))
 			Expect(vpcTemplate.Resources[subnetKey].Properties.Tags).To(ConsistOf(
 				fakes.Tag{
 					Key:   kubernetesTag,
@@ -252,7 +252,7 @@ var _ = Describe("IPv6 VPC builder", func() {
 				},
 				fakes.Tag{
 					Key:   "Name",
-					Value: map[string]interface{}{"Fn::Sub": fmt.Sprintf("${AWS::StackName}/%s", subnetKey)},
+					Value: map[string]any{"Fn::Sub": fmt.Sprintf("${AWS::StackName}/%s", subnetKey)},
 				},
 			))
 
@@ -277,8 +277,8 @@ var _ = Describe("IPv6 VPC builder", func() {
 				Expect(vpcTemplate.Resources).To(HaveKey(routeTableAssociationKey))
 				Expect(vpcTemplate.Resources[routeTableAssociationKey].Type).To(Equal("AWS::EC2::SubnetRouteTableAssociation"))
 				Expect(vpcTemplate.Resources[routeTableAssociationKey].Properties).To(Equal(fakes.Properties{
-					RouteTableID: map[string]interface{}{"Ref": routeTableKey},
-					SubnetID:     map[string]interface{}{"Ref": subnetKey},
+					RouteTableID: map[string]any{"Ref": routeTableKey},
+					SubnetID:     map[string]any{"Ref": subnetKey},
 				}))
 			}
 
@@ -295,43 +295,43 @@ var _ = Describe("IPv6 VPC builder", func() {
 
 		By("outputting the VPC on the stack")
 		Expect(vpcTemplate.Outputs).To(HaveKey(builder.VPCResourceKey))
-		Expect(vpcTemplate.Outputs.(map[string]interface{})[builder.VPCResourceKey].(map[string]interface{})["Value"]).To(Equal(map[string]interface{}{"Ref": builder.VPCResourceKey}))
-		Expect(vpcTemplate.Outputs.(map[string]interface{})[builder.VPCResourceKey].(map[string]interface{})["Export"]).To(Equal(map[string]interface{}{
-			"Name": map[string]interface{}{
+		Expect(vpcTemplate.Outputs.(map[string]any)[builder.VPCResourceKey].(map[string]any)["Value"]).To(Equal(map[string]any{"Ref": builder.VPCResourceKey}))
+		Expect(vpcTemplate.Outputs.(map[string]any)[builder.VPCResourceKey].(map[string]any)["Export"]).To(Equal(map[string]any{
+			"Name": map[string]any{
 				"Fn::Sub": fmt.Sprintf("${AWS::StackName}::%s", builder.VPCResourceKey),
 			},
 		}))
 
 		By("outputting the public subnets on the stack")
 		Expect(vpcTemplate.Outputs).To(HaveKey(outputs.ClusterSubnetsPublic))
-		Expect(vpcTemplate.Outputs.(map[string]interface{})[outputs.ClusterSubnetsPublic].(map[string]interface{})["Value"]).To(Equal(map[string]interface{}{
-			"Fn::Join": []interface{}{
+		Expect(vpcTemplate.Outputs.(map[string]any)[outputs.ClusterSubnetsPublic].(map[string]any)["Value"]).To(Equal(map[string]any{
+			"Fn::Join": []any{
 				",",
-				[]interface{}{
-					map[string]interface{}{"Ref": builder.PublicSubnetKey + azAFormatted},
-					map[string]interface{}{"Ref": builder.PublicSubnetKey + azBFormatted},
+				[]any{
+					map[string]any{"Ref": builder.PublicSubnetKey + azAFormatted},
+					map[string]any{"Ref": builder.PublicSubnetKey + azBFormatted},
 				},
 			},
 		}))
-		Expect(vpcTemplate.Outputs.(map[string]interface{})[outputs.ClusterSubnetsPublic].(map[string]interface{})["Export"]).To(Equal(map[string]interface{}{
-			"Name": map[string]interface{}{
+		Expect(vpcTemplate.Outputs.(map[string]any)[outputs.ClusterSubnetsPublic].(map[string]any)["Export"]).To(Equal(map[string]any{
+			"Name": map[string]any{
 				"Fn::Sub": fmt.Sprintf("${AWS::StackName}::%s", outputs.ClusterSubnetsPublic),
 			},
 		}))
 
 		By("outputting the private subnets on the stack")
 		Expect(vpcTemplate.Outputs).To(HaveKey(outputs.ClusterSubnetsPrivate))
-		Expect(vpcTemplate.Outputs.(map[string]interface{})[outputs.ClusterSubnetsPrivate].(map[string]interface{})["Value"]).To(Equal(map[string]interface{}{
-			"Fn::Join": []interface{}{
+		Expect(vpcTemplate.Outputs.(map[string]any)[outputs.ClusterSubnetsPrivate].(map[string]any)["Value"]).To(Equal(map[string]any{
+			"Fn::Join": []any{
 				",",
-				[]interface{}{
-					map[string]interface{}{"Ref": builder.PrivateSubnetKey + azAFormatted},
-					map[string]interface{}{"Ref": builder.PrivateSubnetKey + azBFormatted},
+				[]any{
+					map[string]any{"Ref": builder.PrivateSubnetKey + azAFormatted},
+					map[string]any{"Ref": builder.PrivateSubnetKey + azBFormatted},
 				},
 			},
 		}))
-		Expect(vpcTemplate.Outputs.(map[string]interface{})[outputs.ClusterSubnetsPrivate].(map[string]interface{})["Export"]).To(Equal(map[string]interface{}{
-			"Name": map[string]interface{}{
+		Expect(vpcTemplate.Outputs.(map[string]any)[outputs.ClusterSubnetsPrivate].(map[string]any)["Export"]).To(Equal(map[string]any{
+			"Name": map[string]any{
 				"Fn::Sub": fmt.Sprintf("${AWS::StackName}::%s", outputs.ClusterSubnetsPrivate),
 			},
 		}))
@@ -377,7 +377,7 @@ var _ = Describe("IPv6 VPC builder", func() {
 				Expect(vpcTemplate.Resources[subnetKey].Properties.AvailabilityZone).To(Equal(az))
 				Expect(vpcTemplate.Resources[subnetKey].Properties.MapPublicIPOnLaunch).To(Equal(mapPublicIpOnLaunch))
 
-				Expect(vpcTemplate.Resources[subnetKey].Properties.VpcID).To(Equal(map[string]interface{}{"Ref": "VPC"}))
+				Expect(vpcTemplate.Resources[subnetKey].Properties.VpcID).To(Equal(map[string]any{"Ref": "VPC"}))
 				Expect(vpcTemplate.Resources[subnetKey].Properties.Tags).To(ConsistOf(
 					fakes.Tag{
 						Key:   kubernetesTag,
@@ -385,7 +385,7 @@ var _ = Describe("IPv6 VPC builder", func() {
 					},
 					fakes.Tag{
 						Key:   "Name",
-						Value: map[string]interface{}{"Fn::Sub": fmt.Sprintf("${AWS::StackName}/%s", subnetKey)},
+						Value: map[string]any{"Fn::Sub": fmt.Sprintf("${AWS::StackName}/%s", subnetKey)},
 					},
 				))
 
@@ -447,7 +447,7 @@ var _ = Describe("IPv6 VPC builder", func() {
 				Tags: []fakes.Tag{
 					{
 						Key:   "Name",
-						Value: map[string]interface{}{"Fn::Sub": "${AWS::StackName}/VPC"},
+						Value: map[string]any{"Fn::Sub": "${AWS::StackName}/VPC"},
 					},
 				},
 			}))
@@ -457,7 +457,7 @@ var _ = Describe("IPv6 VPC builder", func() {
 			Expect(vpcTemplate.Resources[builder.IPv6CIDRBlockKey].Type).To(Equal("AWS::EC2::VPCCidrBlock"))
 			Expect(vpcTemplate.Resources[builder.IPv6CIDRBlockKey].Properties).To(Equal(fakes.Properties{
 				AmazonProvidedIpv6CidrBlock: true,
-				VpcID:                       map[string]interface{}{"Ref": "VPC"},
+				VpcID:                       map[string]any{"Ref": "VPC"},
 			}))
 
 			By("creating the internet gateway")
@@ -489,11 +489,11 @@ var _ = Describe("IPv6 VPC builder", func() {
 			Expect(vpcTemplate.Resources).To(HaveKey(privateRouteTableA))
 			Expect(vpcTemplate.Resources[privateRouteTableA].Type).To(Equal("AWS::EC2::RouteTable"))
 			Expect(vpcTemplate.Resources[privateRouteTableA].Properties).To(Equal(fakes.Properties{
-				VpcID: map[string]interface{}{"Ref": "VPC"},
+				VpcID: map[string]any{"Ref": "VPC"},
 				Tags: []fakes.Tag{
 					{
 						Key:   "Name",
-						Value: map[string]interface{}{"Fn::Sub": fmt.Sprintf("${AWS::StackName}/%s", privateRouteTableA)},
+						Value: map[string]any{"Fn::Sub": fmt.Sprintf("${AWS::StackName}/%s", privateRouteTableA)},
 					},
 				},
 			}))
@@ -501,11 +501,11 @@ var _ = Describe("IPv6 VPC builder", func() {
 			Expect(vpcTemplate.Resources).To(HaveKey(privateRouteTableB))
 			Expect(vpcTemplate.Resources[privateRouteTableB].Type).To(Equal("AWS::EC2::RouteTable"))
 			Expect(vpcTemplate.Resources[privateRouteTableB].Properties).To(Equal(fakes.Properties{
-				VpcID: map[string]interface{}{"Ref": "VPC"},
+				VpcID: map[string]any{"Ref": "VPC"},
 				Tags: []fakes.Tag{
 					{
 						Key:   "Name",
-						Value: map[string]interface{}{"Fn::Sub": fmt.Sprintf("${AWS::StackName}/%s", privateRouteTableB)},
+						Value: map[string]any{"Fn::Sub": fmt.Sprintf("${AWS::StackName}/%s", privateRouteTableB)},
 					},
 				},
 			}))
@@ -530,7 +530,7 @@ var _ = Describe("IPv6 VPC builder", func() {
 				Expect(vpcTemplate.Resources[subnetKey].Properties.AvailabilityZone).To(Equal(az))
 				Expect(vpcTemplate.Resources[subnetKey].Properties.MapPublicIPOnLaunch).To(Equal(mapPublicIpOnLaunch))
 
-				Expect(vpcTemplate.Resources[subnetKey].Properties.VpcID).To(Equal(map[string]interface{}{"Ref": "VPC"}))
+				Expect(vpcTemplate.Resources[subnetKey].Properties.VpcID).To(Equal(map[string]any{"Ref": "VPC"}))
 				Expect(vpcTemplate.Resources[subnetKey].Properties.Tags).To(ConsistOf(
 					fakes.Tag{
 						Key:   kubernetesTag,
@@ -538,14 +538,14 @@ var _ = Describe("IPv6 VPC builder", func() {
 					},
 					fakes.Tag{
 						Key:   "Name",
-						Value: map[string]interface{}{"Fn::Sub": fmt.Sprintf("${AWS::StackName}/%s", subnetKey)},
+						Value: map[string]any{"Fn::Sub": fmt.Sprintf("${AWS::StackName}/%s", subnetKey)},
 					},
 				))
 
 				expectedFnIPv4CIDR := `{ "Fn::Cidr": [{ "Fn::GetAtt": ["VPC", "CidrBlock"]}, 6, 13 ]}`
-				Expect(vpcTemplate.Resources[subnetKey].Properties.CidrBlock.(map[string]interface{})["Fn::Select"]).To(HaveLen(2))
-				Expect(vpcTemplate.Resources[subnetKey].Properties.CidrBlock.(map[string]interface{})["Fn::Select"].([]interface{})[0].(float64)).To(Equal(cidrBlockIndex))
-				actualFnCIDR, err := json.Marshal(vpcTemplate.Resources[subnetKey].Properties.CidrBlock.(map[string]interface{})["Fn::Select"].([]interface{})[1])
+				Expect(vpcTemplate.Resources[subnetKey].Properties.CidrBlock.(map[string]any)["Fn::Select"]).To(HaveLen(2))
+				Expect(vpcTemplate.Resources[subnetKey].Properties.CidrBlock.(map[string]any)["Fn::Select"].([]any)[0].(float64)).To(Equal(cidrBlockIndex))
+				actualFnCIDR, err := json.Marshal(vpcTemplate.Resources[subnetKey].Properties.CidrBlock.(map[string]any)["Fn::Select"].([]any)[1])
 				Expect(err).NotTo(HaveOccurred())
 				Expect(actualFnCIDR).To(MatchJSON([]byte(expectedFnIPv4CIDR)))
 
@@ -562,8 +562,8 @@ var _ = Describe("IPv6 VPC builder", func() {
 					Expect(vpcTemplate.Resources).To(HaveKey(routeTableAssociationKey))
 					Expect(vpcTemplate.Resources[routeTableAssociationKey].Type).To(Equal("AWS::EC2::SubnetRouteTableAssociation"))
 					Expect(vpcTemplate.Resources[routeTableAssociationKey].Properties).To(Equal(fakes.Properties{
-						RouteTableID: map[string]interface{}{"Ref": routeTableKey},
-						SubnetID:     map[string]interface{}{"Ref": subnetKey},
+						RouteTableID: map[string]any{"Ref": routeTableKey},
+						SubnetID:     map[string]any{"Ref": subnetKey},
 					}))
 				}
 
@@ -575,9 +575,9 @@ var _ = Describe("IPv6 VPC builder", func() {
 
 			By("outputting the VPC on the stack")
 			Expect(vpcTemplate.Outputs).To(HaveKey(builder.VPCResourceKey))
-			Expect(vpcTemplate.Outputs.(map[string]interface{})[builder.VPCResourceKey].(map[string]interface{})["Value"]).To(Equal(map[string]interface{}{"Ref": builder.VPCResourceKey}))
-			Expect(vpcTemplate.Outputs.(map[string]interface{})[builder.VPCResourceKey].(map[string]interface{})["Export"]).To(Equal(map[string]interface{}{
-				"Name": map[string]interface{}{
+			Expect(vpcTemplate.Outputs.(map[string]any)[builder.VPCResourceKey].(map[string]any)["Value"]).To(Equal(map[string]any{"Ref": builder.VPCResourceKey}))
+			Expect(vpcTemplate.Outputs.(map[string]any)[builder.VPCResourceKey].(map[string]any)["Export"]).To(Equal(map[string]any{
+				"Name": map[string]any{
 					"Fn::Sub": fmt.Sprintf("${AWS::StackName}::%s", builder.VPCResourceKey),
 				},
 			}))
@@ -587,17 +587,17 @@ var _ = Describe("IPv6 VPC builder", func() {
 
 			By("outputting the private subnets on the stack")
 			Expect(vpcTemplate.Outputs).To(HaveKey(outputs.ClusterSubnetsPrivate))
-			Expect(vpcTemplate.Outputs.(map[string]interface{})[outputs.ClusterSubnetsPrivate].(map[string]interface{})["Value"]).To(Equal(map[string]interface{}{
-				"Fn::Join": []interface{}{
+			Expect(vpcTemplate.Outputs.(map[string]any)[outputs.ClusterSubnetsPrivate].(map[string]any)["Value"]).To(Equal(map[string]any{
+				"Fn::Join": []any{
 					",",
-					[]interface{}{
-						map[string]interface{}{"Ref": builder.PrivateSubnetKey + azAFormatted},
-						map[string]interface{}{"Ref": builder.PrivateSubnetKey + azBFormatted},
+					[]any{
+						map[string]any{"Ref": builder.PrivateSubnetKey + azAFormatted},
+						map[string]any{"Ref": builder.PrivateSubnetKey + azBFormatted},
 					},
 				},
 			}))
-			Expect(vpcTemplate.Outputs.(map[string]interface{})[outputs.ClusterSubnetsPrivate].(map[string]interface{})["Export"]).To(Equal(map[string]interface{}{
-				"Name": map[string]interface{}{
+			Expect(vpcTemplate.Outputs.(map[string]any)[outputs.ClusterSubnetsPrivate].(map[string]any)["Export"]).To(Equal(map[string]any{
+				"Name": map[string]any{
 					"Fn::Sub": fmt.Sprintf("${AWS::StackName}::%s", outputs.ClusterSubnetsPrivate),
 				},
 			}))
@@ -650,7 +650,7 @@ var _ = Describe("IPv6 VPC builder", func() {
 			Expect(vpcTemplate.Resources[builder.IPv6CIDRBlockKey].Properties).To(Equal(fakes.Properties{
 				Ipv6CidrBlock: "my-cidr",
 				Ipv6Pool:      "my-cidr-pool",
-				VpcID:         map[string]interface{}{"Ref": "VPC"},
+				VpcID:         map[string]any{"Ref": "VPC"},
 			}))
 		})
 	})
@@ -681,7 +681,7 @@ var _ = Describe("IPv6 VPC builder", func() {
 				Tags: []fakes.Tag{
 					{
 						Key:   "Name",
-						Value: map[string]interface{}{"Fn::Sub": "${AWS::StackName}/VPC"},
+						Value: map[string]any{"Fn::Sub": "${AWS::StackName}/VPC"},
 					},
 				},
 			}))
@@ -742,9 +742,9 @@ func renderTemplate(vpcRs *builder.IPv6VPCResourceSet) (*fakes.FakeTemplate, err
 	return vpcTemplate, nil
 }
 
-func assertCidrBlockCreatedWithSelect(cidrBlock interface{}, expectedFnCIDR string, cidrBlockIndex float64) {
-	ExpectWithOffset(1, cidrBlock.(map[string]interface{})).To(HaveKey("Fn::Select"))
-	fnSelectValue := cidrBlock.(map[string]interface{})["Fn::Select"].([]interface{})
+func assertCidrBlockCreatedWithSelect(cidrBlock any, expectedFnCIDR string, cidrBlockIndex float64) {
+	ExpectWithOffset(1, cidrBlock.(map[string]any)).To(HaveKey("Fn::Select"))
+	fnSelectValue := cidrBlock.(map[string]any)["Fn::Select"].([]any)
 	ExpectWithOffset(1, fnSelectValue).To(HaveLen(2))
 	ExpectWithOffset(1, fnSelectValue[0].(float64)).To(Equal(cidrBlockIndex))
 	actualFnCIDR, err := json.Marshal(fnSelectValue[1])

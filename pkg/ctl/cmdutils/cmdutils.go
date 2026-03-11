@@ -50,7 +50,7 @@ func AddPreRun(cmd *cobra.Command, newFn func(cmd *cobra.Command, args []string)
 }
 
 // LogIntendedAction calls logger.Info with appropriate prefix
-func LogIntendedAction(plan bool, msgFmt string, args ...interface{}) {
+func LogIntendedAction(plan bool, msgFmt string, args ...any) {
 	prefix := "will "
 	if plan {
 		prefix = "(plan) would "
@@ -59,7 +59,7 @@ func LogIntendedAction(plan bool, msgFmt string, args ...interface{}) {
 }
 
 // LogCompletedAction calls logger.Success with appropriate prefix
-func LogCompletedAction(plan bool, msgFmt string, args ...interface{}) {
+func LogCompletedAction(plan bool, msgFmt string, args ...any) {
 	prefix := ""
 	if plan {
 		prefix = "(plan) would have "

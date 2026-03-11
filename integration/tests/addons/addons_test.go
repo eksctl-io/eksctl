@@ -473,7 +473,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 			session := cmd.Run()
 			Expect(session.ExitCode()).To(Equal(0))
 
-			var addonOutputs []map[string]interface{}
+			var addonOutputs []map[string]any
 			Expect(json.Unmarshal(session.Buffer().Contents(), &addonOutputs)).To(Succeed())
 			Expect(addonOutputs).To(HaveLen(1))
 			addonOutput := addonOutputs[0]

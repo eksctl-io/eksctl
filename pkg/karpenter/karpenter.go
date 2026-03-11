@@ -64,21 +64,21 @@ func (k *Installer) Install(ctx context.Context, serviceAccountRoleARN string, i
 	logger.Info("adding Karpenter to cluster %s", k.ClusterConfig.Metadata.Name)
 	logger.Debug("cluster endpoint used by Karpenter: %s", k.ClusterConfig.Status.Endpoint)
 
-	serviceAccountMap := map[string]interface{}{
+	serviceAccountMap := map[string]any{
 		create: api.IsEnabled(k.ClusterConfig.Karpenter.CreateServiceAccount),
-		serviceAccountAnnotation: map[string]interface{}{
+		serviceAccountAnnotation: map[string]any{
 			api.AnnotationEKSRoleARN: serviceAccountRoleARN,
 		},
 		serviceAccountName: DefaultServiceAccountName,
 	}
 
-	values := map[string]interface{}{
+	values := map[string]any{
 		clusterName:     k.ClusterConfig.Metadata.Name,
 		clusterEndpoint: k.ClusterConfig.Status.Endpoint,
-		aws: map[string]interface{}{
+		aws: map[string]any{
 			defaultInstanceProfile: instanceProfileName,
 		},
-		settings: map[string]interface{}{
+		settings: map[string]any{
 			defaultInstanceProfile: instanceProfileName,
 			clusterName:            k.ClusterConfig.Metadata.Name,
 			clusterEndpoint:        k.ClusterConfig.Status.Endpoint,
@@ -90,7 +90,7 @@ func (k *Installer) Install(ctx context.Context, serviceAccountRoleARN string, i
 	version := k.ClusterConfig.Karpenter.Version
 	compareVersions, err := utils.CompareVersions(version, "0.33.0")
 	if err == nil && compareVersions < 0 {
-		values[settings] = map[string]interface{}{
+		values[settings] = map[string]any{
 			aws: values[settings],
 		}
 	}

@@ -1753,7 +1753,7 @@ func checkBottlerocketSettings(ng *NodeGroup, path string) error {
 		return nil
 	}
 
-	kube, ok := kubeVal.(map[string]interface{})
+	kube, ok := kubeVal.(map[string]any)
 	if !ok {
 		return errors.New("invalid kubernetes settings provided: expected a map of settings")
 	}

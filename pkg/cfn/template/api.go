@@ -12,9 +12,9 @@ const (
 
 type (
 	// MapOfInterfaces is an alias for map[string]interface{}
-	MapOfInterfaces = map[string]interface{}
+	MapOfInterfaces = map[string]any
 	// SliceOfInterfaces is an alias for []interface{}
-	SliceOfInterfaces = []interface{}
+	SliceOfInterfaces = []any
 )
 
 // Template is a representation of a CloudFormation template
@@ -29,7 +29,7 @@ type Template struct {
 // AnyResource represents a generic CloudFormation resource
 type AnyResource struct {
 	Type       string
-	Properties interface{}
+	Properties any
 }
 
 func (r *AnyResource) ToIAMRole() (IAMRole, error) {
@@ -62,7 +62,7 @@ type (
 // Resource defines the interface that every resource should implement
 type Resource interface {
 	Type() string
-	Properties() interface{}
+	Properties() any
 }
 
 // NewTemplate constructs a new Template and returns the reference to it

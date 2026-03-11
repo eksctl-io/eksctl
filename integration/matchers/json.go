@@ -23,7 +23,7 @@ type jsonNodeGroupMatcher struct {
 	negatedFailureMessage string
 }
 
-func (matcher *jsonNodeGroupMatcher) Match(actual interface{}) (success bool, err error) {
+func (matcher *jsonNodeGroupMatcher) Match(actual any) (success bool, err error) {
 	rawJSON, ok := actual.(string)
 	if !ok {
 		return false, fmt.Errorf("BeNodeGroupsWithNamesWhich matcher expects a string: %w", err)
@@ -51,10 +51,10 @@ func extractNames(ngSummaries []nodegroup.Summary) []string {
 	return ngNames
 }
 
-func (matcher *jsonNodeGroupMatcher) FailureMessage(unusedActual interface{}) string {
+func (matcher *jsonNodeGroupMatcher) FailureMessage(unusedActual any) string {
 	return matcher.failureMessage
 }
 
-func (matcher *jsonNodeGroupMatcher) NegatedFailureMessage(unusedActual interface{}) string {
+func (matcher *jsonNodeGroupMatcher) NegatedFailureMessage(unusedActual any) string {
 	return matcher.negatedFailureMessage
 }

@@ -195,7 +195,7 @@ var _ = DescribeTable("AL2023 override node config", func(e al2023OverrideNodeCo
 						Name:                 "al2023-test",
 					},
 					Kubelet: nodeadm.KubeletOptions{
-						Config: mustToKubeletConfig(map[string]interface{}{
+						Config: mustToKubeletConfig(map[string]any{
 							"clusterDNS": []string{"10.100.0.10"},
 						}),
 						Flags: []string{
@@ -212,7 +212,7 @@ var _ = DescribeTable("AL2023 override node config", func(e al2023OverrideNodeCo
 				},
 				Spec: nodeadm.NodeConfigSpec{
 					Kubelet: nodeadm.KubeletOptions{
-						Config: mustToKubeletConfig(map[string]interface{}{
+						Config: mustToKubeletConfig(map[string]any{
 							"maxPods": 11,
 						}),
 					},
@@ -234,7 +234,7 @@ var _ = DescribeTable("AL2023 override node config", func(e al2023OverrideNodeCo
 			}
 			ng.KubeletExtraConfig = &api.InlineDocument{
 				"shutdownGracePeriod": "5m",
-				"kubeReserved": map[string]interface{}{
+				"kubeReserved": map[string]any{
 					"cpu":    "500m",
 					"memory": "250Mi",
 				},
@@ -255,10 +255,10 @@ var _ = DescribeTable("AL2023 override node config", func(e al2023OverrideNodeCo
 						Name:                 "al2023-test",
 					},
 					Kubelet: nodeadm.KubeletOptions{
-						Config: mustToKubeletConfig(map[string]interface{}{
+						Config: mustToKubeletConfig(map[string]any{
 							"clusterDNS":          []string{"10.100.0.10"},
 							"shutdownGracePeriod": "5m",
-							"kubeReserved": map[string]interface{}{
+							"kubeReserved": map[string]any{
 								"cpu":    "500m",
 								"memory": "250Mi",
 							},
@@ -277,7 +277,7 @@ var _ = DescribeTable("AL2023 override node config", func(e al2023OverrideNodeCo
 				},
 				Spec: nodeadm.NodeConfigSpec{
 					Kubelet: nodeadm.KubeletOptions{
-						Config: mustToKubeletConfig(map[string]interface{}{
+						Config: mustToKubeletConfig(map[string]any{
 							"maxPods": 11,
 						}),
 					},
@@ -300,9 +300,9 @@ var _ = DescribeTable("AL2023 override node config", func(e al2023OverrideNodeCo
 						},
 					},
 					Kubelet: nodeadm.KubeletOptions{
-						Config: mustToKubeletConfig(map[string]interface{}{
+						Config: mustToKubeletConfig(map[string]any{
 							"shutdownGracePeriod": "5m",
-							"featureGates": map[string]interface{}{
+							"featureGates": map[string]any{
 								"DisableKubeletCloudCredentialProviders": true,
 							},
 						}),
@@ -329,7 +329,7 @@ var _ = DescribeTable("AL2023 override node config", func(e al2023OverrideNodeCo
 						Name:                 "al2023-test",
 					},
 					Kubelet: nodeadm.KubeletOptions{
-						Config: mustToKubeletConfig(map[string]interface{}{
+						Config: mustToKubeletConfig(map[string]any{
 							"clusterDNS": []string{"10.100.0.10"},
 						}),
 						Flags: []string{
@@ -350,9 +350,9 @@ var _ = DescribeTable("AL2023 override node config", func(e al2023OverrideNodeCo
 						},
 					},
 					Kubelet: nodeadm.KubeletOptions{
-						Config: mustToKubeletConfig(map[string]interface{}{
+						Config: mustToKubeletConfig(map[string]any{
 							"shutdownGracePeriod": "5m",
-							"featureGates": map[string]interface{}{
+							"featureGates": map[string]any{
 								"DisableKubeletCloudCredentialProviders": true,
 							},
 						}),

@@ -11,7 +11,7 @@ import (
 	. "github.com/weaveworks/eksctl/pkg/cfn/template"
 )
 
-func checkTemplate(actualTemplate interface{}) error {
+func checkTemplate(actualTemplate any) error {
 	if actualTemplate == nil {
 		return fmt.Errorf("template is nil")
 	}
@@ -54,7 +54,7 @@ func LoadFileWithoutErrors(templatePath string) types.GomegaMatcher {
 	}
 }
 
-func (m *Loader) Match(actualTemplate interface{}) (bool, error) {
+func (m *Loader) Match(actualTemplate any) (bool, error) {
 	if err := checkTemplate(actualTemplate); err != nil {
 		return false, err
 	}
@@ -75,11 +75,11 @@ func (m *Loader) Match(actualTemplate interface{}) (bool, error) {
 	return true, nil
 }
 
-func (m *Loader) FailureMessage(_ interface{}) string {
+func (m *Loader) FailureMessage(_ any) string {
 	return m.failureMessageWithError("Expected to load template from JSON without errors")
 }
 
-func (m *Loader) NegatedFailureMessage(_ interface{}) string {
+func (m *Loader) NegatedFailureMessage(_ any) string {
 	return "Expected to NOT load template from JSON without errors"
 }
 
@@ -98,7 +98,7 @@ func HaveResource(resourceName, resourceType string) types.GomegaMatcher {
 	}
 }
 
-func (m *ResourceNameAndTypeMatcher) Match(actualTemplate interface{}) (bool, error) {
+func (m *ResourceNameAndTypeMatcher) Match(actualTemplate any) (bool, error) {
 	if err := checkTemplate(actualTemplate); err != nil {
 		return false, err
 	}
@@ -117,11 +117,11 @@ func (m *ResourceNameAndTypeMatcher) Match(actualTemplate interface{}) (bool, er
 	return true, nil
 }
 
-func (m *ResourceNameAndTypeMatcher) FailureMessage(_ interface{}) string {
+func (m *ResourceNameAndTypeMatcher) FailureMessage(_ any) string {
 	return m.failureMessageWithError(fmt.Sprintf("Expected the template to have resoruce %q of type %q", m.resourceName, m.resourceType))
 }
 
-func (m *ResourceNameAndTypeMatcher) NegatedFailureMessage(_ interface{}) string {
+func (m *ResourceNameAndTypeMatcher) NegatedFailureMessage(_ any) string {
 	return fmt.Sprintf("Expected the template to NOT have resoruce %q of type %q", m.resourceName, m.resourceType)
 }
 
@@ -141,7 +141,7 @@ func HaveResourceWithProperties(resourceName string, propertyNames ...string) ty
 	}
 }
 
-func (m *ResourcePropertiesMatcher) Match(actualTemplate interface{}) (bool, error) {
+func (m *ResourcePropertiesMatcher) Match(actualTemplate any) (bool, error) {
 	if ok, err := HaveResource(m.resourceName, "*").Match(actualTemplate); !ok {
 		return ok, err
 	}
@@ -163,11 +163,11 @@ func (m *ResourcePropertiesMatcher) Match(actualTemplate interface{}) (bool, err
 	return true, nil
 }
 
-func (m *ResourcePropertiesMatcher) FailureMessage(_ interface{}) string {
+func (m *ResourcePropertiesMatcher) FailureMessage(_ any) string {
 	return m.failureMessageWithError(fmt.Sprintf("Expected the template to have resource %q with propertes %v", m.resourceName, m.propertyNames))
 }
 
-func (m *ResourcePropertiesMatcher) NegatedFailureMessage(_ interface{}) string {
+func (m *ResourcePropertiesMatcher) NegatedFailureMessage(_ any) string {
 	return fmt.Sprintf("Expected the template to NOT have resource %q with properties %v", m.resourceName, m.propertyNames)
 }
 
@@ -188,7 +188,7 @@ func HaveResourceWithPropertyValue(resourceName, propertyName, propertyValue str
 	}
 }
 
-func (m *ResourceWithPropertyValueMatcher) Match(actualTemplate interface{}) (bool, error) {
+func (m *ResourceWithPropertyValueMatcher) Match(actualTemplate any) (bool, error) {
 	if ok, err := HaveResource(m.resourceName, "*").Match(actualTemplate); !ok {
 		return ok, err
 	}
@@ -220,11 +220,11 @@ func (m *ResourceWithPropertyValueMatcher) Match(actualTemplate interface{}) (bo
 	return m.matchJSON(m.propertyValue, js)
 }
 
-func (m *ResourceWithPropertyValueMatcher) FailureMessage(_ interface{}) string {
+func (m *ResourceWithPropertyValueMatcher) FailureMessage(_ any) string {
 	return m.failureMessageWithError(fmt.Sprintf("Expected the template to have resoruce %q with property %q: %s", m.resourceName, m.propertyName, m.propertyValue))
 }
 
-func (m *ResourceWithPropertyValueMatcher) NegatedFailureMessage(_ interface{}) string {
+func (m *ResourceWithPropertyValueMatcher) NegatedFailureMessage(_ any) string {
 	return fmt.Sprintf("Expected the template to NOT have resoruce %q with property %q: %s", m.resourceName, m.propertyName, m.propertyValue)
 }
 
@@ -238,7 +238,7 @@ func HaveOutputs(outputNames ...string) types.GomegaMatcher {
 	}
 }
 
-func (m *OutputsMatcher) Match(actualTemplate interface{}) (bool, error) {
+func (m *OutputsMatcher) Match(actualTemplate any) (bool, error) {
 	if err := checkTemplate(actualTemplate); err != nil {
 		return false, err
 	}
@@ -255,11 +255,11 @@ func (m *OutputsMatcher) Match(actualTemplate interface{}) (bool, error) {
 	return true, nil
 }
 
-func (m *OutputsMatcher) FailureMessage(_ interface{}) string {
+func (m *OutputsMatcher) FailureMessage(_ any) string {
 	return fmt.Sprintf("Expected the template to have outputs %v", m.outputNames)
 }
 
-func (m *OutputsMatcher) NegatedFailureMessage(_ interface{}) string {
+func (m *OutputsMatcher) NegatedFailureMessage(_ any) string {
 	return fmt.Sprintf("Expected the template to NOT have outputs %v", m.outputNames)
 }
 
@@ -278,7 +278,7 @@ func HaveOutputWithValue(outputName, outputValue string) types.GomegaMatcher {
 	}
 }
 
-func (m *OutputValueMatcher) Match(actualTemplate interface{}) (bool, error) {
+func (m *OutputValueMatcher) Match(actualTemplate any) (bool, error) {
 	ok, err := HaveOutputs(m.outputName).Match(actualTemplate)
 	if !ok {
 		return ok, err
@@ -298,11 +298,11 @@ func (m *OutputValueMatcher) Match(actualTemplate interface{}) (bool, error) {
 	return m.matchJSON(m.outputValue, js)
 }
 
-func (m *OutputValueMatcher) FailureMessage(_ interface{}) string {
+func (m *OutputValueMatcher) FailureMessage(_ any) string {
 	return fmt.Sprintf("Expected the template to have output %q with value '%s'", m.outputName, m.outputValue)
 }
 
-func (m *OutputValueMatcher) NegatedFailureMessage(_ interface{}) string {
+func (m *OutputValueMatcher) NegatedFailureMessage(_ any) string {
 	return fmt.Sprintf("Expected the template to NOT have output %q with value '%s'", m.outputName, m.outputValue)
 }
 
@@ -321,7 +321,7 @@ func HaveOutputExportedAs(outputName, exportName string) types.GomegaMatcher {
 	}
 }
 
-func (m *OutputExportNameMatcher) Match(actualTemplate interface{}) (bool, error) {
+func (m *OutputExportNameMatcher) Match(actualTemplate any) (bool, error) {
 	ok, err := HaveOutputs(m.outputName).Match(actualTemplate)
 	if !ok {
 		return ok, err
@@ -345,11 +345,11 @@ func (m *OutputExportNameMatcher) Match(actualTemplate interface{}) (bool, error
 	return m.matchJSON(m.exportName, js)
 }
 
-func (m *OutputExportNameMatcher) FailureMessage(_ interface{}) string {
+func (m *OutputExportNameMatcher) FailureMessage(_ any) string {
 	return fmt.Sprintf("Expected the template to have output %q with export name '%s'", m.outputName, m.exportName)
 }
 
-func (m *OutputExportNameMatcher) NegatedFailureMessage(_ interface{}) string {
+func (m *OutputExportNameMatcher) NegatedFailureMessage(_ any) string {
 	return fmt.Sprintf("Expected the template to NOT have output %q with export name '%s'", m.outputName, m.exportName)
 }
 
@@ -357,7 +357,7 @@ type commonMatcher struct {
 	err error
 }
 
-func (m *commonMatcher) matchJSON(actual interface{}, js []byte) (bool, error) {
+func (m *commonMatcher) matchJSON(actual any, js []byte) (bool, error) {
 	jsMatcher := gomega.MatchJSON(actual)
 
 	ok, err := jsMatcher.Match(js)

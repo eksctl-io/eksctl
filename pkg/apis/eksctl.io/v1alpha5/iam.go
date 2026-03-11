@@ -244,8 +244,8 @@ type IAMStatement struct {
 	Condition    json.RawMessage              `json:"Condition,omitempty"`    // conditions for when a policy is in effect
 }
 
-func (s *IAMStatement) ToMapOfInterfaces() map[string]interface{} {
-	mapOfInterfaces := map[string]interface{}{
+func (s *IAMStatement) ToMapOfInterfaces() map[string]any {
+	mapOfInterfaces := map[string]any{
 		"Effect": s.Effect,
 		"Action": s.Action,
 	}
@@ -278,7 +278,7 @@ type CustomStringSlice []string
 
 func (c *CustomStringSlice) UnmarshalJSON(b []byte) error {
 
-	var raw interface{}
+	var raw any
 	err := json.Unmarshal(b, &raw)
 	if err != nil {
 		return err
@@ -289,7 +289,7 @@ func (c *CustomStringSlice) UnmarshalJSON(b []byte) error {
 	switch v := raw.(type) {
 	case string:
 		p = []string{v}
-	case []interface{}:
+	case []any:
 		var items []string
 		for _, item := range v {
 			items = append(items, fmt.Sprintf("%v", item))

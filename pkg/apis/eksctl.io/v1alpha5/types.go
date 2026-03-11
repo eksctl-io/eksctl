@@ -2037,7 +2037,7 @@ func (m *ManagedNodeGroup) BaseNodeGroup() *NodeGroupBase {
 }
 
 // InlineDocument holds any arbitrary JSON/YAML documents, such as extra config parameters or IAM policies
-type InlineDocument map[string]interface{}
+type InlineDocument map[string]any
 
 // DeepCopy is needed to generate kubernetes types for InlineDocument
 func (in *InlineDocument) DeepCopy() *InlineDocument {

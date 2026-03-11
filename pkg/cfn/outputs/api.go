@@ -128,7 +128,7 @@ func (c *CollectorSet) MustCollect(stack types.Stack) error {
 
 // Define a new output, if template is given it will be declared in the it
 // and optionally export too
-func (c *CollectorSet) Define(template *gfn.Template, name string, value interface{}, export bool, fn Collector) {
+func (c *CollectorSet) Define(template *gfn.Template, name string, value any, export bool, fn Collector) {
 	if template != nil {
 		o := gfn.Output{
 			Value: value,
@@ -144,7 +144,7 @@ func (c *CollectorSet) Define(template *gfn.Template, name string, value interfa
 }
 
 // DefineWithoutCollector allows bare outputs
-func (c *CollectorSet) DefineWithoutCollector(template *gfn.Template, name string, value interface{}, export bool) {
+func (c *CollectorSet) DefineWithoutCollector(template *gfn.Template, name string, value any, export bool) {
 	c.Define(template, name, value, export, func(_ string) error { return nil })
 }
 

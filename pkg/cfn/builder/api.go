@@ -21,9 +21,9 @@ const (
 
 type awsCloudFormationResource struct {
 	Type         string
-	Properties   map[string]interface{}
-	UpdatePolicy map[string]map[string]interface{} `json:",omitempty"`
-	DependsOn    []string                          `json:",omitempty"`
+	Properties   map[string]any
+	UpdatePolicy map[string]map[string]any `json:",omitempty"`
+	DependsOn    []string                  `json:",omitempty"`
 }
 
 func (r *awsCloudFormationResource) AWSCloudFormationType() string {
@@ -84,7 +84,7 @@ func makeAutoNameTag(suffix string) gfncfn.Tag {
 
 // maybeSetNameTag adds a Name tag to any resource that supports tags
 // it calls makeAutoNameTag to format the tag value
-func maybeSetNameTag(name string, resource interface{}) {
+func maybeSetNameTag(name string, resource any) {
 	e := reflect.ValueOf(resource).Elem()
 	if e.Kind() == reflect.Struct {
 		f := e.FieldByName("Tags")

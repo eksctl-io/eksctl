@@ -172,7 +172,7 @@ func (n *NodeGroupDrainer) Drain(ctx context.Context, sem *semaphore.Weighted) e
 	}
 }
 
-func mapToList(m map[string]interface{}) []string {
+func mapToList(m map[string]any) []string {
 	var list []string
 	for key := range m {
 		list = append(list, key)

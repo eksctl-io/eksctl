@@ -19,7 +19,7 @@ func RenderWithoutErrors(templateBody *[]byte) types.GomegaMatcher {
 	}
 }
 
-func (m *ResourceSetRenderingMatcher) Match(actualResourceSet interface{}) (bool, error) {
+func (m *ResourceSetRenderingMatcher) Match(actualResourceSet any) (bool, error) {
 	if actualResourceSet == nil {
 		return false, fmt.Errorf("resourceset is nil")
 	}
@@ -40,10 +40,10 @@ func (m *ResourceSetRenderingMatcher) Match(actualResourceSet interface{}) (bool
 	return true, nil
 }
 
-func (m *ResourceSetRenderingMatcher) FailureMessage(_ interface{}) string {
+func (m *ResourceSetRenderingMatcher) FailureMessage(_ any) string {
 	return fmt.Sprintf("Expected to add all resouerces and render JSON without errors, got: %s", m.err.Error())
 }
 
-func (m *ResourceSetRenderingMatcher) NegatedFailureMessage(_ interface{}) string {
+func (m *ResourceSetRenderingMatcher) NegatedFailureMessage(_ any) string {
 	return "Expected to NOT load template from JSON without errors"
 }

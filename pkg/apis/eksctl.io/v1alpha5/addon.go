@@ -201,7 +201,7 @@ func (a Addon) Validate() error {
 
 func (a *Addon) convertConfigurationValuesToJSON() (err error) {
 	rawConfigurationValues := []byte(a.ConfigurationValues)
-	var js map[string]interface{}
+	var js map[string]any
 	if err = yaml.UnmarshalStrict(rawConfigurationValues, &js); err == nil {
 		var JSONConfigurationValues []byte
 		if JSONConfigurationValues, err = yaml.YAMLToJSONStrict(rawConfigurationValues); err == nil {

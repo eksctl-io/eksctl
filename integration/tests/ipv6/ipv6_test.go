@@ -181,10 +181,10 @@ var _ = Describe("(Integration) [EKS IPv6 test]", func() {
 				req := test.PodProxyGet(&pod, "", "/version")
 				fmt.Fprintf(GinkgoWriter, "url = %#v", req.URL())
 
-				var js interface{}
+				var js any
 				test.PodProxyGetJSON(&pod, "", "/version", &js)
 
-				Expect(js.(map[string]interface{})).To(HaveKeyWithValue("version", "1.5.1"))
+				Expect(js.(map[string]any)).To(HaveKeyWithValue("version", "1.5.1"))
 			}
 		})
 	})

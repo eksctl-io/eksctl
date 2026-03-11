@@ -18,7 +18,7 @@ func BeNotFoundError() types.GomegaMatcher {
 type notFoundMatcher struct {
 }
 
-func (matcher *notFoundMatcher) Match(actual interface{}) (success bool, err error) {
+func (matcher *notFoundMatcher) Match(actual any) (success bool, err error) {
 	isErr, err := gomega.HaveOccurred().Match(actual)
 	if !isErr || err != nil {
 		return isErr, err
@@ -26,10 +26,10 @@ func (matcher *notFoundMatcher) Match(actual interface{}) (success bool, err err
 	return apierrors.IsNotFound(actual.(error)), nil
 }
 
-func (matcher *notFoundMatcher) FailureMessage(actual interface{}) (message string) {
+func (matcher *notFoundMatcher) FailureMessage(actual any) (message string) {
 	return fmt.Sprintf("Expected a NotFound API error to have occurred.  Got:\n%s", format.Object(actual, 1))
 }
 
-func (matcher *notFoundMatcher) NegatedFailureMessage(actual interface{}) (message string) {
+func (matcher *notFoundMatcher) NegatedFailureMessage(actual any) (message string) {
 	return fmt.Sprintf("Unexpected NotFound API error:\n%s\n%s\n%s", format.Object(actual, 1), format.IndentString(actual.(error).Error(), 1), "occurred")
 }

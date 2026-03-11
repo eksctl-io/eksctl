@@ -33,7 +33,7 @@ var _ = Describe("HelmInstaller", func() {
 			tmp                string
 			err                error
 			installerUnderTest *Installer
-			values             map[string]interface{}
+			values             map[string]any
 			actionConfig       *action.Configuration
 			fakeKubeClient     *fakes.PrintingKubeClient
 			registryClient     *registry.Client
@@ -56,7 +56,7 @@ var _ = Describe("HelmInstaller", func() {
 				Releases:     store,
 				KubeClient:   fakeKubeClient,
 				Capabilities: chartutil.DefaultCapabilities,
-				Log:          func(format string, v ...interface{}) {},
+				Log:          func(format string, v ...any) {},
 			}
 			installerUnderTest = &Installer{
 				Getters: getters,
@@ -67,7 +67,7 @@ var _ = Describe("HelmInstaller", func() {
 				},
 				ActionConfig: actionConfig,
 			}
-			values = map[string]interface{}{
+			values = map[string]any{
 				"some": "value",
 			}
 			registryClient, _ = registry.NewClient(

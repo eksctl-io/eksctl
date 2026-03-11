@@ -54,13 +54,13 @@ func initLogger(level int, colorValue string, logBuffer *bytes.Buffer, dumpLogsV
 		}
 	}
 
-	logger.Line = func(prefix, format string, a ...interface{}) string {
+	logger.Line = func(prefix, format string, a ...any) string {
 		if !strings.Contains(format, "\n") {
 			format = fmt.Sprintf("%s%s", format, "\n")
 		}
 		now := time.Now()
 		fNow := now.Format(logger.Layout)
-		var colorize func(format string, a ...interface{}) string
+		var colorize func(format string, a ...any) string
 		var icon string
 		switch prefix {
 		case logger.PreAlways:

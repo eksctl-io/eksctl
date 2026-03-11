@@ -91,7 +91,7 @@ func configureCreateCapabilityCmd(cmd *cmdutils.Cmd, capability *api.Capability)
 }
 
 func parseAttachPolicy(policyStr string, capability *api.Capability) error {
-	var policy map[string]interface{}
+	var policy map[string]any
 	if err := json.Unmarshal([]byte(policyStr), &policy); err != nil {
 		return fmt.Errorf("invalid JSON in attach-policy: %w", err)
 	}

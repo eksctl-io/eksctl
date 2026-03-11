@@ -57,7 +57,7 @@ func TestStdioServer(t *testing.T) {
 	}()
 
 	// Write a ping request to stdin
-	pingRequest := map[string]interface{}{
+	pingRequest := map[string]any{
 		"jsonrpc": "2.0",
 		"id":      1,
 		"method":  "ping",
@@ -80,7 +80,7 @@ func TestStdioServer(t *testing.T) {
 	assert.NotEmpty(t, response)
 
 	// Parse response
-	var responseObj map[string]interface{}
+	var responseObj map[string]any
 	err = json.Unmarshal([]byte(strings.TrimSpace(response)), &responseObj)
 	require.NoError(t, err)
 
@@ -139,13 +139,13 @@ func TestStdioServerWithToolCall(t *testing.T) {
 	}()
 
 	// Write a tool call request to stdin
-	toolRequest := map[string]interface{}{
+	toolRequest := map[string]any{
 		"jsonrpc": "2.0",
 		"id":      2,
 		"method":  "tools/call",
-		"params": map[string]interface{}{
+		"params": map[string]any{
 			"name":      "mock_tool",
-			"arguments": map[string]interface{}{},
+			"arguments": map[string]any{},
 		},
 	}
 	toolRequestBytes, err := json.Marshal(toolRequest)
@@ -166,7 +166,7 @@ func TestStdioServerWithToolCall(t *testing.T) {
 	assert.NotEmpty(t, response)
 
 	// Parse response
-	var responseObj map[string]interface{}
+	var responseObj map[string]any
 	err = json.Unmarshal([]byte(strings.TrimSpace(response)), &responseObj)
 	require.NoError(t, err)
 
@@ -176,11 +176,11 @@ func TestStdioServerWithToolCall(t *testing.T) {
 	assert.NotNil(t, responseObj["result"])
 
 	// Verify tool response content
-	result := responseObj["result"].(map[string]interface{})
-	content := result["content"].([]interface{})
+	result := responseObj["result"].(map[string]any)
+	content := result["content"].([]any)
 	assert.Len(t, content, 1)
 
-	textContent := content[0].(map[string]interface{})
+	textContent := content[0].(map[string]any)
 	assert.Equal(t, "text", textContent["type"])
 	assert.Equal(t, "Mock tool response", textContent["text"])
 }
@@ -218,7 +218,7 @@ func TestStdioServerMultipleRequests(t *testing.T) {
 	}()
 
 	// Write multiple requests to stdin
-	requests := []map[string]interface{}{
+	requests := []map[string]any{
 		{
 			"jsonrpc": "2.0",
 			"id":      1,
@@ -259,7 +259,7 @@ func TestStdioServerMultipleRequests(t *testing.T) {
 		if line == "" {
 			continue
 		}
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		err = json.Unmarshal([]byte(line), &responseObj)
 		assert.NoError(t, err, "Response should be valid JSON: %s", line)
 	}
@@ -312,6 +312,6 @@ func TestStdioServerInvalidRequest(t *testing.T) {
 	assert.NotEmpty(t, response)
 
 	// Try to parse the response, but don't assert on specific values
-	var responseObj map[string]interface{}
+	var responseObj map[string]any
 	_ = json.Unmarshal([]byte(strings.TrimSpace(response)), &responseObj)
 }

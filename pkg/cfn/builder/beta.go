@@ -138,7 +138,7 @@ func addBetaManagedNodeGroupResources(managedResource *gfneks.Nodegroup, stackNa
 	customResource := &gfn.CustomResource{
 		Type: "Custom::EksManagedNodeGroup",
 	}
-	customResource.Properties = make(map[string]interface{})
+	customResource.Properties = make(map[string]any)
 	functionArn := gfnt.MakeFnImportValueString(fmt.Sprintf("eksctl-%s-cluster::EKSFunctionArn", stackName))
 	customResource.Properties["ServiceToken"] = functionArn
 
@@ -203,7 +203,7 @@ func addBetaManagedNodeGroupResources(managedResource *gfneks.Nodegroup, stackNa
 	return customResource
 }
 
-func createBetaAssumeRolePolicy() interface{} {
+func createBetaAssumeRolePolicy() any {
 	statements := []cft.MapOfInterfaces{
 		{
 			"Effect": "Allow",
@@ -243,7 +243,7 @@ func addBetaAccessEntry(stackName string, accessEntryType string) *gfn.CustomRes
 	customResource := &gfn.CustomResource{
 		Type: "Custom::EksAccessEntry",
 	}
-	customResource.Properties = make(map[string]interface{})
+	customResource.Properties = make(map[string]any)
 	functionArn := gfnt.MakeFnImportValueString(fmt.Sprintf("eksctl-%s-cluster::EKSFunctionArn", stackName))
 	customResource.Properties["ServiceToken"] = functionArn
 	customResource.Properties["PrincipalArn"] = gfnt.MakeFnGetAttString(cfnIAMInstanceRoleName, "Arn")

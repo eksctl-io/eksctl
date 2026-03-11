@@ -23,7 +23,7 @@ type InstallChartOpts struct {
 	CreateNamespace bool
 	Namespace       string
 	ReleaseName     string
-	Values          map[string]interface{}
+	Values          map[string]any
 	Version         string
 	RegistryClient  *registry.Client
 }

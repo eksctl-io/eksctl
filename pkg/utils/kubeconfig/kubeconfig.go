@@ -392,7 +392,7 @@ func getConfigAccess(explicitPath string) clientcmd.ConfigAccess {
 		pathOptions.LoadingRules.ExplicitPath = explicitPath
 	}
 
-	return interface{}(pathOptions).(clientcmd.ConfigAccess)
+	return any(pathOptions).(clientcmd.ConfigAccess)
 }
 func merge(existing *clientcmdapi.Config, tomerge *clientcmdapi.Config) *clientcmdapi.Config {
 	for k, v := range tomerge.Clusters {

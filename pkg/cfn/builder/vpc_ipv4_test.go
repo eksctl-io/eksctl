@@ -98,7 +98,7 @@ var _ = Describe("VPC Template Builder", func() {
 			Expect(vpcTemplate.Resources[publicSubnetRef1].Properties.Tags[0].Key).To(Equal("kubernetes.io/role/elb"))
 			Expect(vpcTemplate.Resources[publicSubnetRef1].Properties.Tags[0].Value).To(Equal("1"))
 			Expect(vpcTemplate.Resources[publicSubnetRef1].Properties.Tags[1].Key).To(Equal("Name"))
-			Expect(vpcTemplate.Resources[publicSubnetRef1].Properties.Tags[1].Value).To(Equal(map[string]interface{}{
+			Expect(vpcTemplate.Resources[publicSubnetRef1].Properties.Tags[1].Value).To(Equal(map[string]any{
 				"Fn::Sub": "${AWS::StackName}/SubnetPublicUSWEST2A",
 			}))
 			Expect(vpcTemplate.Resources[publicSubnetRef1].Properties.MapPublicIPOnLaunch).To(BeTrue())
@@ -110,7 +110,7 @@ var _ = Describe("VPC Template Builder", func() {
 			Expect(vpcTemplate.Resources[publicSubnetRef2].Properties.Tags[0].Key).To(Equal("kubernetes.io/role/elb"))
 			Expect(vpcTemplate.Resources[publicSubnetRef2].Properties.Tags[0].Value).To(Equal("1"))
 			Expect(vpcTemplate.Resources[publicSubnetRef2].Properties.Tags[1].Key).To(Equal("Name"))
-			Expect(vpcTemplate.Resources[publicSubnetRef2].Properties.Tags[1].Value).To(Equal(map[string]interface{}{
+			Expect(vpcTemplate.Resources[publicSubnetRef2].Properties.Tags[1].Value).To(Equal(map[string]any{
 				"Fn::Sub": "${AWS::StackName}/SubnetPublicUSWEST2B",
 			}))
 			Expect(vpcTemplate.Resources[publicSubnetRef2].Properties.MapPublicIPOnLaunch).To(BeTrue())
@@ -145,7 +145,7 @@ var _ = Describe("VPC Template Builder", func() {
 			Expect(vpcTemplate.Resources[privateSubnetRef1].Properties.Tags[0].Key).To(Equal("kubernetes.io/role/internal-elb"))
 			Expect(vpcTemplate.Resources[privateSubnetRef1].Properties.Tags[0].Value).To(Equal("1"))
 			Expect(vpcTemplate.Resources[privateSubnetRef1].Properties.Tags[1].Key).To(Equal("Name"))
-			Expect(vpcTemplate.Resources[privateSubnetRef1].Properties.Tags[1].Value).To(Equal(map[string]interface{}{
+			Expect(vpcTemplate.Resources[privateSubnetRef1].Properties.Tags[1].Value).To(Equal(map[string]any{
 				"Fn::Sub": "${AWS::StackName}/SubnetPrivateUSWEST2A",
 			}))
 
@@ -156,7 +156,7 @@ var _ = Describe("VPC Template Builder", func() {
 			Expect(vpcTemplate.Resources[privateSubnetRef2].Properties.Tags[0].Key).To(Equal("kubernetes.io/role/internal-elb"))
 			Expect(vpcTemplate.Resources[privateSubnetRef2].Properties.Tags[0].Value).To(Equal("1"))
 			Expect(vpcTemplate.Resources[privateSubnetRef2].Properties.Tags[1].Key).To(Equal("Name"))
-			Expect(vpcTemplate.Resources[privateSubnetRef2].Properties.Tags[1].Value).To(Equal(map[string]interface{}{
+			Expect(vpcTemplate.Resources[privateSubnetRef2].Properties.Tags[1].Value).To(Equal(map[string]any{
 				"Fn::Sub": "${AWS::StackName}/SubnetPrivateUSWEST2B",
 			}))
 
@@ -451,12 +451,12 @@ func makePrimitive(primitive string) *gfnt.Value {
 	return output
 }
 
-func makeRef(value string) map[string]interface{} {
-	return map[string]interface{}{"Ref": value}
+func makeRef(value string) map[string]any {
+	return map[string]any{"Ref": value}
 }
 
-func makeGetAttr(values ...interface{}) map[string]interface{} {
-	return map[string]interface{}{"Fn::GetAtt": values}
+func makeGetAttr(values ...any) map[string]any {
+	return map[string]any{"Fn::GetAtt": values}
 }
 
 func makeRTOutput(subnetIDs []string, main bool) *ec2.DescribeRouteTablesOutput {
@@ -474,9 +474,9 @@ func makeRTOutput(subnetIDs []string, main bool) *ec2.DescribeRouteTablesOutput 
 	}
 }
 
-func assertIpv6CidrBlockCreatedWithSelect(cidrBlock interface{}, expectedFnCIDR string) {
-	ExpectWithOffset(1, cidrBlock.(map[string]interface{})).To(HaveKey("Fn::Select"))
-	fnSelectValue := cidrBlock.(map[string]interface{})["Fn::Select"].([]interface{})
+func assertIpv6CidrBlockCreatedWithSelect(cidrBlock any, expectedFnCIDR string) {
+	ExpectWithOffset(1, cidrBlock.(map[string]any)).To(HaveKey("Fn::Select"))
+	fnSelectValue := cidrBlock.(map[string]any)["Fn::Select"].([]any)
 	ExpectWithOffset(1, fnSelectValue).To(HaveLen(2))
 	ExpectWithOffset(1, fnSelectValue[0].(float64)).To(BeNumerically("~", 0, 8))
 	actualFnCIDR, err := json.Marshal(fnSelectValue[1])

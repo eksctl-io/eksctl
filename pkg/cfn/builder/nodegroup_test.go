@@ -231,7 +231,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 			It("adds a new InstanceProfileARN resource", func() {
 				Expect(ngTemplate.Resources).To(HaveKey("NodeInstanceProfile"))
 				Expect(ngTemplate.Resources["NodeInstanceProfile"].Properties.Path).To(Equal("/"))
-				Expect(ngTemplate.Resources["NodeInstanceProfile"].Properties.Roles).To(Equal([]interface{}{"foo"}))
+				Expect(ngTemplate.Resources["NodeInstanceProfile"].Properties.Roles).To(Equal([]any{"foo"}))
 			})
 
 			It("adds the InstanceRoleARN and InstanceProfileARN outputs", func() {
@@ -783,7 +783,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 			It("creates new NodeGroupLaunchTemplate resource", func() {
 				Expect(ngTemplate.Resources).To(HaveKey("NodeGroupLaunchTemplate"))
 				properties := ngTemplate.Resources["NodeGroupLaunchTemplate"].Properties
-				Expect(properties.LaunchTemplateName).To(Equal(map[string]interface{}{"Fn::Sub": "${AWS::StackName}"}))
+				Expect(properties.LaunchTemplateName).To(Equal(map[string]any{"Fn::Sub": "${AWS::StackName}"}))
 				Expect(properties.LaunchTemplateData.IamInstanceProfile.Arn).To(Equal(makeIamInstanceProfileRef()))
 				Expect(properties.LaunchTemplateData.ImageID).To(Equal("ami-123"))
 				Expect(properties.LaunchTemplateData.UserData).To(Equal("lovely data right here"))
@@ -957,9 +957,9 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 			It("creates new NodeGroup resource", func() {
 				Expect(ngTemplate.Resources).To(HaveKey("NodeGroup"))
 				Expect(ngTemplate.Resources["NodeGroup"].Type).To(Equal("AWS::AutoScaling::AutoScalingGroup"))
-				Expect(ngTemplate.Resources["NodeGroup"].UpdatePolicy["AutoScalingRollingUpdate"]).To(Equal(map[string]interface{}{}))
-				Expect(ngTemplate.Resources["NodeGroup"].Properties.LaunchTemplate.LaunchTemplateName).To(Equal(map[string]interface{}{"Fn::Sub": "${AWS::StackName}"}))
-				Expect(ngTemplate.Resources["NodeGroup"].Properties.LaunchTemplate.Version["Fn::GetAtt"]).To(Equal([]interface{}{"NodeGroupLaunchTemplate", "LatestVersionNumber"}))
+				Expect(ngTemplate.Resources["NodeGroup"].UpdatePolicy["AutoScalingRollingUpdate"]).To(Equal(map[string]any{}))
+				Expect(ngTemplate.Resources["NodeGroup"].Properties.LaunchTemplate.LaunchTemplateName).To(Equal(map[string]any{"Fn::Sub": "${AWS::StackName}"}))
+				Expect(ngTemplate.Resources["NodeGroup"].Properties.LaunchTemplate.Version["Fn::GetAtt"]).To(Equal([]any{"NodeGroupLaunchTemplate", "LatestVersionNumber"}))
 				tags := ngTemplate.Resources["NodeGroup"].Properties.Tags
 				Expect(tags).To(HaveLen(2))
 				Expect(tags[0].Key).To(Equal("Name"))
@@ -1140,7 +1140,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 
 					It("adds these to the metrics collection", func() {
 						Expect(ngTemplate.Resources["NodeGroup"].Properties.MetricsCollection[0]["Granularity"]).To(Equal("idk"))
-						Expect(ngTemplate.Resources["NodeGroup"].Properties.MetricsCollection[0]["Metrics"]).To(Equal([]interface{}{"wut"}))
+						Expect(ngTemplate.Resources["NodeGroup"].Properties.MetricsCollection[0]["Metrics"]).To(Equal([]any{"wut"}))
 					})
 				})
 			})
@@ -1177,7 +1177,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 				It("adds the mixed instance policy to the resource", func() {
 					policyTemplate := ngTemplate.Resources["NodeGroup"].Properties.MixedInstancesPolicy.LaunchTemplate
 					Expect(policyTemplate.LaunchTemplateSpecification.LaunchTemplateName["Fn::Sub"]).To(Equal("${AWS::StackName}"))
-					Expect(policyTemplate.LaunchTemplateSpecification.Version["Fn::GetAtt"]).To(Equal([]interface{}{"NodeGroupLaunchTemplate", "LatestVersionNumber"}))
+					Expect(policyTemplate.LaunchTemplateSpecification.Version["Fn::GetAtt"]).To(Equal([]any{"NodeGroupLaunchTemplate", "LatestVersionNumber"}))
 					Expect(policyTemplate.Overrides[0].InstanceType).To(Equal("type-1"))
 					Expect(policyTemplate.Overrides[1].InstanceType).To(Equal("type-2"))
 				})
@@ -1244,7 +1244,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 				})
 
 				It("sets SuspendProcesses on the update policy", func() {
-					Expect(ngTemplate.Resources["NodeGroup"].UpdatePolicy["AutoScalingRollingUpdate"]["SuspendProcesses"]).To(Equal([]interface{}{"stuff"}))
+					Expect(ngTemplate.Resources["NodeGroup"].UpdatePolicy["AutoScalingRollingUpdate"]["SuspendProcesses"]).To(Equal([]any{"stuff"}))
 				})
 			})
 
@@ -1521,8 +1521,8 @@ func newClusterAndNodeGroup() (*api.ClusterConfig, *api.NodeGroup) {
 	return cfg, ng
 }
 
-func makeIamInstanceProfileRef() map[string]interface{} {
-	return map[string]interface{}{
-		"Fn::GetAtt": []interface{}{"NodeInstanceProfile", "Arn"},
+func makeIamInstanceProfileRef() map[string]any {
+	return map[string]any{
+		"Fn::GetAtt": []any{"NodeInstanceProfile", "Arn"},
 	}
 }

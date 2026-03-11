@@ -107,9 +107,9 @@ var _ = Describe("Existing VPC", func() {
 
 			By("outputting the VPC on the stack")
 			Expect(vpcTemplate.Outputs).To(HaveKey(builder.VPCResourceKey))
-			Expect(vpcTemplate.Outputs.(map[string]interface{})[builder.VPCResourceKey].(map[string]interface{})["Value"]).To(Equal("custom-vpc"))
-			Expect(vpcTemplate.Outputs.(map[string]interface{})[builder.VPCResourceKey].(map[string]interface{})["Export"]).To(Equal(map[string]interface{}{
-				"Name": map[string]interface{}{
+			Expect(vpcTemplate.Outputs.(map[string]any)[builder.VPCResourceKey].(map[string]any)["Value"]).To(Equal("custom-vpc"))
+			Expect(vpcTemplate.Outputs.(map[string]any)[builder.VPCResourceKey].(map[string]any)["Export"]).To(Equal(map[string]any{
+				"Name": map[string]any{
 					"Fn::Sub": fmt.Sprintf("${AWS::StackName}::%s", builder.VPCResourceKey),
 				},
 			}))
@@ -124,11 +124,11 @@ var _ = Describe("Existing VPC", func() {
 			// 			publicSubnet1,
 			// 		},
 			// 	},
-			publicSubnets := vpcTemplate.Outputs.(map[string]interface{})[outputs.ClusterSubnetsPublic].(map[string]interface{})["Value"].(map[string]interface{})["Fn::Join"]
-			Expect(publicSubnets.([]interface{})[0]).To(Equal(","))
-			Expect(publicSubnets.([]interface{})[1]).To(ConsistOf(publicSubnet1, publicSubnet2))
-			Expect(vpcTemplate.Outputs.(map[string]interface{})[outputs.ClusterSubnetsPublic].(map[string]interface{})["Export"]).To(Equal(map[string]interface{}{
-				"Name": map[string]interface{}{
+			publicSubnets := vpcTemplate.Outputs.(map[string]any)[outputs.ClusterSubnetsPublic].(map[string]any)["Value"].(map[string]any)["Fn::Join"]
+			Expect(publicSubnets.([]any)[0]).To(Equal(","))
+			Expect(publicSubnets.([]any)[1]).To(ConsistOf(publicSubnet1, publicSubnet2))
+			Expect(vpcTemplate.Outputs.(map[string]any)[outputs.ClusterSubnetsPublic].(map[string]any)["Export"]).To(Equal(map[string]any{
+				"Name": map[string]any{
 					"Fn::Sub": fmt.Sprintf("${AWS::StackName}::%s", outputs.ClusterSubnetsPublic),
 				},
 			}))
@@ -143,11 +143,11 @@ var _ = Describe("Existing VPC", func() {
 			// 		privateSubnet1,
 			// 	},
 			// },
-			privateSubnets := vpcTemplate.Outputs.(map[string]interface{})[outputs.ClusterSubnetsPrivate].(map[string]interface{})["Value"].(map[string]interface{})["Fn::Join"]
-			Expect(privateSubnets.([]interface{})[0]).To(Equal(","))
-			Expect(privateSubnets.([]interface{})[1]).To(ConsistOf(privateSubnet1, privateSubnet2))
-			Expect(vpcTemplate.Outputs.(map[string]interface{})[outputs.ClusterSubnetsPrivate].(map[string]interface{})["Export"]).To(Equal(map[string]interface{}{
-				"Name": map[string]interface{}{
+			privateSubnets := vpcTemplate.Outputs.(map[string]any)[outputs.ClusterSubnetsPrivate].(map[string]any)["Value"].(map[string]any)["Fn::Join"]
+			Expect(privateSubnets.([]any)[0]).To(Equal(","))
+			Expect(privateSubnets.([]any)[1]).To(ConsistOf(privateSubnet1, privateSubnet2))
+			Expect(vpcTemplate.Outputs.(map[string]any)[outputs.ClusterSubnetsPrivate].(map[string]any)["Export"]).To(Equal(map[string]any{
+				"Name": map[string]any{
 					"Fn::Sub": fmt.Sprintf("${AWS::StackName}::%s", outputs.ClusterSubnetsPrivate),
 				},
 			}))

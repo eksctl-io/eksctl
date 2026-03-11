@@ -145,7 +145,7 @@ func RunSuccessfully() types.GomegaMatcher {
 	return &runCmdMatcher{}
 }
 
-func (m *runCmdMatcher) Match(actual interface{}) (bool, error) {
+func (m *runCmdMatcher) Match(actual any) (bool, error) {
 	switch act := actual.(type) {
 	case Cmd:
 		return m.run(act), nil
@@ -161,11 +161,11 @@ func (m *runCmdMatcher) Match(actual interface{}) (bool, error) {
 	}
 }
 
-func (m *runCmdMatcher) FailureMessage(_ interface{}) string {
+func (m *runCmdMatcher) FailureMessage(_ any) string {
 	return fmt.Sprintf("Expected '%s' to succeed, got return code %d", m.failedCmd, m.session.ExitCode())
 }
 
-func (m *runCmdMatcher) NegatedFailureMessage(_ interface{}) string {
+func (m *runCmdMatcher) NegatedFailureMessage(_ any) string {
 	return "Expected command NOT to succeed"
 }
 
@@ -196,7 +196,7 @@ func RunSuccessfullyWithOutputStringLines(outputMatchers ...types.GomegaMatcher)
 	}
 }
 
-func (m *runCmdOutputMatcher) Match(actual interface{}) (bool, error) {
+func (m *runCmdOutputMatcher) Match(actual any) (bool, error) {
 	cmd, ok := actual.(Cmd)
 	if !ok {
 		return false, fmt.Errorf("not a Cmd")
@@ -209,7 +209,7 @@ func (m *runCmdOutputMatcher) Match(actual interface{}) (bool, error) {
 
 	outputString := string(m.runCmdMatcher.session.Buffer().Contents())
 
-	var output interface{}
+	var output any
 	if m.splitLines {
 		output = strings.Split(outputString, "\n")
 	} else {
@@ -226,10 +226,10 @@ func (m *runCmdOutputMatcher) Match(actual interface{}) (bool, error) {
 	return true, nil
 }
 
-func (m *runCmdOutputMatcher) FailureMessage(_ interface{}) string {
+func (m *runCmdOutputMatcher) FailureMessage(_ any) string {
 	return m.failureMessage
 }
 
-func (m *runCmdOutputMatcher) NegatedFailureMessage(_ interface{}) string {
+func (m *runCmdOutputMatcher) NegatedFailureMessage(_ any) string {
 	return "Expected command NOT to succeed"
 }

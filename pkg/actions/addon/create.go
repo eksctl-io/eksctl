@@ -478,10 +478,10 @@ func (a *Manager) createStack(ctx context.Context, resourceSet builder.ResourceS
 	return <-errChan
 }
 
-func makeIPv6VPCCNIPolicyDocument(partition string) map[string]interface{} {
-	return map[string]interface{}{
+func makeIPv6VPCCNIPolicyDocument(partition string) map[string]any {
+	return map[string]any{
 		"Version": "2012-10-17",
-		"Statement": []map[string]interface{}{
+		"Statement": []map[string]any{
 			{
 				"Effect": "Allow",
 				"Action": []string{

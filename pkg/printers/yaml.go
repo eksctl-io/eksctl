@@ -26,7 +26,7 @@ func NewYAMLPrinter() OutputPrinter {
 
 // PrintObj will print the passed object formatted as YAML to
 // the supplied writer.
-func (y *YAMLPrinter) PrintObj(obj interface{}, writer io.Writer) error {
+func (y *YAMLPrinter) PrintObj(obj any, writer io.Writer) error {
 	itemsValue := reflect.ValueOf(obj)
 	switch reflect.TypeOf(obj).Kind() {
 	case reflect.Array, reflect.Slice:
@@ -59,13 +59,13 @@ func (y *YAMLPrinter) PrintObj(obj interface{}, writer io.Writer) error {
 
 // PrintObjWithKind will print the passed object formatted as YAML to
 // the supplied writer. This printer ignores kind argument.
-func (y *YAMLPrinter) PrintObjWithKind(kind string, obj interface{}, writer io.Writer) error {
+func (y *YAMLPrinter) PrintObjWithKind(kind string, obj any, writer io.Writer) error {
 	return y.PrintObj(obj, writer)
 }
 
 // LogObj will print the passed object formatted as YAML to
 // the logger.
-func (y *YAMLPrinter) LogObj(log logger.LoggerFunc, msgFmt string, obj interface{}) error {
+func (y *YAMLPrinter) LogObj(log logger.LoggerFunc, msgFmt string, obj any) error {
 	b := &bytes.Buffer{}
 	if err := y.PrintObj(obj, b); err != nil {
 		return err

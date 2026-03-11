@@ -216,7 +216,7 @@ var _ = Describe("Addon", func() {
 				err = api.Addon{
 					Name:    "name",
 					Version: "version",
-					AttachPolicy: map[string]interface{}{
+					AttachPolicy: map[string]any{
 						"foo": "bar",
 					},
 					AttachPolicyARNs: []string{"arn"},
@@ -227,7 +227,7 @@ var _ = Describe("Addon", func() {
 					Name:                  "name",
 					Version:               "version",
 					ServiceAccountRoleARN: "foo",
-					AttachPolicy: map[string]interface{}{
+					AttachPolicy: map[string]any{
 						"foo": "bar",
 					},
 				}.Validate()
@@ -239,7 +239,7 @@ var _ = Describe("Addon", func() {
 					WellKnownPolicies: api.WellKnownPolicies{
 						AutoScaler: true,
 					},
-					AttachPolicy: map[string]interface{}{
+					AttachPolicy: map[string]any{
 						"foo": "bar",
 					},
 				}.Validate()
@@ -304,7 +304,7 @@ var _ = Describe("Addon", func() {
 							RoleARN:            "arn:aws:iam::111122223333:role/role-name-1",
 							PermissionPolicy: api.InlineDocument{
 								"Version": "2012-10-17",
-								"Statement": []map[string]interface{}{
+								"Statement": []map[string]any{
 									{
 										"Effect": "Allow",
 										"Action": []string{
@@ -383,7 +383,7 @@ var _ = Describe("Addon", func() {
 					Name: "name",
 					AttachPolicy: api.InlineDocument{
 						"Version": "2012-10-17",
-						"Statement": []map[string]interface{}{
+						"Statement": []map[string]any{
 							{
 								"Effect": "Allow",
 								"Action": []string{

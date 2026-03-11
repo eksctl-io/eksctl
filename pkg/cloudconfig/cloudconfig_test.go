@@ -43,13 +43,13 @@ var _ = Describe("cloudconfig", func() {
 	})
 
 	It("has has correct shell command", func() {
-		Expect(output.Commands[0].([]interface{})[0]).To(Equal(Shell))
-		Expect(output.Commands[0].([]interface{})[1]).To(Equal("-c"))
-		Expect(output.Commands[0].([]interface{})[2]).To(Equal(testScript1))
+		Expect(output.Commands[0].([]any)[0]).To(Equal(Shell))
+		Expect(output.Commands[0].([]any)[1]).To(Equal("-c"))
+		Expect(output.Commands[0].([]any)[2]).To(Equal(testScript1))
 	})
 
 	It("has has script file and calls it", func() {
-		cmd := output.Commands[1].([]interface{})
+		cmd := output.Commands[1].([]any)
 		file := output.WriteFiles[0]
 		Expect(len(cmd)).To(Equal(1))
 		Expect(cmd[0]).To(Equal(testScript1Path))

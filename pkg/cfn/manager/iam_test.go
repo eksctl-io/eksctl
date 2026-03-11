@@ -60,7 +60,7 @@ var _ = Describe("IAM Service Accounts", func() {
 
 			// Mock the DescribeStacks call that outputs.Collect uses
 			for _, stack := range stacks {
-				p.MockCloudFormation().On("DescribeStacks", mock.Anything, mock.MatchedBy(func(input interface{}) bool {
+				p.MockCloudFormation().On("DescribeStacks", mock.Anything, mock.MatchedBy(func(input any) bool {
 					if describeInput, ok := input.(*cfn.DescribeStacksInput); ok {
 						return describeInput.StackName != nil && *describeInput.StackName == *stack.StackName
 					}
@@ -131,7 +131,7 @@ var _ = Describe("IAM Service Accounts", func() {
 
 			// Mock the DescribeStacks call for each stack
 			for _, stack := range stacks {
-				p.MockCloudFormation().On("DescribeStacks", mock.Anything, mock.MatchedBy(func(input interface{}) bool {
+				p.MockCloudFormation().On("DescribeStacks", mock.Anything, mock.MatchedBy(func(input any) bool {
 					if describeInput, ok := input.(*cfn.DescribeStacksInput); ok {
 						return describeInput.StackName != nil && *describeInput.StackName == *stack.StackName
 					}
@@ -195,7 +195,7 @@ var _ = Describe("IAM Service Accounts", func() {
 
 			// Mock the DescribeStacks call for each stack
 			for _, stack := range stacks {
-				p.MockCloudFormation().On("DescribeStacks", mock.Anything, mock.MatchedBy(func(input interface{}) bool {
+				p.MockCloudFormation().On("DescribeStacks", mock.Anything, mock.MatchedBy(func(input any) bool {
 					if describeInput, ok := input.(*cfn.DescribeStacksInput); ok {
 						return describeInput.StackName != nil && *describeInput.StackName == *stack.StackName
 					}
@@ -260,7 +260,7 @@ var _ = Describe("IAM Service Accounts", func() {
 
 			// Mock the DescribeStacks call for each stack
 			for _, stack := range stacks {
-				p.MockCloudFormation().On("DescribeStacks", mock.Anything, mock.MatchedBy(func(input interface{}) bool {
+				p.MockCloudFormation().On("DescribeStacks", mock.Anything, mock.MatchedBy(func(input any) bool {
 					if describeInput, ok := input.(*cfn.DescribeStacksInput); ok {
 						return describeInput.StackName != nil && *describeInput.StackName == *stack.StackName
 					}
@@ -327,7 +327,7 @@ var _ = Describe("IAM Service Accounts", func() {
 
 			// Mock the DescribeStacks call for each stack
 			for _, stack := range stacks {
-				p.MockCloudFormation().On("DescribeStacks", mock.Anything, mock.MatchedBy(func(input interface{}) bool {
+				p.MockCloudFormation().On("DescribeStacks", mock.Anything, mock.MatchedBy(func(input any) bool {
 					if describeInput, ok := input.(*cfn.DescribeStacksInput); ok {
 						return describeInput.StackName != nil && *describeInput.StackName == *stack.StackName
 					}

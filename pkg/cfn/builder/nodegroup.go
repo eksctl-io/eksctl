@@ -563,8 +563,8 @@ func makeMetadataOptions(ng *api.NodeGroupBase) *gfnec2.LaunchTemplate_MetadataO
 	}
 }
 
-func nodeGroupResource(launchTemplateName *gfnt.Value, vpcZoneIdentifier interface{}, tags []map[string]string, ng *api.NodeGroup) *awsCloudFormationResource {
-	ngProps := map[string]interface{}{
+func nodeGroupResource(launchTemplateName *gfnt.Value, vpcZoneIdentifier any, tags []map[string]string, ng *api.NodeGroup) *awsCloudFormationResource {
+	ngProps := map[string]any{
 		"VPCZoneIdentifier": vpcZoneIdentifier,
 		"Tags":              tags,
 	}
@@ -594,7 +594,7 @@ func nodeGroupResource(launchTemplateName *gfnt.Value, vpcZoneIdentifier interfa
 	if api.HasMixedInstances(ng) {
 		ngProps["MixedInstancesPolicy"] = *mixedInstancesPolicy(launchTemplateName, ng)
 	} else {
-		ngProps["LaunchTemplate"] = map[string]interface{}{
+		ngProps["LaunchTemplate"] = map[string]any{
 			"LaunchTemplateName": launchTemplateName,
 			"Version":            gfnt.MakeFnGetAttString("NodeGroupLaunchTemplate", "LatestVersionNumber"),
 		}
@@ -604,7 +604,7 @@ func nodeGroupResource(launchTemplateName *gfnt.Value, vpcZoneIdentifier interfa
 		ngProps["MaxInstanceLifetime"] = *ng.MaxInstanceLifetime
 	}
 
-	rollingUpdate := map[string]interface{}{}
+	rollingUpdate := map[string]any{}
 	if len(ng.ASGSuspendProcesses) > 0 {
 		rollingUpdate["SuspendProcesses"] = ng.ASGSuspendProcesses
 	}
@@ -612,13 +612,13 @@ func nodeGroupResource(launchTemplateName *gfnt.Value, vpcZoneIdentifier interfa
 	return &awsCloudFormationResource{
 		Type:       "AWS::AutoScaling::AutoScalingGroup",
 		Properties: ngProps,
-		UpdatePolicy: map[string]map[string]interface{}{
+		UpdatePolicy: map[string]map[string]any{
 			"AutoScalingRollingUpdate": rollingUpdate,
 		},
 	}
 }
 
-func mixedInstancesPolicy(launchTemplateName *gfnt.Value, ng *api.NodeGroup) *map[string]interface{} {
+func mixedInstancesPolicy(launchTemplateName *gfnt.Value, ng *api.NodeGroup) *map[string]any {
 	instanceTypes := ng.InstancesDistribution.InstanceTypes
 	overrides := make([]map[string]string, len(instanceTypes))
 
@@ -627,9 +627,9 @@ func mixedInstancesPolicy(launchTemplateName *gfnt.Value, ng *api.NodeGroup) *ma
 			"InstanceType": instanceType,
 		}
 	}
-	policy := map[string]interface{}{
-		"LaunchTemplate": map[string]interface{}{
-			"LaunchTemplateSpecification": map[string]interface{}{
+	policy := map[string]any{
+		"LaunchTemplate": map[string]any{
+			"LaunchTemplateSpecification": map[string]any{
 				"LaunchTemplateName": launchTemplateName,
 				"Version":            gfnt.MakeFnGetAttString("NodeGroupLaunchTemplate", "LatestVersionNumber"),
 			},
@@ -663,10 +663,10 @@ func mixedInstancesPolicy(launchTemplateName *gfnt.Value, ng *api.NodeGroup) *ma
 	return &policy
 }
 
-func metricsCollectionResource(asgMetricsCollection []api.MetricsCollection) []map[string]interface{} {
-	var metricsCollections []map[string]interface{}
+func metricsCollectionResource(asgMetricsCollection []api.MetricsCollection) []map[string]any {
+	var metricsCollections []map[string]any
 	for _, m := range asgMetricsCollection {
-		newCollection := make(map[string]interface{})
+		newCollection := make(map[string]any)
 
 		if len(m.Metrics) > 0 {
 			newCollection["Metrics"] = m.Metrics

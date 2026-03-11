@@ -63,7 +63,7 @@ func describeAddonConfiguration(cmd *cmdutils.Cmd, addonName, addonVersion strin
 		return fmt.Errorf("no configuration schema found for %s@%s", addonName, addonVersion)
 	}
 
-	var schema interface{}
+	var schema any
 	if err := json.Unmarshal([]byte(*addonConfig.ConfigurationSchema), &schema); err != nil {
 		return fmt.Errorf("unmarshalling retrieved addon configuration schema: %w", err)
 	}

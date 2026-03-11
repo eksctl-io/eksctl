@@ -8,7 +8,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 )
 
-func (r *resourceSet) defineOutput(name string, value interface{}, export bool, fn outputs.Collector) {
+func (r *resourceSet) defineOutput(name string, value any, export bool, fn outputs.Collector) {
 	r.outputs.Define(r.template, name, value, export, fn)
 }
 
@@ -20,7 +20,7 @@ func (r *resourceSet) defineOutputFromAtt(name, logicalName, att string, export 
 	r.outputs.DefineFromAtt(r.template, name, logicalName, att, export, fn)
 }
 
-func (r *resourceSet) defineOutputWithoutCollector(name string, value interface{}, export bool) {
+func (r *resourceSet) defineOutputWithoutCollector(name string, value any, export bool) {
 	r.outputs.DefineWithoutCollector(r.template, name, value, export)
 }
 

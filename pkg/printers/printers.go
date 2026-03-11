@@ -22,9 +22,9 @@ const (
 // OutputPrinter is the interface that printer must implement. This allows
 // new printers to be added in the future.
 type OutputPrinter interface {
-	PrintObjWithKind(kind string, obj interface{}, writer io.Writer) error
-	PrintObj(obj interface{}, writer io.Writer) error
-	LogObj(log logger.LoggerFunc, msgFmt string, obj interface{}) error
+	PrintObjWithKind(kind string, obj any, writer io.Writer) error
+	PrintObj(obj any, writer io.Writer) error
+	LogObj(log logger.LoggerFunc, msgFmt string, obj any) error
 }
 
 // NewPrinter creates a new printer based in the printer type requested.

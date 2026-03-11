@@ -7,15 +7,15 @@ import (
 
 // Tag is a CloudFormation tag
 type Tag struct {
-	Key   interface{}
-	Value interface{}
+	Key   any
+	Value any
 
 	PropagateAtLaunch string
 }
 
 // maybeSetNameTag adds a Name tag to any resource that supports tags
 // it calls makeAutoNameTag to format the tag value
-func maybeSetNameTag(name string, resource interface{}) {
+func maybeSetNameTag(name string, resource any) {
 	e := reflect.ValueOf(resource).Elem()
 	if e.Kind() == reflect.Struct {
 		f := e.FieldByName("Tags")

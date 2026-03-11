@@ -28,9 +28,9 @@ const (
 
 // CloudConfig stores information of the cloud config
 type CloudConfig struct {
-	Commands   []interface{} `json:"runcmd"`
-	Packages   []string      `json:"packages"`
-	WriteFiles []File        `json:"write_files"`
+	Commands   []any    `json:"runcmd"`
+	Packages   []string `json:"packages"`
+	WriteFiles []File   `json:"write_files"`
 }
 
 // File stores information about the file

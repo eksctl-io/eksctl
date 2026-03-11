@@ -1163,7 +1163,7 @@ func NewSetLabelLoader(cmd *Cmd, nodeGroupName string, labels map[string]string)
 
 // validateSupportedConfigFields parses a config file's fields, evaluates if non-empty fields are supported,
 // and returns an error if a field is not supported.
-func validateSupportedConfigFields(obj interface{}, supportedFields []string, unsupportedFields []string) ([]string, error) {
+func validateSupportedConfigFields(obj any, supportedFields []string, unsupportedFields []string) ([]string, error) {
 	v := reflect.ValueOf(obj)
 	t := v.Type()
 	for fieldNumber := 0; fieldNumber < v.NumField(); fieldNumber++ {

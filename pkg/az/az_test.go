@@ -492,7 +492,7 @@ var _ = Describe("AZ", func() {
 })
 
 func zonesAreUnique(zones []string) bool {
-	mapZones := make(map[string]interface{})
+	mapZones := make(map[string]any)
 	for _, z := range zones {
 		mapZones[z] = nil
 	}

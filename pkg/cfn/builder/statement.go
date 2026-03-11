@@ -17,7 +17,7 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 			"Effect":   effectAllow,
 			"Action":   []string{"iam:CreateServiceLinkedRole"},
 			"Resource": resourceAll,
-			"Condition": map[string]interface{}{
+			"Condition": map[string]any{
 				"StringEquals": map[string]string{
 					"iam:AWSServiceName": "elasticloadbalancing.amazonaws.com",
 				},
@@ -102,8 +102,8 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 				"ec2:CreateTags",
 			},
 			"Resource": addARNPartitionPrefix("ec2:*:*:security-group/*"),
-			"Condition": map[string]interface{}{
-				"StringEquals": map[string]interface{}{
+			"Condition": map[string]any{
+				"StringEquals": map[string]any{
 					"ec2:CreateAction": "CreateSecurityGroup",
 				},
 				"Null": map[string]string{
@@ -118,7 +118,7 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 				"ec2:DeleteTags",
 			},
 			"Resource": addARNPartitionPrefix("ec2:*:*:security-group/*"),
-			"Condition": map[string]interface{}{
+			"Condition": map[string]any{
 				"Null": map[string]string{
 					"aws:RequestTag/elbv2.k8s.aws/cluster":  "true",
 					"aws:ResourceTag/elbv2.k8s.aws/cluster": "false",
@@ -133,7 +133,7 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 				"ec2:DeleteSecurityGroup",
 			},
 			"Resource": resourceAll,
-			"Condition": map[string]interface{}{
+			"Condition": map[string]any{
 				"Null": map[string]string{
 					"aws:ResourceTag/elbv2.k8s.aws/cluster": "false",
 				},
@@ -146,7 +146,7 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 				"elasticloadbalancing:CreateTargetGroup",
 			},
 			"Resource": resourceAll,
-			"Condition": map[string]interface{}{
+			"Condition": map[string]any{
 				"Null": map[string]string{
 					"aws:RequestTag/elbv2.k8s.aws/cluster": "false",
 				},
@@ -173,7 +173,7 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 				addARNPartitionPrefix("elasticloadbalancing:*:*:loadbalancer/net/*/*"),
 				addARNPartitionPrefix("elasticloadbalancing:*:*:loadbalancer/app/*/*"),
 			},
-			"Condition": map[string]interface{}{
+			"Condition": map[string]any{
 				"Null": map[string]string{
 					"aws:RequestTag/elbv2.k8s.aws/cluster":  "true",
 					"aws:ResourceTag/elbv2.k8s.aws/cluster": "false",
@@ -209,7 +209,7 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 				"elasticloadbalancing:ModifyIpPools",
 			},
 			"Resource": resourceAll,
-			"Condition": map[string]interface{}{
+			"Condition": map[string]any{
 				"Null": map[string]string{
 					"aws:ResourceTag/elbv2.k8s.aws/cluster": "false",
 				},
@@ -225,8 +225,8 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 				addARNPartitionPrefix("elasticloadbalancing:*:*:loadbalancer/net/*/*"),
 				addARNPartitionPrefix("elasticloadbalancing:*:*:loadbalancer/app/*/*"),
 			},
-			"Condition": map[string]interface{}{
-				"StringEquals": map[string]interface{}{
+			"Condition": map[string]any{
+				"StringEquals": map[string]any{
 					"elasticloadbalancing:CreateAction": []string{
 						"CreateTargetGroup",
 						"CreateLoadBalancer",
@@ -454,7 +454,7 @@ func efsCSIControllerStatements() []cft.MapOfInterfaces {
 			"Effect":   effectAllow,
 			"Resource": resourceAll,
 			"Action":   []string{"elasticfilesystem:CreateAccessPoint"},
-			"Condition": map[string]interface{}{
+			"Condition": map[string]any{
 				"StringLike": map[string]string{
 					"aws:RequestTag/efs.csi.aws.com/cluster": "true",
 				},
@@ -464,7 +464,7 @@ func efsCSIControllerStatements() []cft.MapOfInterfaces {
 			"Effect":   effectAllow,
 			"Resource": resourceAll,
 			"Action":   []string{"elasticfilesystem:TagResource"},
-			"Condition": map[string]interface{}{
+			"Condition": map[string]any{
 				"StringLike": map[string]string{
 					"aws:RequestTag/efs.csi.aws.com/cluster": "true",
 				},
@@ -474,7 +474,7 @@ func efsCSIControllerStatements() []cft.MapOfInterfaces {
 			"Effect":   effectAllow,
 			"Resource": resourceAll,
 			"Action":   []string{"elasticfilesystem:DeleteAccessPoint"},
-			"Condition": map[string]interface{}{
+			"Condition": map[string]any{
 				"StringLike": map[string]string{
 					"aws:ResourceTag/efs.csi.aws.com/cluster": "true",
 				},

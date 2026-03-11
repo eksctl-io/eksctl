@@ -70,14 +70,14 @@ var _ = Describe("Bottlerocket", func() {
 		BeforeEach(func() {
 			ng.Bottlerocket = &api.NodeGroupBottlerocket{
 				Settings: &api.InlineDocument{
-					"host-containers": map[string]interface{}{},
+					"host-containers": map[string]any{},
 				},
 			}
 		})
 
 		It("produces TOML userdata with quoted keys", func() {
 			keyName := "dotted.key.name"
-			providedSettings := map[string]interface{}(*ng.Bottlerocket.Settings)
+			providedSettings := map[string]any(*ng.Bottlerocket.Settings)
 			providedSettings[keyName] = "value"
 			keyPath := []string{"settings", keyName}
 			splitKeyPath := append([]string{"settings"}, strings.Split(keyName, ".")...)
@@ -99,7 +99,7 @@ var _ = Describe("Bottlerocket", func() {
 		When("host containers are enabled", func() {
 			BeforeEach(func() {
 				ng.Bottlerocket.Settings = &api.InlineDocument{
-					"host-containers": map[string]interface{}{
+					"host-containers": map[string]any{
 						"example": map[string]bool{
 							"enabled": true,
 						},
@@ -141,8 +141,8 @@ var _ = Describe("Bottlerocket", func() {
 			It("retains user specified values", func() {
 				// Set conflicting type and value to
 				// otherwise managed key.
-				providedSettings := map[string]interface{}(*ng.Bottlerocket.Settings)
-				providedSettings["host-containers"].(map[string]interface{})["admin"] = map[string]string{"enabled": "user-val"}
+				providedSettings := map[string]any(*ng.Bottlerocket.Settings)
+				providedSettings["host-containers"].(map[string]any)["admin"] = map[string]string{"enabled": "user-val"}
 				bootstrapper := newBootstrapper(clusterConfig, ng)
 				userdata, err := bootstrapper.UserData()
 				Expect(err).NotTo(HaveOccurred())
@@ -273,14 +273,14 @@ func userdataTOML(userdata string) (*toml.Tree, error) {
 func TestProtectTOMLKeys(t *testing.T) {
 	testcases := []struct {
 		name     string
-		data     map[string]interface{}
+		data     map[string]any
 		paths    [][]string
 		notPaths [][]string
 	}{
 		{
 			// Essential traversal.
 			name: "shallow",
-			data: map[string]interface{}{
+			data: map[string]any{
 				"key": "val",
 			},
 			paths: [][]string{
@@ -290,7 +290,7 @@ func TestProtectTOMLKeys(t *testing.T) {
 		{
 			// Essential traversal.
 			name: "empty",
-			data: map[string]interface{}{},
+			data: map[string]any{},
 			paths: [][]string{
 				{}, // Roughly: "the current Tree node", so checking this "key" should return true.
 			},
@@ -299,8 +299,8 @@ func TestProtectTOMLKeys(t *testing.T) {
 		{
 			// Nested tree traversal.
 			name: "nested",
-			data: map[string]interface{}{
-				"nested": map[string]interface{}{
+			data: map[string]any{
+				"nested": map[string]any{
 					"nestedKey": "val",
 				},
 			},
@@ -311,7 +311,7 @@ func TestProtectTOMLKeys(t *testing.T) {
 		{
 			// Traversal and transformation with targeted dotted key naming.
 			name: "dotted-shallow",
-			data: map[string]interface{}{
+			data: map[string]any{
 				"dotted.key": "val",
 			},
 			paths: [][]string{
@@ -326,11 +326,11 @@ func TestProtectTOMLKeys(t *testing.T) {
 			// Traversal and transformation with targeted dotted key naming
 			// within nested trees.
 			name: "dotted-nested",
-			data: map[string]interface{}{
-				"nested": map[string]interface{}{
+			data: map[string]any{
+				"nested": map[string]any{
 					"dotted.key": "val",
 				},
-				"dotted.nested": map[string]interface{}{
+				"dotted.nested": map[string]any{
 					"key": "val",
 				},
 			},

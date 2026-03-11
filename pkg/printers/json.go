@@ -27,7 +27,7 @@ func NewJSONPrinter() OutputPrinter {
 
 // PrintObj will print the passed object formatted as JSON to
 // the supplied writer.
-func (j *JSONPrinter) PrintObj(obj interface{}, writer io.Writer) error {
+func (j *JSONPrinter) PrintObj(obj any, writer io.Writer) error {
 	itemsValue := reflect.ValueOf(obj)
 	switch reflect.TypeOf(obj).Kind() {
 	case reflect.Array, reflect.Slice:
@@ -64,13 +64,13 @@ func (j *JSONPrinter) PrintObj(obj interface{}, writer io.Writer) error {
 
 // PrintObjWithKind will print the passed object formatted as JSON to
 // the supplied writer. This printer ignores kind argument.
-func (j *JSONPrinter) PrintObjWithKind(kind string, obj interface{}, writer io.Writer) error {
+func (j *JSONPrinter) PrintObjWithKind(kind string, obj any, writer io.Writer) error {
 	return j.PrintObj(obj, writer)
 }
 
 // LogObj will print the passed object formatted as JSON to
 // the logger.
-func (j *JSONPrinter) LogObj(log logger.LoggerFunc, msgFmt string, obj interface{}) error {
+func (j *JSONPrinter) LogObj(log logger.LoggerFunc, msgFmt string, obj any) error {
 	b := &bytes.Buffer{}
 	if err := j.PrintObj(obj, b); err != nil {
 		return err

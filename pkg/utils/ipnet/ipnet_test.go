@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func assertJSON(t *testing.T, data interface{}, expected string) {
+func assertJSON(t *testing.T, data any, expected string) {
 	actualBytes, err := json.Marshal(data)
 	if err != nil {
 		t.Fatal(err)
