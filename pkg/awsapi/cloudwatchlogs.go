@@ -1888,4 +1888,3 @@ type CloudWatchLogs interface {
 	// destinations.
 	UpdateScheduledQuery(ctx context.Context, params *cloudwatchlogs.UpdateScheduledQueryInput, optFns ...func(*Options)) (*cloudwatchlogs.UpdateScheduledQueryOutput, error)
 }
-
