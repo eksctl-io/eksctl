@@ -573,4 +573,3 @@ type EKS interface {
 	// Amazon Web Services account.
 	UpdatePodIdentityAssociation(ctx context.Context, params *eks.UpdatePodIdentityAssociationInput, optFns ...func(*Options)) (*eks.UpdatePodIdentityAssociationOutput, error)
 }
-
