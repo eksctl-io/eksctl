@@ -84,11 +84,19 @@ func addResourcesForFargate(rs *resourceSet, cfg *api.ClusterConfig) error {
 		return fmt.Errorf("restricting access based on SourceArn: %w", err)
 	}
 
-	role := &gfniam.Role{
-		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServicesWithConditions(
+	var assumeRolePolicyDocument interface{}
+	if cfg.IsCustomEksEndpoint() {
+		// Use beta assume role policy for beta stacks with Fargate-specific service principals
+		assumeRolePolicyDocument = createBetaFargateAssumeRolePolicy(sourceArnCondition)
+	} else {
+		assumeRolePolicyDocument = cft.MakeAssumeRolePolicyDocumentForServicesWithConditions(
 			sourceArnCondition,
 			MakeServiceRef("EKSFargatePods"), // Ensure that EKS can schedule pods onto Fargate.
-		),
+		)
+	}
+
+	role := &gfniam.Role{
+		AssumeRolePolicyDocument: assumeRolePolicyDocument,
 		ManagedPolicyArns: gfnt.NewSlice(makePolicyARNs(
 			iamPolicyAmazonEKSFargatePodExecutionRolePolicy,
 		)...),
