@@ -1655,7 +1655,9 @@ func IsBottlerocketImage(imageFamily string) bool {
 
 func IsUbuntuImage(imageFamily string) bool {
 	switch imageFamily {
-	case NodeImageFamilyUbuntuPro2404,
+	case NodeImageFamilyUbuntuPro2604,
+		NodeImageFamilyUbuntu2604,
+		NodeImageFamilyUbuntuPro2404,
 		NodeImageFamilyUbuntu2404,
 		NodeImageFamilyUbuntuPro2204,
 		NodeImageFamilyUbuntu2204,
