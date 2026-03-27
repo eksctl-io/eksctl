@@ -671,10 +671,9 @@ type SSM interface {
 	// patches, or custom compliance types according to the filter criteria that you
 	// specify.
 	ListComplianceSummaries(ctx context.Context, params *ssm.ListComplianceSummariesInput, optFns ...func(*Options)) (*ssm.ListComplianceSummariesOutput, error)
-	// Amazon Web Services Systems Manager Change Manager will no longer be open to
-	// new customers starting November 7, 2025. If you would like to use Change
-	// Manager, sign up prior to that date. Existing customers can continue to use the
-	// service as normal. For more information, see [Amazon Web Services Systems Manager Change Manager availability change].
+	// Amazon Web Services Systems Manager Change Manager is no longer open to new
+	// customers. Existing customers can continue to use the service as normal. For
+	// more information, see [Amazon Web Services Systems Manager Change Manager availability change].
 	//
 	// Information about approval reviews for a version of a change template in Change
 	// Manager.
@@ -882,10 +881,9 @@ type SSM interface {
 	StartAssociationsOnce(ctx context.Context, params *ssm.StartAssociationsOnceInput, optFns ...func(*Options)) (*ssm.StartAssociationsOnceOutput, error)
 	// Initiates execution of an Automation runbook.
 	StartAutomationExecution(ctx context.Context, params *ssm.StartAutomationExecutionInput, optFns ...func(*Options)) (*ssm.StartAutomationExecutionOutput, error)
-	// Amazon Web Services Systems Manager Change Manager will no longer be open to
-	// new customers starting November 7, 2025. If you would like to use Change
-	// Manager, sign up prior to that date. Existing customers can continue to use the
-	// service as normal. For more information, see [Amazon Web Services Systems Manager Change Manager availability change].
+	// Amazon Web Services Systems Manager Change Manager is no longer open to new
+	// customers. Existing customers can continue to use the service as normal. For
+	// more information, see [Amazon Web Services Systems Manager Change Manager availability change].
 	//
 	// Creates a change request for Change Manager. The Automation runbooks specified
 	// in the change request run only after all required approvals for the change
@@ -959,10 +957,9 @@ type SSM interface {
 	// Manager immediately runs the association unless you previously specifed the
 	// apply-only-at-cron-interval parameter.
 	UpdateDocumentDefaultVersion(ctx context.Context, params *ssm.UpdateDocumentDefaultVersionInput, optFns ...func(*Options)) (*ssm.UpdateDocumentDefaultVersionOutput, error)
-	// Amazon Web Services Systems Manager Change Manager will no longer be open to
-	// new customers starting November 7, 2025. If you would like to use Change
-	// Manager, sign up prior to that date. Existing customers can continue to use the
-	// service as normal. For more information, see [Amazon Web Services Systems Manager Change Manager availability change].
+	// Amazon Web Services Systems Manager Change Manager is no longer open to new
+	// customers. Existing customers can continue to use the service as normal. For
+	// more information, see [Amazon Web Services Systems Manager Change Manager availability change].
 	//
 	// Updates information related to approval reviews for a specific version of a
 	// change template in Change Manager.

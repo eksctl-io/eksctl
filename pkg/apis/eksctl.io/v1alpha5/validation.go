@@ -186,6 +186,12 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		}
 	}
 
+	for i := range cfg.IAM.PodIdentityAssociations {
+		if err := validatePermissionPolicyName(&cfg.IAM.PodIdentityAssociations[i]); err != nil {
+			return fmt.Errorf("iam.podIdentityAssociations[%d]: %w", i, err)
+		}
+	}
+
 	if err := cfg.validateKubernetesNetworkConfig(); err != nil {
 		return err
 	}
@@ -1832,18 +1838,42 @@ func validateIAMIdentityMappings(clusterConfig *ClusterConfig) error {
 	return nil
 }
 
+func validatePermissionPolicyName(pia *PodIdentityAssociation) error {
+	if pia.PermissionPolicyName == "" {
+		return nil
+	}
+	if len(pia.PermissionPolicy) == 0 {
+		return fmt.Errorf("permissionPolicyName requires permissionPolicy to be set")
+	}
+	hasAlphanumeric := false
+	for _, r := range pia.PermissionPolicyName {
+		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') {
+			hasAlphanumeric = true
+			break
+		}
+	}
+	if !hasAlphanumeric {
+		return fmt.Errorf("permissionPolicyName %q must contain at least one alphanumeric character", pia.PermissionPolicyName)
+	}
+	return nil
+}
+
 func validateAddonPodIdentityAssociations(addons []*Addon) error {
 	for _, addon := range addons {
 		makeAddonErr := func(msg string) error {
 			return fmt.Errorf("%s (addon: %s)", msg, addon.Name)
 		}
 		if addon.PodIdentityAssociations != nil {
-			for _, pia := range *addon.PodIdentityAssociations {
+			for i := range *addon.PodIdentityAssociations {
+				pia := &(*addon.PodIdentityAssociations)[i]
 				if pia.WellKnownPolicies.HasPolicy() {
 					return makeAddonErr("wellKnownPolicies is not supported for addon.podIdentityAssociations; use addon.useDefaultPodIdentityAssociations instead")
 				}
 				if pia.Tags != nil {
 					return makeAddonErr("tags is not supported for addon.podIdentityAssociations")
+				}
+				if err := validatePermissionPolicyName(pia); err != nil {
+					return makeAddonErr(err.Error())
 				}
 			}
 		}

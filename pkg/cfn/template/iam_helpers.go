@@ -1,6 +1,8 @@
 package template
 
 import (
+	"strings"
+
 	gfn "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/types"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -8,11 +10,24 @@ import (
 
 // AttachPolicy attaches the specified policy document
 func (t *Template) AttachPolicy(name string, refRole *Value, policyDoc MapOfInterfaces) {
-	t.NewResource(name, &IAMPolicy{
+	t.NewResource(sanitizeResourceName(name), &IAMPolicy{
 		PolicyName:     MakeName(name),
 		Roles:          MakeSlice(refRole),
 		PolicyDocument: policyDoc,
 	})
+}
+
+func sanitizeResourceName(name string) string {
+	var b strings.Builder
+	for _, r := range name {
+		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') {
+			b.WriteRune(r)
+		}
+	}
+	if b.Len() == 0 {
+		return "Policy1"
+	}
+	return b.String()
 }
 
 // MakePolicyDocument constructs a policy with given statements
