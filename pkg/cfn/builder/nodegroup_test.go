@@ -1081,7 +1081,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 							ng.PropagateASGTags = api.Enabled()
 							ng.Labels = map[string]string{}
 							ng.Taints = []api.NodeGroupTaint{}
-							for i := 0; i < builder.MaximumTagNumber+1; i++ {
+							for i := range builder.MaximumTagNumber + 1 {
 								ng.Labels[fmt.Sprintf("%d", i)] = "test"
 							}
 						})

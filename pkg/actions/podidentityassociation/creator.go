@@ -46,7 +46,6 @@ func (c *Creator) CreateTasks(ctx context.Context, podIdentityAssociations []api
 		Parallel: true,
 	}
 	for _, pia := range podIdentityAssociations {
-		pia := pia
 		piaCreationTasks := &tasks.TaskTree{
 			Parallel:  false,
 			IsSubTask: true,

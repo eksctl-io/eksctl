@@ -231,7 +231,6 @@ func runInErrorGroup(tasks []Task, limit int, errs chan error) {
 	var eg errgroup.Group
 	eg.SetLimit(limit)
 	for _, t := range tasks {
-		t := t
 		eg.Go(func() error {
 			if ok := doSingleTask(errs, t); !ok {
 				logger.Debug("failed task: %s (will continue until other parallel tasks are completed)", t.Describe())

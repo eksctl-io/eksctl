@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"sync"
 
@@ -132,10 +133,8 @@ func (o *Service) ValidateInstanceType(ctx context.Context, instanceType string)
 	if err != nil {
 		return fmt.Errorf("error retrieving instance types for Outpost: %w", err)
 	}
-	for _, it := range instanceTypes {
-		if it == ec2types.InstanceType(instanceType) {
-			return nil
-		}
+	if slices.Contains(instanceTypes, ec2types.InstanceType(instanceType)) {
+		return nil
 	}
 	return fmt.Errorf("instance type %q does not exist in Outpost %q", instanceType, o.OutpostID)
 }

@@ -543,7 +543,7 @@ func mockDescribeRouteTablesSame(provider *mockprovider.MockProvider, subnetIDs 
 
 func makeZones(region string, count int) []string {
 	var ret []string
-	for i := 0; i < count; i++ {
+	for i := range count {
 		ret = append(ret, fmt.Sprintf("%s%c", region, 'a'+i))
 	}
 	return ret

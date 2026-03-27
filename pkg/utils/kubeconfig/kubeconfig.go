@@ -3,6 +3,7 @@ package kubeconfig
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"os"
 	"os/exec"
 	"path"
@@ -395,15 +396,9 @@ func getConfigAccess(explicitPath string) clientcmd.ConfigAccess {
 	return interface{}(pathOptions).(clientcmd.ConfigAccess)
 }
 func merge(existing *clientcmdapi.Config, tomerge *clientcmdapi.Config) *clientcmdapi.Config {
-	for k, v := range tomerge.Clusters {
-		existing.Clusters[k] = v
-	}
-	for k, v := range tomerge.AuthInfos {
-		existing.AuthInfos[k] = v
-	}
-	for k, v := range tomerge.Contexts {
-		existing.Contexts[k] = v
-	}
+	maps.Copy(existing.Clusters, tomerge.Clusters)
+	maps.Copy(existing.AuthInfos, tomerge.AuthInfos)
+	maps.Copy(existing.Contexts, tomerge.Contexts)
 
 	return existing
 }

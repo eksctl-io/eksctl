@@ -3,6 +3,7 @@ package defaultaddons
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 
@@ -66,10 +67,8 @@ func supportsMultiArch(podSec corev1.PodSpec) bool {
 	for _, nodeSelectorTerm := range podSec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms {
 		for _, me := range nodeSelectorTerm.MatchExpressions {
 			if me.Key == corev1.LabelArchStable && me.Operator == corev1.NodeSelectorOpIn {
-				for _, val := range me.Values {
-					if val == "arm64" {
-						return true
-					}
+				if slices.Contains(me.Values, "arm64") {
+					return true
 				}
 			}
 		}

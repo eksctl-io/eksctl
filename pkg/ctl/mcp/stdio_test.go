@@ -254,8 +254,7 @@ func TestStdioServerMultipleRequests(t *testing.T) {
 
 	// Parse and verify each response - we don't need to check specific values
 	// Just verify we can parse the response
-	responseLines := strings.Split(strings.TrimSpace(response), "\n")
-	for _, line := range responseLines {
+	for line := range strings.Lines(strings.TrimSpace(response)) {
 		if line == "" {
 			continue
 		}

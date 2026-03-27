@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/eks"
@@ -61,7 +62,7 @@ func (c *Client) waitForDeletion(ctx context.Context, name string) error {
 		if err != nil {
 			return err
 		}
-		if !contains(names, name) {
+		if !slices.Contains(names, name) {
 			return nil
 		}
 
@@ -83,13 +84,4 @@ func deleteRequest(clusterName string, profileName string) *eks.DeleteFargatePro
 	}
 	logger.Debug("Fargate profile: delete request: sending: %#v", request)
 	return request
-}
-
-func contains(array []string, target string) bool {
-	for _, value := range array {
-		if value == target {
-			return true
-		}
-	}
-	return false
 }

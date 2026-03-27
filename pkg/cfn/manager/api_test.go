@@ -70,7 +70,7 @@ var _ = Describe("StackCollection", func() {
 		It("cannot propagate tags in chunks of 25", func() {
 			// populate the createOrUpdateTagsSliceInput for easier generation of chunks
 			createOrUpdateTagsSliceInput := []asTypes.Tag{}
-			for i := 0; i < 30; i++ {
+			for i := range 30 {
 				tagKey, tagValue := fmt.Sprintf("tag_key_%d", i), fmt.Sprintf("tag_value_%d", i)
 				ngTags[tagKey] = tagValue
 				createOrUpdateTagsSliceInput = append(createOrUpdateTagsSliceInput, asTypes.Tag{
@@ -111,7 +111,7 @@ var _ = Describe("StackCollection", func() {
 		})
 		It("cannot propagate if too many tags", func() {
 			// fill parameters
-			for i := 0; i < builder.MaximumTagNumber+1; i++ {
+			for i := range builder.MaximumTagNumber + 1 {
 				ngTags[fmt.Sprintf("tag_key_%d", i)] = fmt.Sprintf("tag_value_%d", i)
 			}
 

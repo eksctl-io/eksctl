@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
-	gostrings "strings"
+	"slices"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -15,7 +16,6 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/utils/nodes"
-	"github.com/weaveworks/eksctl/pkg/utils/strings"
 )
 
 var zoneIDsToAvoid = map[string][]string{
@@ -115,7 +115,7 @@ func FilterBasedOnAvailability(ctx context.Context, zones []string, np []api.Nod
 		if len(noSupport) == 0 {
 			filteredList = append(filteredList, zone)
 		} else {
-			logger.Info("skipping %s from selection because it doesn't support the following instance type(s): %s", zone, gostrings.Join(noSupport, ","))
+			logger.Info("skipping %s from selection because it doesn't support the following instance type(s): %s", zone, strings.Join(noSupport, ","))
 		}
 	}
 	return filteredList, nil
@@ -162,7 +162,7 @@ func filterZones(region string, zones []ec2types.AvailabilityZone) []string {
 	var filteredZones []string
 	azsToAvoid := zoneIDsToAvoid[region]
 	for _, z := range zones {
-		if !strings.Contains(azsToAvoid, *z.ZoneId) {
+		if !slices.Contains(azsToAvoid, *z.ZoneId) {
 			filteredZones = append(filteredZones, *z.ZoneName)
 		}
 	}
