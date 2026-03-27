@@ -207,7 +207,6 @@ var _ = Describe("Outposts validation", func() {
 		Entry("AmazonLinux2", api.NodeImageFamilyAmazonLinux2, false),
 		Entry("AmazonLinux2023", api.NodeImageFamilyAmazonLinux2, false),
 		Entry("Bottlerocket", api.NodeImageFamilyBottlerocket, true),
-		Entry("Ubuntu2004", api.NodeImageFamilyUbuntu2004, true),
 		Entry("UbuntuPro2004", api.NodeImageFamilyUbuntuPro2004, true),
 		Entry("Ubuntu2204", api.NodeImageFamilyUbuntu2204, true),
 		Entry("UbuntuPro2204", api.NodeImageFamilyUbuntuPro2204, true),
