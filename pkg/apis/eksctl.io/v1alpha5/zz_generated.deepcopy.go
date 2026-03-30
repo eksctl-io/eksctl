@@ -2406,6 +2406,11 @@ func (in *PodIdentityAssociation) DeepCopyInto(out *PodIdentityAssociation) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.Policy != nil {
+		in, out := &in.Policy, &out.Policy
+		*out = new(string)
+		**out = **in
+	}
 	return
 }
 

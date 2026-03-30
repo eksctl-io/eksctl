@@ -1392,7 +1392,7 @@ type EC2 interface {
 	//
 	// [Route tables]: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
 	CreateRouteTable(ctx context.Context, params *ec2.CreateRouteTableInput, optFns ...func(*Options)) (*ec2.CreateRouteTableOutput, error)
-	// Creates an Amazon secondary network.
+	// Creates a secondary network.
 	//
 	// The allowed size for a secondary network CIDR block is between /28 netmask (16
 	// IP addresses) and /12 netmask (1,048,576 IP addresses).
