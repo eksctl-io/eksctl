@@ -28,12 +28,12 @@ func (c *CapabilityResourceSet) AddAllResources() error {
 
 	var deletePropagationPolicy *gfnt.Value
 	if c.capability.DeletePropagationPolicy != "" {
-		deletePropagationPolicy = gfnt.NewString(string(c.capability.DeletePropagationPolicy))
+		deletePropagationPolicy = gfnt.NewString(c.capability.DeletePropagationPolicy)
 	}
 
 	capability := &gfneks.Capability{
 		CapabilityName:          gfnt.NewString(c.capability.Name),
-		Type:                    gfnt.NewString(string(c.capability.Type)),
+		Type:                    gfnt.NewString(c.capability.Type),
 		ClusterName:             gfnt.NewString(c.clusterName),
 		RoleArn:                 gfnt.NewString(c.capability.RoleARN),
 		DeletePropagationPolicy: deletePropagationPolicy,
