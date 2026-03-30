@@ -251,3 +251,17 @@ func addBetaAccessEntry(stackName string, accessEntryType string) *gfn.CustomRes
 	customResource.Properties["Type"] = gfnt.NewString(accessEntryType)
 	return customResource
 }
+
+func createBetaFargateAssumeRolePolicy(sourceArnCondition cft.MapOfInterfaces) interface{} {
+	statements := []cft.MapOfInterfaces{
+		{
+			"Effect": "Allow",
+			"Principal": cft.MapOfInterfaces{
+				"Service": "eks-fargate-pods.aws.internal",
+			},
+			"Action":    "sts:AssumeRole",
+			"Condition": sourceArnCondition,
+		},
+	}
+	return cft.MakePolicyDocument(statements...)
+}
