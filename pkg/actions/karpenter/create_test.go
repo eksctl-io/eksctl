@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"slices"
 
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
@@ -451,12 +452,7 @@ var _ = Describe("Create", func() {
 					Cluster: fakeCluster,
 				}, nil)
 				p.MockEC2().On("CreateTags", mock.Anything, mock.MatchedBy(func(input *ec2.CreateTagsInput) bool {
-					for _, r := range input.Resources {
-						if r == "sg-cluster-1234" {
-							return true
-						}
-					}
-					return false
+					return slices.Contains(input.Resources, "sg-cluster-1234")
 				})).Return(nil, errors.New("tag failed"))
 			})
 			It("errors", func() {

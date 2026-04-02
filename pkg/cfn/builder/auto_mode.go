@@ -3,6 +3,7 @@ package builder
 import (
 	_ "embed"
 	"errors"
+	"maps"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 
@@ -42,9 +43,7 @@ func AddAutoModeResources(clusterTemplate *gfn.Template, permissionsBoundary api
 		}
 		clusterTemplate.Resources[resourceName] = resource
 	}
-	for key, output := range template.Outputs {
-		clusterTemplate.Outputs[key] = output
-	}
+	maps.Copy(clusterTemplate.Outputs, template.Outputs)
 	return AutoModeRefs{
 		NodeRole: gfnt.MakeFnGetAttString("AutoModeNodeRole", "Arn"),
 	}, nil

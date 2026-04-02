@@ -41,6 +41,7 @@ linters:
     - govet
     - ineffassign
     - misspell
+    - modernize
     - revive
     - staticcheck
     - unused
@@ -74,6 +75,12 @@ linters:
 
       # tab width in spaces. Default to 1.
       tab-width: 1
+    modernize:
+      disable:
+        - any
+        - stringsbuilder
+        - omitzero
+        - waitgroup
     nakedret:
       # make an issue if func has more lines of code than this setting and it has naked returns; default is 30
       max-func-lines: 30

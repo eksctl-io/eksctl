@@ -1,6 +1,9 @@
 package v1alpha5
 
-import "fmt"
+import (
+	"fmt"
+	"slices"
+)
 
 // HasInstanceType returns whether some node in the group fulfils the type check
 func HasInstanceType(nodeGroup *NodeGroup, hasType func(string) bool) bool {
@@ -8,10 +11,8 @@ func HasInstanceType(nodeGroup *NodeGroup, hasType func(string) bool) bool {
 		return true
 	}
 	if nodeGroup.InstancesDistribution != nil {
-		for _, instanceType := range nodeGroup.InstancesDistribution.InstanceTypes {
-			if hasType(instanceType) {
-				return true
-			}
+		if slices.ContainsFunc(nodeGroup.InstancesDistribution.InstanceTypes, hasType) {
+			return true
 		}
 	}
 	return false
@@ -22,12 +23,7 @@ func HasInstanceTypeManaged(nodeGroup *ManagedNodeGroup, hasType func(string) bo
 	if hasType(nodeGroup.InstanceType) {
 		return true
 	}
-	for _, instanceType := range nodeGroup.InstanceTypes {
-		if hasType(instanceType) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(nodeGroup.InstanceTypes, hasType)
 }
 
 // ClusterHasInstanceType checks all nodegroups and managed nodegroups for a specific instance type

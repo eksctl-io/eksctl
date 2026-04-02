@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"slices"
 	"strings"
 	"time"
 
@@ -265,12 +266,7 @@ func readConfig(configFile string, reader io.Reader) ([]byte, error) {
 
 // IsSupportedRegion check if given region is supported
 func (c *ClusterProvider) IsSupportedRegion() bool {
-	for _, supportedRegion := range api.SupportedRegions() {
-		if c.AWSProvider.Region() == supportedRegion {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(api.SupportedRegions(), c.AWSProvider.Region())
 }
 
 // GetCredentialsEnv returns the AWS credentials for env usage

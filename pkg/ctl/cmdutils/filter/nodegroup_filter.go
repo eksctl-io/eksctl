@@ -2,6 +2,7 @@ package filter
 
 import (
 	"context"
+	"slices"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/eks"
@@ -198,12 +199,7 @@ func (f *NodeGroupFilter) findAllNodeGroups(ctx context.Context, eksAPI awsapi.E
 }
 
 func nodeExists(stacks []string, stackName string) bool {
-	for _, s := range stacks {
-		if s == stackName {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(stacks, stackName)
 }
 
 func stackExists(stacks []manager.NodeGroupStack, stackName string) bool {

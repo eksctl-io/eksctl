@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"strings"
 
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
@@ -85,7 +86,6 @@ func (t *UnmanagedNodeGroupTask) Create(ctx context.Context, options CreateNodeG
 	taskTree := &tasks.TaskTree{Parallel: true, Limit: options.Parallelism}
 
 	for _, ng := range t.NodeGroups {
-		ng := ng
 		createAccessEntryInStack := ng.IAM.InstanceRoleARN == ""
 		createNodeGroupTask := &tasks.GenericTask{
 			Description: fmt.Sprintf("create nodegroup %q", ng.NameString()),
@@ -228,9 +228,7 @@ func (c *StackCollection) propagateManagedNodeGroupTagsToASGTask(ctx context.Con
 	})
 
 	// add nodegroup tags
-	for k, v := range ng.Tags {
-		tags[k] = v
-	}
+	maps.Copy(tags, ng.Tags)
 
 	return propagateFunc(ng.Name, tags, asgNames, errorCh)
 }

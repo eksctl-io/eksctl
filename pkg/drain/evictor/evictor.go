@@ -112,11 +112,7 @@ func (d *Evictor) makeDeleteOptions(pod corev1.Pod) metav1.DeleteOptions {
 
 	gracePeriodSeconds := int64(corev1.DefaultTerminationGracePeriodSeconds)
 	if pod.Spec.TerminationGracePeriodSeconds != nil {
-		if *pod.Spec.TerminationGracePeriodSeconds < int64(d.maxGracePeriodSeconds) {
-			gracePeriodSeconds = *pod.Spec.TerminationGracePeriodSeconds
-		} else {
-			gracePeriodSeconds = int64(d.maxGracePeriodSeconds)
-		}
+		gracePeriodSeconds = min(*pod.Spec.TerminationGracePeriodSeconds, int64(d.maxGracePeriodSeconds))
 	}
 
 	deleteOptions.GracePeriodSeconds = &gracePeriodSeconds

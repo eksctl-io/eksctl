@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"maps"
 	"net"
 	"slices"
 	"strings"
@@ -171,7 +172,7 @@ func SplitInto(parent *net.IPNet, size, networkLength int) ([]*net.IPNet, error)
 		return nil, errors.New("CIDR block size must be between a /16 netmask and /28 netmask")
 	}
 	var subnets []*net.IPNet
-	for i := 0; i < size; i++ {
+	for i := range size {
 		ip4 := parent.IP.To4()
 		if ip4 == nil {
 			return nil, fmt.Errorf("unexpected IP address type: %s", parent)
@@ -492,9 +493,7 @@ func ImportSubnets(ctx context.Context, ec2API awsapi.EC2, spec *api.ClusterConf
 	// as subnetMapping will be populated / altered within ImportSubnet,
 	// we want to keep an unchanged copy for local against remote VPC config validation
 	localSubnetConfig := api.AZSubnetMapping{}
-	for k, v := range subnetMapping {
-		localSubnetConfig[k] = v
-	}
+	maps.Copy(localSubnetConfig, subnetMapping)
 
 	for _, sn := range subnets {
 		if spec.VPC.ID == "" {
