@@ -63,7 +63,7 @@ To download the latest release, run:
 
 ```sh
 # for ARM systems, set ARCH to: `arm64`, `armv6` or `armv7`
-ARCH=amd64
+ARCH=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
 PLATFORM=$(uname -s)_$ARCH
 
 curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$PLATFORM.tar.gz"
@@ -103,7 +103,7 @@ Optionally, verify the checksum:
 
 ```sh
 # for ARM systems, set ARCH to: `arm64`, `armv6` or `armv7`
-ARCH=amd64
+ARCH=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
 PLATFORM=windows_$ARCH
 
 curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$PLATFORM.zip"
