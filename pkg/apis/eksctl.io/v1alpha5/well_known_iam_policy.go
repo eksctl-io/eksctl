@@ -32,10 +32,14 @@ type WellKnownPolicies struct {
 	// efs-csi-controller. See [aws-efs-csi-driver
 	// docs](https://aws.amazon.com/blogs/containers/introducing-efs-csi-dynamic-provisioning).
 	EFSCSIController bool `json:"efsCSIController,inline"`
+	// AWSGlobalAccelerator adds policies for using the
+	// Amazon Global Accelerator. See [IAM Policy for
+	// AWS Global Accelerator Controller](https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/install/aga_controller_iam_policy/).
+	AWSGlobalAccelerator bool `json:"awsGlobalAccelerator,inline"`
 }
 
 func (p *WellKnownPolicies) HasPolicy() bool {
-	return p.ImageBuilder || p.AutoScaler || p.AWSLoadBalancerController || p.ExternalDNS || p.CertManager || p.EBSCSIController || p.EFSCSIController
+	return p.ImageBuilder || p.AutoScaler || p.AWSLoadBalancerController || p.ExternalDNS || p.CertManager || p.EBSCSIController || p.EFSCSIController || p.AWSGlobalAccelerator
 }
 
 func (p *WellKnownPolicies) String() string { return "" }

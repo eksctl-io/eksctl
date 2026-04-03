@@ -6458,4 +6458,3 @@ type EC2 interface {
 	// routing to Amazon Web Services because of BGP propagation delays.
 	WithdrawByoipCidr(ctx context.Context, params *ec2.WithdrawByoipCidrInput, optFns ...func(*Options)) (*ec2.WithdrawByoipCidrOutput, error)
 }
-

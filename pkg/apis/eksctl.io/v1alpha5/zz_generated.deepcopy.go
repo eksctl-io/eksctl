@@ -2072,6 +2072,11 @@ func (in *NodeGroupIAMAddonPolicies) DeepCopyInto(out *NodeGroupIAMAddonPolicies
 		*out = new(bool)
 		**out = **in
 	}
+	if in.AWSGlobalAccelerator != nil {
+		in, out := &in.AWSGlobalAccelerator, &out.AWSGlobalAccelerator
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 
