@@ -50,7 +50,7 @@ iamIdentityMappings:
 
 nodeGroups:
   - name: ng-1
-    instanceType: m5.large
+    instanceType: t3.medium
     desiredCapacity: 1
 ```
 

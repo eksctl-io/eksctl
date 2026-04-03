@@ -33,7 +33,7 @@ contributions from the community.
     A cluster will be created with default parameters:
 
     - exciting auto-generated name, e.g., `fabulous-mushroom-1527688624`
-    - two `m5.large` worker nodes (this instance type suits most common use-cases, and is good value for money)
+    - two `t3.medium` worker nodes (this instance type suits most common use-cases, and is good value for money)
     - use the official AWS [EKS AMI](https://github.com/awslabs/amazon-eks-ami)
     - `us-west-2` region
     - a dedicated VPC (check your quotas)
@@ -88,10 +88,10 @@ metadata:
 
 nodeGroups:
   - name: ng-1
-    instanceType: m5.large
+    instanceType: t3.medium
     desiredCapacity: 10
   - name: ng-2
-    instanceType: m5.xlarge
+    instanceType: t3.large
     desiredCapacity: 2
 ```
 
