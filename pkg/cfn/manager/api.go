@@ -544,7 +544,6 @@ func nonTransitionalReadyStackStatuses() []types.StackStatus {
 	return []types.StackStatus{
 		types.StackStatusCreateComplete,
 		types.StackStatusUpdateComplete,
-		types.StackStatusRollbackComplete,
 		types.StackStatusUpdateRollbackComplete,
 	}
 }
