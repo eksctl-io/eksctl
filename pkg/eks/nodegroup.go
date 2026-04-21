@@ -83,7 +83,7 @@ func LogWindowsCompatibility(nodeGroups []KubeNodeGroup, clusterMeta *api.Cluste
 	if hasWindowsNode(nodeGroups) {
 		if !hasAmazonLinux2Node(nodeGroups) {
 			logger.Warning("a Linux node group is required to support Windows workloads")
-			logger.Warning("add it using 'eksctl create nodegroup --cluster=%s --node-ami-family=%s'", clusterMeta.Name, api.NodeImageFamilyAmazonLinux2)
+			logger.Warning("add it using 'eksctl create nodegroup --cluster=%s --node-ami-family=%s'", clusterMeta.Name, api.NodeImageFamilyAmazonLinux2023)
 		}
 		logger.Warning("Windows VPC resource controller is required to run Windows workloads")
 		logger.Warning("install it using 'eksctl utils install-vpc-controllers --name=%s --region=%s --approve'", clusterMeta.Name, clusterMeta.Region)
