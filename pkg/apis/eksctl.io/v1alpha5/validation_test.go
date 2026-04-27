@@ -1035,6 +1035,14 @@ var _ = Describe("ClusterConfig validation", func() {
 			},
 			expectedErr: "remoteNetworkConfig.remoteNodeNetworks must be set and non-empty",
 		}),
+		Entry("remoteNodeNetworks is empty with nil remotePodNetworks", remoteNetworkConfigEntry{
+			overrideConfig: func(cc *api.ClusterConfig) {
+				cc.RemoteNetworkConfig = &api.RemoteNetworkConfig{
+					RemoteNodeNetworks: []*api.RemoteNetwork{},
+				}
+			},
+			expectedErr: "remoteNetworkConfig.remoteNodeNetworks must be set and non-empty",
+		}),
 		Entry("both vpcGatewayID and pre-existing VPC are set", remoteNetworkConfigEntry{
 			overrideConfig: func(cc *api.ClusterConfig) {
 				cc.VPC.ID = "vpc-1234"
@@ -1065,6 +1073,18 @@ var _ = Describe("ClusterConfig validation", func() {
 			expectedErr: "remoteNetworkConfig.iam.caBundleCert is required when using IAMRolesAnywhere credentials provider",
 		}),
 	)
+
+	It("should allow both remoteNodeNetworks and remotePodNetworks to be empty for updates", func() {
+		cfg := api.NewClusterConfig()
+		api.SetClusterConfigDefaults(cfg)
+		api.SetClusterEndpointAccessDefaults(cfg.VPC)
+		cfg.RemoteNetworkConfig = &api.RemoteNetworkConfig{
+			RemoteNodeNetworks: []*api.RemoteNetwork{},
+			RemotePodNetworks:  []*api.RemoteNetwork{},
+		}
+		err := api.ValidateClusterConfig(cfg)
+		Expect(err).NotTo(HaveOccurred())
+	})
 
 	Describe("network config", func() {
 		var (

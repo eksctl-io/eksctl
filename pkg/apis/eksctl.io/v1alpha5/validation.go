@@ -105,6 +105,10 @@ func (c *ClusterConfig) validateRemoteNetworkingConfig() error {
 	}
 
 	if len(rnc.RemoteNodeNetworks) == 0 {
+		// Both lists being explicitly empty is valid for updates (removes all remote networks).
+		if rnc.RemotePodNetworks != nil && len(rnc.RemotePodNetworks) == 0 {
+			return nil
+		}
 		return setNonEmpty("remoteNetworkConfig.remoteNodeNetworks")
 	}
 

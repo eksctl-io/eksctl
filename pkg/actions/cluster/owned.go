@@ -3,8 +3,12 @@ package cluster
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/kris-nova/logger"
 
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
@@ -63,6 +67,11 @@ func (c *OwnedCluster) Upgrade(ctx context.Context, dryRun bool) error {
 		return err
 	}
 
+	remoteNetworkUpdateRequired, err := c.updateRemoteNetworkConfig(ctx, dryRun)
+	if err != nil {
+		return err
+	}
+
 	stackUpdateRequired, err := c.stackManager.AppendNewClusterStackResource(ctx, false, dryRun)
 	if err != nil {
 		return err
@@ -72,8 +81,45 @@ func (c *OwnedCluster) Upgrade(ctx context.Context, dryRun bool) error {
 		logger.Critical("failed checking nodegroups", err.Error())
 	}
 
-	cmdutils.LogPlanModeWarning(dryRun && (stackUpdateRequired || versionUpdateRequired))
+	cmdutils.LogPlanModeWarning(dryRun && (stackUpdateRequired || versionUpdateRequired || remoteNetworkUpdateRequired))
 	return nil
+}
+
+func (c *OwnedCluster) updateRemoteNetworkConfig(ctx context.Context, dryRun bool) (bool, error) {
+	if c.cfg.RemoteNetworkConfig == nil {
+		return false, nil
+	}
+
+	rnc := c.cfg.RemoteNetworkConfig
+	req := &ekstypes.RemoteNetworkConfigRequest{}
+	if rnc.RemoteNodeNetworks != nil {
+		req.RemoteNodeNetworks = make([]ekstypes.RemoteNodeNetwork, len(rnc.RemoteNodeNetworks))
+		for i, rn := range rnc.RemoteNodeNetworks {
+			req.RemoteNodeNetworks[i] = ekstypes.RemoteNodeNetwork{Cidrs: rn.CIDRs}
+		}
+	}
+	if rnc.RemotePodNetworks != nil {
+		req.RemotePodNetworks = make([]ekstypes.RemotePodNetwork, len(rnc.RemotePodNetworks))
+		for i, rp := range rnc.RemotePodNetworks {
+			req.RemotePodNetworks[i] = ekstypes.RemotePodNetwork{Cidrs: rp.CIDRs}
+		}
+	}
+
+	cmdutils.LogIntendedAction(dryRun, "update remote network config for cluster %q", c.cfg.Metadata.Name)
+	if !dryRun {
+		if err := c.ctl.UpdateClusterConfig(ctx, &awseks.UpdateClusterConfigInput{
+			Name:                aws.String(c.cfg.Metadata.Name),
+			RemoteNetworkConfig: req,
+		}); err != nil {
+			if strings.Contains(err.Error(), "No changes detected") {
+				logger.Info("remote network config is already up-to-date on cluster %q", c.cfg.Metadata.Name)
+				return false, nil
+			}
+			return false, fmt.Errorf("updating remote network config: %w", err)
+		}
+		logger.Success("remote network config updated successfully for cluster %q", c.cfg.Metadata.Name)
+	}
+	return true, nil
 }
 
 func (c *OwnedCluster) Delete(ctx context.Context, _, podEvictionWaitPeriod time.Duration, wait, force, disableNodegroupEviction bool, parallel int) error {
