@@ -52,6 +52,9 @@ func (u *IAMRoleUpdater) Update(ctx context.Context, podIdentityAssociation api.
 		var noChangeErr *manager.NoChangeError
 		if errors.As(err, &noChangeErr) {
 			logger.Info("IAM resources for %s (pod identity association ID: %s) are already up-to-date", podIdentityAssociation.NameString(), podIdentityAssociationID)
+			if err := populateRoleARN(rs, stack); err != nil {
+				return "", false, err
+			}
 			return podIdentityAssociation.RoleARN, false, nil
 		}
 		return "", false, fmt.Errorf("updating IAM resources for pod identity association: %w", err)

@@ -433,13 +433,21 @@ var _ = Describe("Pod Identity Update", func() {
 						ServiceAccountName: "aws-node",
 					},
 				}
+				describeStackOutputs := []cfntypes.Output{
+					{
+						OutputKey:   aws.String(outputs.IAMServiceAccountRoleName),
+						OutputValue: aws.String("arn:aws:iam::1234567:role/Role"),
+					},
+				}
 				mockListStackNames(stackManager, podIdentifiers)
 				for _, options := range []mockOptions{
 					{
-						podIdentifier: podIdentifiers[0],
+						podIdentifier:        podIdentifiers[0],
+						describeStackOutputs: describeStackOutputs,
 					},
 					{
-						podIdentifier: podIdentifiers[1],
+						podIdentifier:        podIdentifiers[1],
+						describeStackOutputs: describeStackOutputs,
 					},
 				} {
 					mockCalls(stackManager, eksAPI, options)
@@ -454,6 +462,72 @@ var _ = Describe("Pod Identity Update", func() {
 				Expect(stackManager.ListPodIdentityStackNamesCallCount()).To(Equal(1))
 				Expect(stackManager.DescribeStackCallCount()).To(Equal(2))
 				Expect(stackManager.MustUpdateStackCallCount()).To(Equal(2))
+				eksAPI.AssertExpectations(GinkgoT())
+			},
+		}),
+
+		Entry("IAM no changes but disableSessionTags triggers EKS update with roleName resolving ARN from stack", updateEntry{
+			podIdentityAssociations: []api.PodIdentityAssociation{
+				{
+					Namespace:          "default",
+					ServiceAccountName: "default",
+					RoleName:           "my-custom-role",
+					DisableSessionTags: aws.Bool(true),
+				},
+			},
+			mockCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
+				podIdentifier := podidentityassociation.Identifier{
+					Namespace:          "default",
+					ServiceAccountName: "default",
+				}
+				mockListStackNames(stackManager, []podidentityassociation.Identifier{podIdentifier})
+
+				stackName := makeIRSAv2StackName(podIdentifier)
+				associationID := fmt.Sprintf("%x", sha1.Sum([]byte(stackName)))
+				resolvedRoleARN := "arn:aws:iam::1234567:role/my-custom-role"
+
+				mockListPodIdentityAssociations(eksAPI, podIdentifier, []ekstypes.PodIdentityAssociationSummary{
+					{
+						AssociationId: aws.String(associationID),
+					},
+				}, nil)
+				eksAPI.On("DescribePodIdentityAssociation", mock.Anything, &eks.DescribePodIdentityAssociationInput{
+					AssociationId: aws.String(associationID),
+					ClusterName:   aws.String(clusterName),
+				}).Return(&eks.DescribePodIdentityAssociationOutput{
+					Association: &ekstypes.PodIdentityAssociation{
+						AssociationId: aws.String(associationID),
+						RoleArn:       aws.String(resolvedRoleARN),
+					},
+				}, nil)
+
+				stackManager.DescribeStackReturns(&cfntypes.Stack{
+					StackName: aws.String(stackName),
+					Outputs: []cfntypes.Output{
+						{
+							OutputKey:   aws.String(outputs.IAMServiceAccountRoleName),
+							OutputValue: aws.String(resolvedRoleARN),
+						},
+					},
+					Capabilities: []cfntypes.Capability{cfntypes.CapabilityCapabilityIam, cfntypes.CapabilityCapabilityNamedIam},
+				}, nil)
+
+				stackManager.MustUpdateStackReturns(&manager.NoChangeError{
+					Msg: "no changes found",
+				})
+
+				eksAPI.On("UpdatePodIdentityAssociation", mock.Anything, &eks.UpdatePodIdentityAssociationInput{
+					AssociationId:      aws.String(associationID),
+					ClusterName:        aws.String(clusterName),
+					RoleArn:            aws.String(resolvedRoleARN),
+					DisableSessionTags: aws.Bool(true),
+				}).Return(&eks.UpdatePodIdentityAssociationOutput{}, nil)
+			},
+
+			expectedCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
+				Expect(stackManager.ListPodIdentityStackNamesCallCount()).To(Equal(1))
+				Expect(stackManager.DescribeStackCallCount()).To(Equal(1))
+				Expect(stackManager.MustUpdateStackCallCount()).To(Equal(1))
 				eksAPI.AssertExpectations(GinkgoT())
 			},
 		}),
