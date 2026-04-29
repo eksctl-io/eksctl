@@ -2,8 +2,10 @@ package filter
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
+	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/kris-nova/logger"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -126,6 +128,22 @@ func (f *NodeGroupFilter) loadLocalAndRemoteNodegroups(ctx context.Context, eksA
 	if err != nil {
 		return err
 	}
+
+	if f.onlyLocal {
+		localNames := sets.New(clusterConfig.GetAllNodeGroupNames()...)
+		var rolledBack []string
+		for _, s := range nodeGroupsWithStacks {
+			if s.Stack != nil && s.Stack.StackStatus == cfntypes.StackStatusRollbackComplete && localNames.Has(s.NodeGroupName) {
+				rolledBack = append(rolledBack, s.NodeGroupName)
+			}
+		}
+		if len(rolledBack) > 0 {
+			return fmt.Errorf("nodegroup(s) %q have a CloudFormation stack in ROLLBACK_COMPLETE state; "+
+				"delete the failed stack(s) with 'eksctl delete nodegroup --cluster=%s --name=<name>' and then retry creation",
+				strings.Join(rolledBack, ", "), clusterConfig.Metadata.Name)
+		}
+	}
+
 	for _, s := range nodeGroupsWithStacks {
 		f.remoteNodegroups.Insert(s.NodeGroupName)
 	}
