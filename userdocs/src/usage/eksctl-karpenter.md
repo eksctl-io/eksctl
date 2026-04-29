@@ -35,10 +35,29 @@ to be set:
 ```yaml
 karpenter:
   version: '1.2.1'
-  createServiceAccount: true # default is false
+  createServiceAccount: true # default is false; see note below on its meaning
   defaultInstanceProfile: 'KarpenterNodeInstanceProfile' # default is to use the IAM instance profile created by eksctl
   withSpotInterruptionQueue: true # adds all required policies and rules for supporting Spot Interruption Queue, default is false
 ```
+
+### `createServiceAccount`
+
+This flag controls *which component* creates the `karpenter` service account in
+the `karpenter` namespace. It does **not** prevent the service account from
+being created — a `karpenter` service account will always exist on the cluster
+after installation.
+
+* `createServiceAccount: false` (default) — eksctl creates both the IAM role
+  (via an `iamserviceaccount` CloudFormation stack) and the Kubernetes service
+  account, and installs the Karpenter Helm chart with
+  `serviceAccount.create=false` so the chart reuses the existing service
+  account.
+* `createServiceAccount: true` — eksctl creates only the IAM role and installs
+  the Helm chart with `serviceAccount.create=true`, letting the chart create
+  the service account (annotated with the IAM role ARN for IRSA).
+
+Either mode results in a working `karpenter` service account; the choice
+affects only which tool owns the Kubernetes object.
 
 OIDC must be defined in order to install Karpenter.
 

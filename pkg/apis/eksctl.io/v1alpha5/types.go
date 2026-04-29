@@ -1136,7 +1136,16 @@ type Karpenter struct {
 	// Version defines the Karpenter version to install
 	// +required
 	Version string `json:"version"`
-	// CreateServiceAccount create a service account or not.
+	// CreateServiceAccount controls which component creates the "karpenter"
+	// service account in the "karpenter" namespace. When true, eksctl creates
+	// only the IAM role via an iamserviceaccount CloudFormation stack and
+	// delegates service account creation to the Karpenter Helm chart (which
+	// is installed with serviceAccount.create=true). When false (the default),
+	// eksctl creates both the IAM role and the Kubernetes service account,
+	// and the Helm chart is installed with serviceAccount.create=false.
+	// Either way a "karpenter" service account exists on the cluster after
+	// installation; this flag does not prevent the service account from being
+	// created.
 	// +optional
 	CreateServiceAccount *bool `json:"createServiceAccount,omitempty"`
 	// DefaultInstanceProfile override the default IAM instance profile

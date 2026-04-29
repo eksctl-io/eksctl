@@ -60,7 +60,13 @@ func (i *Installer) Create(ctx context.Context) error {
 	}
 	if api.IsEnabled(i.Config.Karpenter.CreateServiceAccount) {
 		// Create the service account role only.
+		// The Karpenter Helm chart will create the Kubernetes service
+		// account (serviceAccount.create=true is passed to the chart in
+		// pkg/karpenter/karpenter.go).
 		iamServiceAccount.RoleOnly = api.Enabled()
+		logger.Info("karpenter.createServiceAccount=true: eksctl will create only the IAM role; the Karpenter Helm chart will create the %q service account in namespace %q", karpenter.DefaultServiceAccountName, karpenter.DefaultNamespace)
+	} else {
+		logger.Info("karpenter.createServiceAccount=false: eksctl will create both the IAM role and the %q service account in namespace %q", karpenter.DefaultServiceAccountName, karpenter.DefaultNamespace)
 	}
 	karpenterServiceAccountTaskTree := i.StackManager.NewTasksToCreateIAMServiceAccounts([]*api.ClusterIAMServiceAccount{iamServiceAccount}, i.OIDC, clientSetGetter)
 	logger.Info(karpenterServiceAccountTaskTree.Describe())
