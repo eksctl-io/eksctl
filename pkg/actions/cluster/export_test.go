@@ -9,6 +9,8 @@ var (
 	DrainAllNodeGroups = drainAllNodeGroups
 )
 
+var UpdateRemoteNetworkConfig = (*OwnedCluster).updateRemoteNetworkConfig
+
 func (c *UnownedCluster) SetNewClientSet(newClientSet func() (kubernetes.Interface, error)) {
 	c.newClientSet = newClientSet
 }

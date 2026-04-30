@@ -4,7 +4,7 @@
 
 AWS EKS introduces Hybrid Nodes, a new feature that enables you to run on-premises and edge applications on customer-managed infrastructure with the same AWS EKS clusters, features, and tools you use in the AWS Cloud. AWS EKS Hybird Nodes brings an AWS-managed Kubernetes experience to on-premises environments for customers to simplify and standardize how you run applications across on-premises, edge and cloud environments. Read more at [EKS Hybrid Nodes][eks-hybrid-nodes].
 
-To facilitate support for this feature, eksctl introduces a new top-level field called `remoteNetworkConfig`. Any Hybrid Nodes related configuration shall be set up via this field, as part of the config file; there are no CLI flags counterparts. Additionally, at launch, any remote network config can only be set up during cluster creation and cannot be updated afterwards. This means, you won't be able to update existing clusters to use Hybrid Nodes. 
+To facilitate support for this feature, eksctl introduces a new top-level field called `remoteNetworkConfig`. Any Hybrid Nodes related configuration shall be set up via this field, as part of the config file; there are no CLI flags counterparts. You can enable or update Hybrid Nodes on existing clusters by adding `remoteNetworkConfig` to your config file and running `eksctl upgrade cluster`.
 
 The `remoteNetworkConfig` section of the config file allows you to setup the two core areas when it comes to joining remote nodes to you EKS clusters: **networking** and **credentials**.  
 
