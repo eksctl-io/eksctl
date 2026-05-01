@@ -34,7 +34,7 @@ require (
 	github.com/dave/jennifer v1.7.1
 	github.com/dlespiau/kube-test-harness v0.0.0-20230207060801-867d8f54916e
 	github.com/evanphx/json-patch/v5 v5.9.11
-	github.com/fatih/color v1.18.0
+	github.com/fatih/color v1.19.0
 	github.com/github-release/github-release v0.11.0
 	github.com/gobwas/glob v0.2.3
 	github.com/gofrs/flock v0.13.0
