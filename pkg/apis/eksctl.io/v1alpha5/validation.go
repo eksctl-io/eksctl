@@ -105,6 +105,12 @@ func (c *ClusterConfig) validateRemoteNetworkingConfig() error {
 	}
 
 	if len(rnc.RemoteNodeNetworks) == 0 {
+		// Both lists being explicitly empty is valid for upgrades (removes all remote networks).
+		// For creates, this is a no-op since HasRemoteNetworkingConfigured() gates the CFN builder.
+		if rnc.RemotePodNetworks != nil && len(rnc.RemotePodNetworks) == 0 {
+			logger.Warning("remoteNetworkConfig has empty remoteNodeNetworks and remotePodNetworks; this will remove all remote networks on upgrade, or be ignored on create")
+			return nil
+		}
 		return setNonEmpty("remoteNetworkConfig.remoteNodeNetworks")
 	}
 
@@ -1661,7 +1667,9 @@ func IsBottlerocketImage(imageFamily string) bool {
 
 func IsUbuntuImage(imageFamily string) bool {
 	switch imageFamily {
-	case NodeImageFamilyUbuntuPro2404,
+	case NodeImageFamilyUbuntuPro2604,
+		NodeImageFamilyUbuntu2604,
+		NodeImageFamilyUbuntuPro2404,
 		NodeImageFamilyUbuntu2404,
 		NodeImageFamilyUbuntuPro2204,
 		NodeImageFamilyUbuntu2204,

@@ -42,6 +42,9 @@ func AddAutoModeResources(clusterTemplate *gfn.Template, permissionsBoundary api
 		}
 		clusterTemplate.Resources[resourceName] = resource
 	}
+	for key, condition := range template.Conditions {
+		clusterTemplate.Conditions[key] = condition
+	}
 	for key, output := range template.Outputs {
 		clusterTemplate.Outputs[key] = output
 	}

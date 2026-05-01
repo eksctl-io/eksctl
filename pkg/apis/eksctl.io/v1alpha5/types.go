@@ -212,6 +212,8 @@ const (
 	DefaultNodeImageFamily         = NodeImageFamilyAmazonLinux2023
 	NodeImageFamilyAmazonLinux2023 = "AmazonLinux2023"
 	NodeImageFamilyAmazonLinux2    = "AmazonLinux2"
+	NodeImageFamilyUbuntuPro2604   = "UbuntuPro2604"
+	NodeImageFamilyUbuntu2604      = "Ubuntu2604"
 	NodeImageFamilyUbuntuPro2404   = "UbuntuPro2404"
 	NodeImageFamilyUbuntu2404      = "Ubuntu2404"
 	NodeImageFamilyUbuntuPro2204   = "UbuntuPro2204"
@@ -598,6 +600,8 @@ func SupportedAMIFamilies() []string {
 	return []string{
 		NodeImageFamilyAmazonLinux2023,
 		NodeImageFamilyAmazonLinux2,
+		NodeImageFamilyUbuntuPro2604,
+		NodeImageFamilyUbuntu2604,
 		NodeImageFamilyUbuntuPro2404,
 		NodeImageFamilyUbuntu2404,
 		NodeImageFamilyUbuntuPro2204,
@@ -1132,7 +1136,16 @@ type Karpenter struct {
 	// Version defines the Karpenter version to install
 	// +required
 	Version string `json:"version"`
-	// CreateServiceAccount create a service account or not.
+	// CreateServiceAccount controls which component creates the "karpenter"
+	// service account in the "karpenter" namespace. When true, eksctl creates
+	// only the IAM role via an iamserviceaccount CloudFormation stack and
+	// delegates service account creation to the Karpenter Helm chart (which
+	// is installed with serviceAccount.create=true). When false (the default),
+	// eksctl creates both the IAM role and the Kubernetes service account,
+	// and the Helm chart is installed with serviceAccount.create=false.
+	// Either way a "karpenter" service account exists on the cluster after
+	// installation; this flag does not prevent the service account from being
+	// created.
 	// +optional
 	CreateServiceAccount *bool `json:"createServiceAccount,omitempty"`
 	// DefaultInstanceProfile override the default IAM instance profile

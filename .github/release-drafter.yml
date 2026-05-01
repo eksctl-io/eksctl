@@ -23,7 +23,6 @@ categories:
       - 'kind/docs'
 change-template: '- $TITLE (#$NUMBER)'
 change-title-escapes: '\<*_&#@`' # You can add # and @ to disable mentions, and add ` to disable code blocks.
-version-template: '$COMPLETE'
 template: |
   # Release v$NEXT_MINOR_VERSION
 

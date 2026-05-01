@@ -26,13 +26,13 @@ jobs:
 
       - name: Login to Amazon ECR Public
         id: login-ecr-public
-        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+        uses: aws-actions/amazon-ecr-login@183a1442edf41672e66566b7fc560e297a290896 # v2.1.1
         with:
           registry-type: public
 
       - name: Extract metadata (tags, labels)
         id: meta
-        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 #5.7.0
+        uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf #6.0.0
         env:
           REGISTRY: ${{ steps.login-ecr-public.outputs.registry }}
           REGISTRY_ALIAS: eksctl
@@ -41,7 +41,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.REGISTRY_ALIAS }}/${{ env.REPOSITORY }}
 
       - name: Build and push container image to ECR
-        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 #6.18.0
+        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 #7.0.0
         with:
           context: .
           push: true

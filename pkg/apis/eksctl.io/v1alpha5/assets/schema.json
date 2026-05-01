@@ -1549,8 +1549,8 @@
       "properties": {
         "createServiceAccount": {
           "type": "boolean",
-          "description": "create a service account or not.",
-          "x-intellij-html-description": "create a service account or not."
+          "description": "controls which component creates the \"karpenter\" service account in the \"karpenter\" namespace. When true, eksctl creates only the IAM role via an iamserviceaccount CloudFormation stack and delegates service account creation to the Karpenter Helm chart (which is installed with serviceAccount.create=true). When false (the default), eksctl creates both the IAM role and the Kubernetes service account, and the Helm chart is installed with serviceAccount.create=false. Either way a \"karpenter\" service account exists on the cluster after installation; this flag does not prevent the service account from being created.",
+          "x-intellij-html-description": "controls which component creates the &quot;karpenter&quot; service account in the &quot;karpenter&quot; namespace. When true, eksctl creates only the IAM role via an iamserviceaccount CloudFormation stack and delegates service account creation to the Karpenter Helm chart (which is installed with serviceAccount.create=true). When false (the default), eksctl creates both the IAM role and the Kubernetes service account, and the Helm chart is installed with serviceAccount.create=false. Either way a &quot;karpenter&quot; service account exists on the cluster after installation; this flag does not prevent the service account from being created."
         },
         "defaultInstanceProfile": {
           "type": "string",
@@ -1651,12 +1651,14 @@
         },
         "amiFamily": {
           "type": "string",
-          "description": "Valid variants are: `\"AmazonLinux2023\"` (default), `\"AmazonLinux2\"`, `\"UbuntuPro2404\"`, `\"Ubuntu2404\"`, `\"UbuntuPro2204\"`, `\"Ubuntu2204\"`, `\"UbuntuPro2004\"`, `\"Ubuntu2004\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`, `\"WindowsServer2022CoreContainer\"`, `\"WindowsServer2022FullContainer\"`, `\"WindowsServer2025CoreContainer\"`, `\"WindowsServer2025FullContainer\"`.",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2023&quot;</code> (default), <code>&quot;AmazonLinux2&quot;</code>, <code>&quot;UbuntuPro2404&quot;</code>, <code>&quot;Ubuntu2404&quot;</code>, <code>&quot;UbuntuPro2204&quot;</code>, <code>&quot;Ubuntu2204&quot;</code>, <code>&quot;UbuntuPro2004&quot;</code>, <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>, <code>&quot;WindowsServer2022CoreContainer&quot;</code>, <code>&quot;WindowsServer2022FullContainer&quot;</code>, <code>&quot;WindowsServer2025CoreContainer&quot;</code>, <code>&quot;WindowsServer2025FullContainer&quot;</code>.",
+          "description": "Valid variants are: `\"AmazonLinux2023\"` (default), `\"AmazonLinux2\"`, `\"UbuntuPro2604\"`, `\"Ubuntu2604\"`, `\"UbuntuPro2404\"`, `\"Ubuntu2404\"`, `\"UbuntuPro2204\"`, `\"Ubuntu2204\"`, `\"UbuntuPro2004\"`, `\"Ubuntu2004\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`, `\"WindowsServer2022CoreContainer\"`, `\"WindowsServer2022FullContainer\"`, `\"WindowsServer2025CoreContainer\"`, `\"WindowsServer2025FullContainer\"`.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2023&quot;</code> (default), <code>&quot;AmazonLinux2&quot;</code>, <code>&quot;UbuntuPro2604&quot;</code>, <code>&quot;Ubuntu2604&quot;</code>, <code>&quot;UbuntuPro2404&quot;</code>, <code>&quot;Ubuntu2404&quot;</code>, <code>&quot;UbuntuPro2204&quot;</code>, <code>&quot;Ubuntu2204&quot;</code>, <code>&quot;UbuntuPro2004&quot;</code>, <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>, <code>&quot;WindowsServer2022CoreContainer&quot;</code>, <code>&quot;WindowsServer2022FullContainer&quot;</code>, <code>&quot;WindowsServer2025CoreContainer&quot;</code>, <code>&quot;WindowsServer2025FullContainer&quot;</code>.",
           "default": "AmazonLinux2023",
           "enum": [
             "AmazonLinux2023",
             "AmazonLinux2",
+            "UbuntuPro2604",
+            "Ubuntu2604",
             "UbuntuPro2404",
             "Ubuntu2404",
             "UbuntuPro2204",
@@ -2003,12 +2005,14 @@
         },
         "amiFamily": {
           "type": "string",
-          "description": "Valid variants are: `\"AmazonLinux2023\"` (default), `\"AmazonLinux2\"`, `\"UbuntuPro2404\"`, `\"Ubuntu2404\"`, `\"UbuntuPro2204\"`, `\"Ubuntu2204\"`, `\"UbuntuPro2004\"`, `\"Ubuntu2004\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`, `\"WindowsServer2022CoreContainer\"`, `\"WindowsServer2022FullContainer\"`, `\"WindowsServer2025CoreContainer\"`, `\"WindowsServer2025FullContainer\"`.",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2023&quot;</code> (default), <code>&quot;AmazonLinux2&quot;</code>, <code>&quot;UbuntuPro2404&quot;</code>, <code>&quot;Ubuntu2404&quot;</code>, <code>&quot;UbuntuPro2204&quot;</code>, <code>&quot;Ubuntu2204&quot;</code>, <code>&quot;UbuntuPro2004&quot;</code>, <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>, <code>&quot;WindowsServer2022CoreContainer&quot;</code>, <code>&quot;WindowsServer2022FullContainer&quot;</code>, <code>&quot;WindowsServer2025CoreContainer&quot;</code>, <code>&quot;WindowsServer2025FullContainer&quot;</code>.",
+          "description": "Valid variants are: `\"AmazonLinux2023\"` (default), `\"AmazonLinux2\"`, `\"UbuntuPro2604\"`, `\"Ubuntu2604\"`, `\"UbuntuPro2404\"`, `\"Ubuntu2404\"`, `\"UbuntuPro2204\"`, `\"Ubuntu2204\"`, `\"UbuntuPro2004\"`, `\"Ubuntu2004\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`, `\"WindowsServer2022CoreContainer\"`, `\"WindowsServer2022FullContainer\"`, `\"WindowsServer2025CoreContainer\"`, `\"WindowsServer2025FullContainer\"`.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2023&quot;</code> (default), <code>&quot;AmazonLinux2&quot;</code>, <code>&quot;UbuntuPro2604&quot;</code>, <code>&quot;Ubuntu2604&quot;</code>, <code>&quot;UbuntuPro2404&quot;</code>, <code>&quot;Ubuntu2404&quot;</code>, <code>&quot;UbuntuPro2204&quot;</code>, <code>&quot;Ubuntu2204&quot;</code>, <code>&quot;UbuntuPro2004&quot;</code>, <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>, <code>&quot;WindowsServer2022CoreContainer&quot;</code>, <code>&quot;WindowsServer2022FullContainer&quot;</code>, <code>&quot;WindowsServer2025CoreContainer&quot;</code>, <code>&quot;WindowsServer2025FullContainer&quot;</code>.",
           "default": "AmazonLinux2023",
           "enum": [
             "AmazonLinux2023",
             "AmazonLinux2",
+            "UbuntuPro2604",
+            "Ubuntu2604",
             "UbuntuPro2404",
             "Ubuntu2404",
             "UbuntuPro2204",
