@@ -47,7 +47,7 @@ require (
 	github.com/kubicorn/kubicorn v0.0.0-20191114212505-a2c64ce430b9
 	github.com/lithammer/dedent v1.1.0
 	github.com/mark3labs/mcp-go v0.41.1
-	github.com/maxbrunsfeld/counterfeiter/v6 v6.12.0
+	github.com/maxbrunsfeld/counterfeiter/v6 v6.12.2
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/ginkgo/v2 v2.28.3
 	github.com/onsi/gomega v1.40.0
