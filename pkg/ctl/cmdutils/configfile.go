@@ -1186,7 +1186,7 @@ func emptyConfigField(v reflect.Value) bool {
 		return v.Uint() == 0
 	case reflect.String:
 		return v.String() == ""
-	case reflect.Ptr, reflect.Slice, reflect.Map, reflect.Interface, reflect.Chan:
+	case reflect.Pointer, reflect.Slice, reflect.Map, reflect.Interface, reflect.Chan:
 		return v.IsNil()
 	case reflect.Bool:
 		return !v.Bool()

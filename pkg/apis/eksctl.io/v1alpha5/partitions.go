@@ -246,4 +246,3 @@ func (p partitions) ServicePrincipalPartitionMappings() map[string]map[string]st
 	}
 	return ret
 }
-
