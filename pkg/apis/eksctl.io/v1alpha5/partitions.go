@@ -11,6 +11,7 @@ const (
 	PartitionISOB  = "aws-iso-b"
 	PartitionISOF  = "aws-iso-f"
 	PartitionISOE  = "aws-iso-e"
+	PartitionEUSC  = "aws-eusc"
 )
 
 // partition is an AWS partition.
@@ -149,6 +150,18 @@ var Partitions = partitions{
 		endpointServiceDomainPrefixAlt: "gov.ic.hci.csp",
 		v1SDKDNSPrefix:                 "csp.hci.ic.gov",
 	},
+	{
+		name: PartitionEUSC,
+		serviceMappings: map[string]string{
+			"EC2":            "ec2.amazonaws.com",
+			"EKS":            "eks.amazonaws.com",
+			"EKSFargatePods": "eks-fargate-pods.amazonaws.com",
+		},
+		regions:                        []string{RegionEUSCDEEast1},
+		endpointServiceDomainPrefix:    standardPartitionServiceDomainPrefix,
+		endpointServiceDomainPrefixAlt: "amazonaws.com",
+		v1SDKDNSPrefix:                 "amazonaws.com",
+	},
 }
 
 func (p partitions) partitionFromRegion(region string) *partition {
@@ -233,3 +246,4 @@ func (p partitions) ServicePrincipalPartitionMappings() map[string]map[string]st
 	}
 	return ret
 }
+
