@@ -13,23 +13,38 @@ func awsDNSSuffixForRegion(region string) (string, error) {
 	return api.Partitions.V1SDKDNSPrefixForRegion(region)
 }
 
-// UseRegionalImage sets the region and AWS DNS suffix for a container image
+// UseRegionalImage sets the region and AWS DNS suffix for all container images
 // in format '%s.dkr.ecr.%s.%s/image:tag'
 func UseRegionalImage(spec *corev1.PodTemplateSpec, region string) error {
-	imageFormat := spec.Spec.Containers[0].Image
 	dnsSuffix, err := awsDNSSuffixForRegion(region)
 	if err != nil {
 		return err
 	}
-	regionalImage := fmt.Sprintf(imageFormat, api.EKSResourceAccountID(region), region, dnsSuffix)
-	spec.Spec.Containers[0].Image = regionalImage
 
-	if len(spec.Spec.InitContainers) > 0 {
-		imageFormat = spec.Spec.InitContainers[0].Image
-		regionalImage = fmt.Sprintf(imageFormat, api.EKSResourceAccountID(region), region, dnsSuffix)
-		spec.Spec.InitContainers[0].Image = regionalImage
+	for i := range spec.Spec.Containers {
+		imageFormat := spec.Spec.Containers[i].Image
+		if isRegionalImageFormat(imageFormat) {
+			regionalImage := fmt.Sprintf(imageFormat, api.EKSResourceAccountID(region), region, dnsSuffix)
+			spec.Spec.Containers[i].Image = regionalImage
+		}
 	}
+
+	for i := range spec.Spec.InitContainers {
+		imageFormat := spec.Spec.InitContainers[i].Image
+		if isRegionalImageFormat(imageFormat) {
+			regionalImage := fmt.Sprintf(imageFormat, api.EKSResourceAccountID(region), region, dnsSuffix)
+			spec.Spec.InitContainers[i].Image = regionalImage
+		}
+	}
+
 	return nil
+}
+
+// isRegionalImageFormat checks whether an image string contains format verbs
+// (i.e., it's a template like "%s.dkr.ecr.%s.%s/image:tag" rather than a
+// fully-resolved image URI).
+func isRegionalImageFormat(image string) bool {
+	return strings.Contains(image, "%s")
 }
 
 // ImageTag extracts the container image's tag.
