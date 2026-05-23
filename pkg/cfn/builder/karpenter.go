@@ -49,6 +49,7 @@ const (
 	ec2TerminateInstances            = "ec2:TerminateInstances"
 	ec2DescribeImages                = "ec2:DescribeImages"
 	ec2DescribeSpotPriceHistory      = "ec2:DescribeSpotPriceHistory"
+	ec2DescribeCapacityReservations  = "ec2:DescribeCapacityReservations"
 	// IAM
 	iamPassRole                      = "iam:PassRole"
 	iamCreateServiceLinkedRole       = "iam:CreateServiceLinkedRole"
@@ -175,6 +176,7 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 				ec2TerminateInstances,
 				ec2DescribeImages,
 				ec2DescribeSpotPriceHistory,
+				ec2DescribeCapacityReservations,
 				iamPassRole,
 				iamCreateServiceLinkedRole,
 				iamGetInstanceProfile,
