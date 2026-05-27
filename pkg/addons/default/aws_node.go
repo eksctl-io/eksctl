@@ -22,8 +22,9 @@ const (
 	// AWSNode is the name of the aws-node addon
 	AWSNode = "aws-node"
 
-	awsNodeImageFormatPrefix     = "%s.dkr.ecr.%s.%s/amazon-k8s-cni"
-	awsNodeInitImageFormatPrefix = "%s.dkr.ecr.%s.%s/amazon-k8s-cni-init"
+	awsNodeImageFormatPrefix      = "%s.dkr.ecr.%s.%s/amazon-k8s-cni"
+	awsNodeInitImageFormatPrefix  = "%s.dkr.ecr.%s.%s/amazon-k8s-cni-init"
+	awsNodeAgentImageFormatPrefix = "%s.dkr.ecr.%s.%s/amazon/aws-network-policy-agent"
 )
 
 //go:embed assets/aws-node.yaml
@@ -97,14 +98,37 @@ func UpdateAWSNode(ctx context.Context, input AddonInput, plan bool) (bool, erro
 				return false, fmt.Errorf("expected type %T; got %T", &appsv1.Deployment{}, resource.Info.Object)
 			}
 			container := &daemonSet.Spec.Template.Spec.Containers[0]
-			initContainer := &daemonSet.Spec.Template.Spec.InitContainers[0]
 			imageParts := strings.Split(container.Image, ":")
 			if len(imageParts) != 2 {
 				return false, fmt.Errorf("invalid container image: %s", container.Image)
 			}
 
 			container.Image = awsNodeImageFormatPrefix + ":" + imageParts[1]
-			initContainer.Image = awsNodeInitImageFormatPrefix + ":" + imageParts[1]
+
+			// Set image format prefix for the nodeagent container if present
+			for i := range daemonSet.Spec.Template.Spec.Containers {
+				c := &daemonSet.Spec.Template.Spec.Containers[i]
+				if c.Name == "aws-eks-nodeagent" {
+					agentImageParts := strings.Split(c.Image, ":")
+					if len(agentImageParts) != 2 {
+						return false, fmt.Errorf("invalid container image: %s", c.Image)
+					}
+					c.Image = awsNodeAgentImageFormatPrefix + ":" + agentImageParts[1]
+					break
+				}
+			}
+
+			// Set image format prefix for init containers
+			if len(daemonSet.Spec.Template.Spec.InitContainers) > 0 {
+				initContainer := &daemonSet.Spec.Template.Spec.InitContainers[0]
+				initImageParts := strings.Split(initContainer.Image, ":")
+				if len(initImageParts) != 2 {
+					return false, fmt.Errorf("invalid init container image: %s", initContainer.Image)
+				}
+				initContainer.Image = awsNodeInitImageFormatPrefix + ":" + initImageParts[1]
+			}
+
+			// Regionalize all containers and init containers
 			if err := addons.UseRegionalImage(&daemonSet.Spec.Template, input.Region); err != nil {
 				return false, err
 			}
@@ -118,9 +142,9 @@ func UpdateAWSNode(ctx context.Context, input AddonInput, plan bool) (bool, erro
 			}
 
 			initContainerTagMismatch := true // Will be true by default if the init containers don't exist
-			if len(clusterDaemonSet.Spec.Template.Spec.InitContainers) > 0 {
+			if len(clusterDaemonSet.Spec.Template.Spec.InitContainers) > 0 && len(daemonSet.Spec.Template.Spec.InitContainers) > 0 {
 				initContainerTagMismatch, err = addons.ImageTagsDiffer(
-					initContainer.Image,
+					daemonSet.Spec.Template.Spec.InitContainers[0].Image,
 					clusterDaemonSet.Spec.Template.Spec.InitContainers[0].Image,
 				)
 				if err != nil {
