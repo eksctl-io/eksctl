@@ -50,6 +50,9 @@ func updateClusterVPCConfigWithHandler(cmd *cmdutils.Cmd, handler func(cmd *cmdu
 		fs.StringSliceVar(&options.ControlPlaneSubnetIDs, "control-plane-subnet-ids", nil, "Subnet IDs for the control plane")
 		fs.StringSliceVar(&options.ControlPlaneSecurityGroupIDs, "control-plane-security-group-ids", nil, "Security group IDs for the control plane")
 	})
+	cmd.FlagSetGroup.InFlagSet("Control plane egress", func(fs *pflag.FlagSet) {
+		fs.StringVar(&options.ControlPlaneEgressMode, "control-plane-egress-mode", "", "control plane egress mode: AWS_MANAGED or CUSTOMER_ROUTED")
+	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 }

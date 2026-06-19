@@ -1152,6 +1152,11 @@
           "description": "See [managing access to API](/usage/vpc-networking/#managing-access-to-the-kubernetes-api-server-endpoints)",
           "x-intellij-html-description": "See <a href=\"/usage/vpc-networking/#managing-access-to-the-kubernetes-api-server-endpoints\">managing access to API</a>"
         },
+        "controlPlaneEgressMode": {
+          "type": "string",
+          "description": "controls how the control plane routes egress traffic. Valid values: \"AWS_MANAGED\" (default), \"CUSTOMER_ROUTED\"",
+          "x-intellij-html-description": "controls how the control plane routes egress traffic. Valid values: &quot;AWS<em>MANAGED&quot; (default), &quot;CUSTOMER</em>ROUTED&quot;"
+        },
         "controlPlaneSecurityGroupIDs": {
           "items": {
             "type": "string"
@@ -1248,7 +1253,8 @@
         "clusterEndpoints",
         "publicAccessCIDRs",
         "controlPlaneSubnetIDs",
-        "controlPlaneSecurityGroupIDs"
+        "controlPlaneSecurityGroupIDs",
+        "controlPlaneEgressMode"
       ],
       "additionalProperties": false,
       "description": "holds global subnet and all child subnets",
