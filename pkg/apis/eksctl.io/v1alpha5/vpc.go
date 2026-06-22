@@ -181,6 +181,10 @@ type (
 		// ControlPlaneSecurityGroupIDs configures the security groups for the control plane.
 		// +optional
 		ControlPlaneSecurityGroupIDs []string `json:"controlPlaneSecurityGroupIDs,omitempty"`
+		// ControlPlaneEgressMode controls how the control plane routes egress traffic.
+		// Valid values: "AWS_MANAGED" (default), "CUSTOMER_ROUTED"
+		// +optional
+		ControlPlaneEgressMode string `json:"controlPlaneEgressMode,omitempty"`
 	}
 	// ClusterSubnets holds private and public subnets
 	ClusterSubnets struct {

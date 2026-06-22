@@ -110,3 +110,39 @@ vpc:
 ```console
 eksctl utils update-cluster-vpc-config --cluster=<cluster> -f config.yaml
 ```
+
+## Control Plane Egress Mode
+
+You can configure how the EKS control plane routes egress traffic using `controlPlaneEgressMode`. When set to
+`CUSTOMER_ROUTED`, the control plane routes customer-controllable traffic (such as admission webhooks) through
+your VPC instead of AWS managed networking.
+
+To create a cluster with control plane egress mode configured:
+
+```yaml
+vpc:
+  controlPlaneEgressMode: CUSTOMER_ROUTED
+```
+
+```console
+eksctl create cluster -f config.yaml
+```
+
+To update an existing cluster's control plane egress mode:
+
+```console
+eksctl utils update-cluster-vpc-config --cluster=<cluster> --control-plane-egress-mode=CUSTOMER_ROUTED --approve
+```
+
+Or using a config file:
+
+```yaml
+vpc:
+  controlPlaneEgressMode: CUSTOMER_ROUTED
+```
+
+```console
+eksctl utils update-cluster-vpc-config -f config.yaml --approve
+```
+
+Valid values: `AWS_MANAGED` (default), `CUSTOMER_ROUTED`

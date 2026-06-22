@@ -53,6 +53,11 @@ func (v *VPCHelper) UpdateClusterVPCConfig(ctx context.Context, vpc *api.Cluster
 			return err
 		}
 	}
+	if vpc.ControlPlaneEgressMode != "" {
+		if err := v.updateControlPlaneEgressMode(ctx, vpc); err != nil {
+			return err
+		}
+	}
 	cmdutils.LogPlanModeWarning(v.PlanMode)
 	return nil
 }
@@ -96,6 +101,28 @@ func (v *VPCHelper) updateSubnetsSecurityGroups(ctx context.Context, vpc *api.Cl
 	cmdutils.LogCompletedAction(false, "control plane subnets and security groups for cluster %q in %q have been updated to: "+
 		"controlPlaneSubnetIDs=%v, controlPlaneSecurityGroupIDs=%v", v.ClusterMeta.Name, v.ClusterMeta.Region, vpcUpdate.SubnetIds, vpcUpdate.SecurityGroupIds)
 
+	return nil
+}
+
+func (v *VPCHelper) updateControlPlaneEgressMode(ctx context.Context, vpc *api.ClusterVPC) error {
+	current := string(v.Cluster.ResourcesVpcConfig.ControlPlaneEgressMode)
+	if current == vpc.ControlPlaneEgressMode {
+		logger.Success("control plane egress mode for cluster %q in %q is already %s",
+			v.ClusterMeta.Name, v.ClusterMeta.Region, current)
+		return nil
+	}
+	cmdutils.LogIntendedAction(v.PlanMode, "update control plane egress mode for cluster %q in %q to: %s",
+		v.ClusterMeta.Name, v.ClusterMeta.Region, vpc.ControlPlaneEgressMode)
+	if v.PlanMode {
+		return nil
+	}
+	if err := v.updateVPCConfig(ctx, &ekstypes.VpcConfigRequest{
+		ControlPlaneEgressMode: ekstypes.ControlPlaneEgressModeType(vpc.ControlPlaneEgressMode),
+	}); err != nil {
+		return err
+	}
+	cmdutils.LogCompletedAction(false, "control plane egress mode for cluster %q in %q has been updated to: %s",
+		v.ClusterMeta.Name, v.ClusterMeta.Region, vpc.ControlPlaneEgressMode)
 	return nil
 }
 
