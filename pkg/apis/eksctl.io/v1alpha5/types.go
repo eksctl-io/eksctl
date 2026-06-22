@@ -1091,6 +1091,10 @@ type Outpost struct {
 	ControlPlaneInstanceType string `json:"controlPlaneInstanceType"`
 	// ControlPlanePlacement specifies the placement configuration for control plane instances on Outposts.
 	ControlPlanePlacement *Placement `json:"controlPlanePlacement,omitempty"`
+	// EtcdInstanceType specifies the instance type to use for etcd instances on Outposts.
+	EtcdInstanceType string `json:"etcdInstanceType,omitempty"`
+	// EtcdPlacement specifies the placement configuration for etcd instances on Outposts.
+	EtcdPlacement *Placement `json:"etcdPlacement,omitempty"`
 }
 
 // GetInstanceType returns the control plane instance type.
@@ -1105,7 +1109,7 @@ func (o *Outpost) SetInstanceType(instanceType string) {
 
 // HasPlacementGroup reports whether this Outpost has a placement group.
 func (o *Outpost) HasPlacementGroup() bool {
-	return o.ControlPlanePlacement != nil
+	return o.ControlPlanePlacement != nil && o.ControlPlanePlacement.GroupName != ""
 }
 
 // ControlPlaneScalingConfig holds control plane scaling configuration.
@@ -1272,6 +1276,24 @@ func (c *ClusterConfig) SetClusterState(cluster *ekstypes.Cluster) error {
 		c.Outpost = &Outpost{
 			ControlPlaneOutpostARN:   outpostARN,
 			ControlPlaneInstanceType: *outpost.ControlPlaneInstanceType,
+		}
+		if outpost.ControlPlanePlacement != nil {
+			c.Outpost.ControlPlanePlacement = &Placement{}
+			if outpost.ControlPlanePlacement.GroupName != nil {
+				c.Outpost.ControlPlanePlacement.GroupName = *outpost.ControlPlanePlacement.GroupName
+			}
+			if outpost.ControlPlanePlacement.SpreadLevel != "" {
+				c.Outpost.ControlPlanePlacement.SpreadLevel = string(outpost.ControlPlanePlacement.SpreadLevel)
+			}
+		}
+		if outpost.EtcdInstanceType != nil {
+			c.Outpost.EtcdInstanceType = *outpost.EtcdInstanceType
+		}
+		if outpost.EtcdPlacement != nil {
+			c.Outpost.EtcdPlacement = &Placement{}
+			if outpost.EtcdPlacement.SpreadLevel != "" {
+				c.Outpost.EtcdPlacement.SpreadLevel = string(outpost.EtcdPlacement.SpreadLevel)
+			}
 		}
 	} else if c.IsControlPlaneOnOutposts() {
 		return errors.New("outpost.controlPlaneOutpostARN is set but control plane is not on Outposts")
@@ -1927,7 +1949,8 @@ type InstanceMarketOptions struct {
 
 // Placement specifies placement group information
 type Placement struct {
-	GroupName string `json:"groupName,omitempty"`
+	GroupName   string `json:"groupName,omitempty"`
+	SpreadLevel string `json:"spreadLevel,omitempty"`
 }
 
 // ListOptions returns metav1.ListOptions with label selector for the nodegroup

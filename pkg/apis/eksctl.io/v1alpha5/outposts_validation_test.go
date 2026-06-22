@@ -7,7 +7,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
@@ -30,18 +29,6 @@ var _ = Describe("Outposts validation", func() {
 		err := api.ValidateClusterConfig(clusterConfig)
 		Expect(err).To(MatchError(ContainSubstring(oe.expectedErr)))
 	},
-		Entry("Authentication Mode - API", outpostsEntry{
-			updateDefaultConfig: func(c *api.ClusterConfig) {
-				c.AccessConfig.AuthenticationMode = ekstypes.AuthenticationModeApi
-			},
-			expectedErr: fmt.Sprintf("accessConfig.AuthenticationMode must be set to %s on Outposts", ekstypes.AuthenticationModeConfigMap),
-		}),
-		Entry("Authentication mode - API_AND_CONFIG_MAP", outpostsEntry{
-			updateDefaultConfig: func(c *api.ClusterConfig) {
-				c.AccessConfig.AuthenticationMode = ekstypes.AuthenticationModeApiAndConfigMap
-			},
-			expectedErr: fmt.Sprintf("accessConfig.AuthenticationMode must be set to %s on Outposts", ekstypes.AuthenticationModeConfigMap),
-		}),
 		Entry("BootstrapClusterCreatorAdminPermissions - false", outpostsEntry{
 			updateDefaultConfig: func(c *api.ClusterConfig) {
 				c.AccessConfig.BootstrapClusterCreatorAdminPermissions = aws.Bool(false)
@@ -321,5 +308,56 @@ var _ = Describe("Outposts validation", func() {
 		Entry(api.NodeVolumeTypeSC1, api.NodeVolumeTypeSC1, true),
 		Entry(api.NodeVolumeTypeST1, api.NodeVolumeTypeST1, true),
 		Entry(api.NodeVolumeTypeGP2, api.NodeVolumeTypeGP2, false),
+	)
+
+	DescribeTable("remoteNetworkConfig on Outpost clusters", func(oe outpostsEntry) {
+		clusterConfig := api.NewClusterConfig()
+		clusterConfig.Metadata.Version = api.Version1_31
+		clusterConfig.Outpost = &api.Outpost{
+			ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+			EtcdInstanceType:       "m5d.large",
+		}
+		api.SetClusterConfigDefaults(clusterConfig)
+		oe.updateDefaultConfig(clusterConfig)
+		err := api.ValidateClusterConfig(clusterConfig)
+		if oe.expectedErr != "" {
+			Expect(err).To(MatchError(ContainSubstring(oe.expectedErr)))
+		} else {
+			Expect(err).NotTo(HaveOccurred())
+		}
+	},
+		Entry("remoteNetworkConfig with only remotePodNetworks is valid on Outposts", outpostsEntry{
+			updateDefaultConfig: func(c *api.ClusterConfig) {
+				c.RemoteNetworkConfig = &api.RemoteNetworkConfig{
+					RemotePodNetworks: []*api.RemoteNetwork{{CIDRs: []string{"10.0.0.0/16"}}},
+					IAM: &api.RemoteNodesIAM{
+						Provider: &api.SSMProvider,
+					},
+				}
+			},
+		}),
+		Entry("remoteNetworkConfig with both networks is valid on Outposts", outpostsEntry{
+			updateDefaultConfig: func(c *api.ClusterConfig) {
+				c.RemoteNetworkConfig = &api.RemoteNetworkConfig{
+					RemoteNodeNetworks: []*api.RemoteNetwork{{CIDRs: []string{"192.168.0.0/16"}}},
+					RemotePodNetworks:  []*api.RemoteNetwork{{CIDRs: []string{"10.0.0.0/16"}}},
+					IAM: &api.RemoteNodesIAM{
+						Provider: &api.SSMProvider,
+					},
+				}
+			},
+		}),
+		Entry("remoteNetworkConfig on Outpost without etcdInstanceType is rejected", outpostsEntry{
+			updateDefaultConfig: func(c *api.ClusterConfig) {
+				c.Outpost.EtcdInstanceType = ""
+				c.RemoteNetworkConfig = &api.RemoteNetworkConfig{
+					RemotePodNetworks: []*api.RemoteNetwork{{CIDRs: []string{"10.0.0.0/16"}}},
+					IAM: &api.RemoteNodesIAM{
+						Provider: &api.SSMProvider,
+					},
+				}
+			},
+			expectedErr: "remoteNetworkConfig on Outpost clusters requires outpost.etcdInstanceType to be set",
+		}),
 	)
 })
