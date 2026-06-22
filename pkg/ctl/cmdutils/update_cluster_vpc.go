@@ -21,6 +21,8 @@ type UpdateClusterVPCOptions struct {
 	ControlPlaneSubnetIDs []string
 	// ControlPlaneSecurityGroupIDs configures the security group IDs for the control plane.
 	ControlPlaneSecurityGroupIDs []string
+	// ControlPlaneEgressMode configures how the control plane routes egress traffic.
+	ControlPlaneEgressMode string
 }
 
 // NewUpdateClusterVPCLoader will load config or use flags for 'eksctl utils update-cluster-vpc-config'.
@@ -33,6 +35,7 @@ func NewUpdateClusterVPCLoader(cmd *Cmd, options UpdateClusterVPCOptions) Cluste
 		"public-access-cidrs",
 		"control-plane-subnet-ids",
 		"control-plane-security-group-ids",
+		"control-plane-egress-mode",
 	}
 
 	l.flagsIncompatibleWithConfigFile.Insert(supportedOptions...)
@@ -73,11 +76,12 @@ func NewUpdateClusterVPCLoader(cmd *Cmd, options UpdateClusterVPCOptions) Cluste
 		clusterConfig.VPC.PublicAccessCIDRs = options.PublicAccessCIDRs
 		clusterConfig.VPC.ControlPlaneSubnetIDs = options.ControlPlaneSubnetIDs
 		clusterConfig.VPC.ControlPlaneSecurityGroupIDs = options.ControlPlaneSecurityGroupIDs
+		clusterConfig.VPC.ControlPlaneEgressMode = options.ControlPlaneEgressMode
 		return nil
 	}
 
 	l.validateWithConfigFile = func() error {
-		logger.Info("only changes to vpc.clusterEndpoints, vpc.publicAccessCIDRs, vpc.controlPlaneSubnetIDs and vpc.controlPlaneSecurityGroupIDs are updated in the EKS API, changes to any other fields will be ignored")
+		logger.Info("only changes to vpc.clusterEndpoints, vpc.publicAccessCIDRs, vpc.controlPlaneSubnetIDs, vpc.controlPlaneSecurityGroupIDs and vpc.controlPlaneEgressMode are updated in the EKS API, changes to any other fields will be ignored")
 		if l.ClusterConfig.VPC == nil {
 			l.ClusterConfig.VPC = api.NewClusterVPC(false)
 		}

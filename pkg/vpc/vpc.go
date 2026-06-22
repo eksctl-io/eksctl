@@ -696,6 +696,7 @@ func UseEndpointAccessFromCluster(ctx context.Context, provider api.ClusterProvi
 	}
 	spec.VPC.ClusterEndpoints.PublicAccess = &output.Cluster.ResourcesVpcConfig.EndpointPublicAccess
 	spec.VPC.ClusterEndpoints.PrivateAccess = &output.Cluster.ResourcesVpcConfig.EndpointPrivateAccess
+	spec.VPC.ControlPlaneEgressMode = string(output.Cluster.ResourcesVpcConfig.ControlPlaneEgressMode)
 	return nil
 }
 

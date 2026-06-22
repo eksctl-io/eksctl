@@ -21,6 +21,7 @@
   PlatformVersion: null
   RemoteNetworkConfig: null
   ResourcesVpcConfig:
+    ControlPlaneEgressMode: ""
     ClusterSecurityGroupId: null
     EndpointPrivateAccess: false
     EndpointPublicAccess: false
@@ -60,6 +61,7 @@
   PlatformVersion: null
   RemoteNetworkConfig: null
   ResourcesVpcConfig:
+    ControlPlaneEgressMode: ""
     ClusterSecurityGroupId: null
     EndpointPrivateAccess: false
     EndpointPublicAccess: false
