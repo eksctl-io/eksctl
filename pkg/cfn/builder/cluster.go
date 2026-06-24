@@ -332,6 +332,9 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 		SecurityGroupIds:      c.securityGroups,
 		PublicAccessCidrs:     gfnt.NewStringSlice(c.spec.VPC.PublicAccessCIDRs...),
 	}
+	if c.spec.VPC.ControlPlaneEgressMode != "" {
+		clusterVPC.ControlPlaneEgressMode = gfnt.NewString(c.spec.VPC.ControlPlaneEgressMode)
+	}
 	if subnetIDs := c.spec.VPC.ControlPlaneSubnetIDs; len(subnetIDs) > 0 {
 		clusterVPC.SubnetIds = gfnt.NewStringSlice(subnetIDs...)
 	} else {

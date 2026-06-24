@@ -315,6 +315,39 @@ var _ = DescribeTable("VPCHelper", func(e vpcHelperEntry) {
 		},
 	}),
 
+	Entry("control plane egress mode does not match desired config", vpcHelperEntry{
+		clusterVPC: &ekstypes.VpcConfigResponse{
+			EndpointPublicAccess:   true,
+			EndpointPrivateAccess:  false,
+			PublicAccessCidrs:      []string{"0.0.0.0/0"},
+			ControlPlaneEgressMode: ekstypes.ControlPlaneEgressModeTypeAwsManaged,
+		},
+		vpc: &api.ClusterVPC{
+			ControlPlaneEgressMode: "CUSTOMER_ROUTED",
+		},
+
+		expectedUpdates: []*eks.UpdateClusterConfigInput{
+			{
+				Name: aws.String("test"),
+				ResourcesVpcConfig: &ekstypes.VpcConfigRequest{
+					ControlPlaneEgressMode: ekstypes.ControlPlaneEgressModeType("CUSTOMER_ROUTED"),
+				},
+			},
+		},
+	}),
+
+	Entry("control plane egress mode already matches desired config", vpcHelperEntry{
+		clusterVPC: &ekstypes.VpcConfigResponse{
+			EndpointPublicAccess:   true,
+			EndpointPrivateAccess:  false,
+			PublicAccessCidrs:      []string{"0.0.0.0/0"},
+			ControlPlaneEgressMode: ekstypes.ControlPlaneEgressModeTypeCustomerRouted,
+		},
+		vpc: &api.ClusterVPC{
+			ControlPlaneEgressMode: "CUSTOMER_ROUTED",
+		},
+	}),
+
 	Entry("no fields match desired config", vpcHelperEntry{
 		clusterVPC: &ekstypes.VpcConfigResponse{
 			EndpointPublicAccess:  false,
