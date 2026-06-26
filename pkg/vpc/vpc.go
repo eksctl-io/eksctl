@@ -541,7 +541,7 @@ func importSubnetsForTopology(ctx context.Context, ec2API awsapi.EC2, spec *api.
 		return err
 	}
 
-	if spec.IsControlPlaneOnOutposts() {
+	if spec.IsControlPlaneOnOutposts() && spec.Outpost.EtcdInstanceType == "" {
 		var invalidSubnetIDs []string
 		for _, subnet := range subnets {
 			if subnet.OutpostArn == nil || *subnet.OutpostArn != spec.Outpost.ControlPlaneOutpostARN {
@@ -552,6 +552,7 @@ func importSubnetsForTopology(ctx context.Context, ec2API awsapi.EC2, spec *api.
 			return fmt.Errorf("all subnets must be on the control plane Outpost when specifying pre-existing subnets for a cluster on Outposts; found invalid %s subnet(s): %v", strings.ToLower(string(topology)), strings.Join(invalidSubnetIDs, ","))
 		}
 	}
+
 	return ImportSubnets(ctx, ec2API, spec, subnetMapping, subnets, nil)
 }
 

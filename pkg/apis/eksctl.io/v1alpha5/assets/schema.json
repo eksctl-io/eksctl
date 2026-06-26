@@ -2828,12 +2828,24 @@
           "$ref": "#/definitions/Placement",
           "description": "specifies the placement configuration for control plane instances on Outposts.",
           "x-intellij-html-description": "specifies the placement configuration for control plane instances on Outposts."
+        },
+        "etcdInstanceType": {
+          "type": "string",
+          "description": "specifies the instance type to use for etcd instances on Outposts.",
+          "x-intellij-html-description": "specifies the instance type to use for etcd instances on Outposts."
+        },
+        "etcdPlacement": {
+          "$ref": "#/definitions/Placement",
+          "description": "specifies the placement configuration for etcd instances on Outposts.",
+          "x-intellij-html-description": "specifies the placement configuration for etcd instances on Outposts."
         }
       },
       "preferredOrder": [
         "controlPlaneOutpostARN",
         "controlPlaneInstanceType",
-        "controlPlanePlacement"
+        "controlPlanePlacement",
+        "etcdInstanceType",
+        "etcdPlacement"
       ],
       "additionalProperties": false,
       "description": "holds the Outpost configuration.",
@@ -2843,10 +2855,14 @@
       "properties": {
         "groupName": {
           "type": "string"
+        },
+        "spreadLevel": {
+          "type": "string"
         }
       },
       "preferredOrder": [
-        "groupName"
+        "groupName",
+        "spreadLevel"
       ],
       "additionalProperties": false,
       "description": "specifies placement group information",

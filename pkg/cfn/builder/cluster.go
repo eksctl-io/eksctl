@@ -425,6 +425,22 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 			cluster.OutpostConfig.ControlPlanePlacement = &gfneks.Cluster_ControlPlanePlacement{
 				GroupName: gfnt.NewString(c.spec.Outpost.ControlPlanePlacement.GroupName),
 			}
+			if c.spec.Outpost.ControlPlanePlacement.SpreadLevel != "" {
+				cluster.OutpostConfig.ControlPlanePlacement.SpreadLevel = gfnt.NewString(c.spec.Outpost.ControlPlanePlacement.SpreadLevel)
+			}
+		} else if c.spec.Outpost.ControlPlanePlacement != nil && c.spec.Outpost.ControlPlanePlacement.SpreadLevel != "" {
+			cluster.OutpostConfig.ControlPlanePlacement = &gfneks.Cluster_ControlPlanePlacement{
+				SpreadLevel: gfnt.NewString(c.spec.Outpost.ControlPlanePlacement.SpreadLevel),
+			}
+		}
+		if c.spec.Outpost.EtcdInstanceType != "" {
+			cluster.OutpostConfig.EtcdInstanceType = gfnt.NewString(c.spec.Outpost.EtcdInstanceType)
+		}
+		if c.spec.Outpost.EtcdPlacement != nil {
+			cluster.OutpostConfig.EtcdPlacement = &gfneks.Cluster_EtcdPlacement{}
+			if c.spec.Outpost.EtcdPlacement.SpreadLevel != "" {
+				cluster.OutpostConfig.EtcdPlacement.SpreadLevel = gfnt.NewString(c.spec.Outpost.EtcdPlacement.SpreadLevel)
+			}
 		}
 	}
 

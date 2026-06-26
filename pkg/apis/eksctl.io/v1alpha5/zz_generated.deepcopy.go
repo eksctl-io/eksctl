@@ -2350,6 +2350,11 @@ func (in *Outpost) DeepCopyInto(out *Outpost) {
 		*out = new(Placement)
 		**out = **in
 	}
+	if in.EtcdPlacement != nil {
+		in, out := &in.EtcdPlacement, &out.EtcdPlacement
+		*out = new(Placement)
+		**out = **in
+	}
 	return
 }
 
