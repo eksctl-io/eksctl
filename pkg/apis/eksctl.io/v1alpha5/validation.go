@@ -814,7 +814,7 @@ func validateNodeGroupBase(np NodePool, path string, controlPlaneOnOutposts bool
 
 	if ng.AMIFamily != NodeImageFamilyAmazonLinux2023 &&
 		ng.AMIFamily != NodeImageFamilyAmazonLinux2 &&
-		ng.AMIFamily != NodeImageFamilyBottlerocket &&
+		!IsBottlerocketImage(ng.AMIFamily) &&
 		ng.AMIFamily != "" {
 		if instanceutils.IsNvidiaInstanceType(instanceType) {
 			logger.Warning(GPUDriversWarning(ng.AMIFamily))
@@ -831,7 +831,7 @@ func validateNodeGroupBase(np NodePool, path string, controlPlaneOnOutposts bool
 
 	if ng.AMIFamily != NodeImageFamilyAmazonLinux2 &&
 		ng.AMIFamily != NodeImageFamilyAmazonLinux2023 &&
-		ng.AMIFamily != NodeImageFamilyBottlerocket &&
+		!IsBottlerocketImage(ng.AMIFamily) &&
 		ng.AMIFamily != "" {
 		// Only AL2, AL2023 and Bottlerocket support Inferentia hosts.
 		if instanceutils.IsInferentiaInstanceType(instanceType) {
@@ -1007,14 +1007,14 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 		return errors.New("when using a custom AMI, amiFamily needs to be explicitly set via config file or via --node-ami-family flag")
 	}
 
-	if ng.Bottlerocket != nil && ng.AMIFamily != NodeImageFamilyBottlerocket {
-		return fmt.Errorf(`bottlerocket config can only be used with amiFamily "Bottlerocket" but found "%s" (path=%s.bottlerocket)`,
+	if ng.Bottlerocket != nil && !IsBottlerocketImage(ng.AMIFamily) {
+		return fmt.Errorf(`bottlerocket config can only be used with amiFamily "Bottlerocket" or "BottlerocketFips" but found "%s" (path=%s.bottlerocket)`,
 			ng.AMIFamily, path)
 	}
 
 	if ng.AMI != "" && ng.OverrideBootstrapCommand == nil &&
 		ng.AMIFamily != NodeImageFamilyAmazonLinux2023 &&
-		ng.AMIFamily != NodeImageFamilyBottlerocket &&
+		!IsBottlerocketImage(ng.AMIFamily) &&
 		!IsWindowsImage(ng.AMIFamily) {
 		return fmt.Errorf("%[1]s.overrideBootstrapCommand is required when using a custom AMI based on %s (%[1]s.ami)", path, ng.AMIFamily)
 	}
@@ -1045,7 +1045,7 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 		if ng.KubeletExtraConfig != nil {
 			return fieldNotSupported("kubeletExtraConfig")
 		}
-	} else if ng.AMIFamily == NodeImageFamilyBottlerocket {
+	} else if IsBottlerocketImage(ng.AMIFamily) {
 		if ng.KubeletExtraConfig != nil {
 			return fieldNotSupported("kubeletExtraConfig")
 		}
@@ -1380,7 +1380,7 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 		}
 	}
 
-	if ng.AMIFamily == NodeImageFamilyBottlerocket {
+	if IsBottlerocketImage(ng.AMIFamily) {
 		fieldNotSupported := func(field string) error {
 			return &unsupportedFieldError{
 				ng:    ng.NodeGroupBase,
@@ -1459,7 +1459,7 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 			return fmt.Errorf("cannot set amiFamily to %s when using a custom AMI for managed nodes, only %s are supported", ng.AMIFamily,
 				strings.Join(slices.Concat(SupportedAmazonLinuxImages, SupportedBottlerocketImages, SupportedUbuntuImages), ", "))
 		}
-		if ng.OverrideBootstrapCommand == nil && ng.AMIFamily != NodeImageFamilyAmazonLinux2023 && ng.AMIFamily != NodeImageFamilyBottlerocket {
+		if ng.OverrideBootstrapCommand == nil && ng.AMIFamily != NodeImageFamilyAmazonLinux2023 && !IsBottlerocketImage(ng.AMIFamily) {
 			return fmt.Errorf("%[1]s.overrideBootstrapCommand is required when using a custom AMI based on %s (%[1]s.ami)", path, ng.AMIFamily)
 		}
 		notSupportedWithCustomAMIErr := func(field string) error {
@@ -1684,7 +1684,7 @@ func IsAmazonLinuxImage(imageFamily string) bool {
 
 func IsBottlerocketImage(imageFamily string) bool {
 	switch imageFamily {
-	case NodeImageFamilyBottlerocket:
+	case NodeImageFamilyBottlerocket, NodeImageFamilyBottlerocketFips:
 		return true
 
 	default:
