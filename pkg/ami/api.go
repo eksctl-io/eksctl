@@ -53,7 +53,7 @@ func Use(ctx context.Context, ec2API awsapi.EC2, ng *api.NodeGroupBase) error {
 		return fmt.Errorf("%q is an instance-store AMI and EBS block device mappings are not supported for instance-store AMIs", ng.AMI)
 
 	case ec2types.DeviceTypeEbs:
-		if ng.AMIFamily != api.NodeImageFamilyBottlerocket && !api.IsSetAndNonEmptyString(ng.VolumeName) {
+		if !api.IsBottlerocketImage(ng.AMIFamily) && !api.IsSetAndNonEmptyString(ng.VolumeName) {
 			// Volume name is preset for Bottlerocket.
 			ng.VolumeName = image.RootDeviceName
 		}
