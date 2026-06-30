@@ -164,6 +164,23 @@ func validateSupportType(supportType string) error {
 	return nil
 }
 
+// RollbackTimeoutMinutesMin and RollbackTimeoutMinutesMax are the inclusive
+// bounds EKS accepts for metadata.rollbackConfig.timeoutMinutes.
+const (
+	RollbackTimeoutMinutesMin = 120
+	RollbackTimeoutMinutesMax = 10080
+)
+
+func validateRollbackConfig(rollbackConfig *RollbackConfig) error {
+	if rollbackConfig == nil || rollbackConfig.TimeoutMinutes == nil {
+		return nil
+	}
+	if timeout := *rollbackConfig.TimeoutMinutes; timeout < RollbackTimeoutMinutesMin || timeout > RollbackTimeoutMinutesMax {
+		return fmt.Errorf("metadata.rollbackConfig.timeoutMinutes must be between %d and %d, got %d", RollbackTimeoutMinutesMin, RollbackTimeoutMinutesMax, timeout)
+	}
+	return nil
+}
+
 // ValidateClusterConfig checks compatible fields of a given ClusterConfig
 func ValidateClusterConfig(cfg *ClusterConfig) error {
 	if cfg.UpgradePolicy != nil {
@@ -171,6 +188,12 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 			if err := validateSupportType(cfg.UpgradePolicy.SupportType); err != nil {
 				return err
 			}
+		}
+	}
+
+	if cfg.Metadata != nil {
+		if err := validateRollbackConfig(cfg.Metadata.RollbackConfig); err != nil {
+			return err
 		}
 	}
 

@@ -180,4 +180,62 @@ var _ = Describe("EKS API wrapper", func() {
 			Expect(ctl.UpdateClusterConfigForLogging(context.Background(), cfg)).To(Succeed())
 		})
 	})
+
+	Describe("UpdateClusterVersion", func() {
+		var (
+			ctl *ClusterProvider
+			cfg *api.ClusterConfig
+			p   *mockprovider.MockProvider
+
+			sentInput *awseks.UpdateClusterVersionInput
+		)
+
+		BeforeEach(func() {
+			p = mockprovider.NewMockProvider()
+			ctl = &ClusterProvider{
+				AWSProvider: p,
+				Status:      &ProviderStatus{},
+			}
+
+			cfg = api.NewClusterConfig()
+			cfg.Metadata.Name = "testcluster"
+			cfg.Metadata.Version = "1.30"
+
+			p.MockEKS().On("UpdateClusterVersion", mock.Anything, mock.MatchedBy(func(input *awseks.UpdateClusterVersionInput) bool {
+				sentInput = input
+				return true
+			})).Return(&awseks.UpdateClusterVersionOutput{
+				Update: &ekstypes.Update{
+					Id:   aws.String("u123"),
+					Type: ekstypes.UpdateTypeVersionUpdate,
+				},
+			}, nil)
+		})
+
+		It("does not set RollbackConfig when none is configured", func() {
+			_, err := ctl.UpdateClusterVersion(context.Background(), cfg)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(sentInput.RollbackConfig).To(BeNil())
+		})
+
+		It("passes the configured rollback timeout through to the API", func() {
+			cfg.Metadata.RollbackConfig = &api.RollbackConfig{
+				TimeoutMinutes: aws.Int(360),
+			}
+
+			_, err := ctl.UpdateClusterVersion(context.Background(), cfg)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(sentInput.RollbackConfig).NotTo(BeNil())
+			Expect(sentInput.RollbackConfig.TimeoutMinutes).To(Equal(aws.Int32(360)))
+		})
+
+		It("sets an empty RollbackConfig when configured without a timeout", func() {
+			cfg.Metadata.RollbackConfig = &api.RollbackConfig{}
+
+			_, err := ctl.UpdateClusterVersion(context.Background(), cfg)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(sentInput.RollbackConfig).NotTo(BeNil())
+			Expect(sentInput.RollbackConfig.TimeoutMinutes).To(BeNil())
+		})
+	})
 })

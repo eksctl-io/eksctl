@@ -39,6 +39,15 @@ type EKS interface {
 	//
 	// [Using RBAC Authorization]: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
 	AssociateIdentityProviderConfig(ctx context.Context, params *eks.AssociateIdentityProviderConfigInput, optFns ...func(*Options)) (*eks.AssociateIdentityProviderConfigOutput, error)
+	// Cancels an in-progress update to an Amazon EKS cluster on a best-effort basis.
+	// Cancellation is only performed if the update can be cancelled. Currently, this
+	// is supported for VersionRollback update types on EKS Auto Mode clusters when
+	// nodes are rolling back.
+	//
+	// A successful cancellation stops the node rollback. After cancellation, nodes
+	// converge to the current cluster version honoring configured disruption controls.
+	// If the control plane rollback has already begun, the cancellation request fails.
+	CancelUpdate(ctx context.Context, params *eks.CancelUpdateInput, optFns ...func(*Options)) (*eks.CancelUpdateOutput, error)
 	// Creates an access entry.
 	//
 	// An access entry allows an IAM principal to access your cluster. Access entries
