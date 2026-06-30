@@ -708,6 +708,10 @@ type ClusterMeta struct {
 	// When updating cluster version, provide the force flag to override upgrade-blocking insights
 	// +optional
 	ForceUpdateVersion *bool `json:"forceUpdateVersion,omitempty"`
+	// RollbackConfig configures the automatic rollback behaviour when updating
+	// the cluster version (including downgrades).
+	// +optional
+	RollbackConfig *RollbackConfig `json:"rollbackConfig,omitempty"`
 	// Tags are used to tag AWS resources created by eksctl
 	// +optional
 	Tags map[string]string `json:"tags,omitempty"`
@@ -725,6 +729,19 @@ type UpgradePolicy struct {
 	// Valid variants are `SupportType` constants
 	// +optional
 	SupportType string `json:"supportType,omitempty"`
+}
+
+// RollbackConfig holds the rollback configuration used when updating the
+// cluster version. EKS waits for the configured timeout before automatically
+// cancelling an in-progress cluster version update.
+type RollbackConfig struct {
+	// TimeoutMinutes is the length of time in minutes to wait before cancelling
+	// the update. The timeout is a minimum-bound: cancellation occurs no sooner
+	// than the time specified, but can occur shortly thereafter. Valid values
+	// are between 120 (2 hours) and 10080 (7 days). When unset, EKS defaults to
+	// 720 (12 hours).
+	// +optional
+	TimeoutMinutes *int `json:"timeoutMinutes,omitempty"`
 }
 
 // KubernetesNetworkConfig contains cluster networking options

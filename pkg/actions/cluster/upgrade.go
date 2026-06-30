@@ -10,6 +10,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
 func upgrade(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider, dryRun bool) (bool, error) {
@@ -31,14 +32,24 @@ func upgrade(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvid
 	}
 
 	if upgradeVersion != "" {
+		currentVersion := ctl.ControlPlaneVersion()
+		// A resolved target lower than the current version is a rollback (downgrade);
+		// use direction-aware wording so the logs don't say "upgrade" for a downgrade.
+		action, pastAction := "upgrade", "upgraded"
+		if c, err := utils.CompareVersions(upgradeVersion, currentVersion); err != nil {
+			return false, err
+		} else if c < 0 {
+			action, pastAction = "roll back", "rolled back"
+		}
+
 		msgNodeGroupsAndAddons := "you will need to follow the upgrade procedure for all of nodegroups and add-ons"
-		cmdutils.LogIntendedAction(dryRun, "upgrade cluster %q control plane from current version %q to %q", cfg.Metadata.Name, ctl.ControlPlaneVersion(), upgradeVersion)
+		cmdutils.LogIntendedAction(dryRun, "%s cluster %q control plane from current version %q to %q", action, cfg.Metadata.Name, currentVersion, upgradeVersion)
 		if !dryRun {
 			cfg.Metadata.Version = upgradeVersion
 			if err := ctl.UpdateClusterVersionBlocking(ctx, cfg); err != nil {
 				return false, err
 			}
-			logger.Success("cluster %q control plane has been upgraded to version %q", cfg.Metadata.Name, cfg.Metadata.Version)
+			logger.Success("cluster %q control plane has been %s to version %q", cfg.Metadata.Name, pastAction, cfg.Metadata.Version)
 			logger.Info(msgNodeGroupsAndAddons)
 		}
 	} else {

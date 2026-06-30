@@ -236,6 +236,12 @@ func (c *ClusterProvider) UpdateClusterVersion(ctx context.Context, cfg *api.Clu
 	if cfg.Metadata.ForceUpdateVersion != nil {
 		input.Force = *cfg.Metadata.ForceUpdateVersion
 	}
+	if rollbackConfig := cfg.Metadata.RollbackConfig; rollbackConfig != nil {
+		input.RollbackConfig = &ekstypes.RollbackConfig{}
+		if rollbackConfig.TimeoutMinutes != nil {
+			input.RollbackConfig.TimeoutMinutes = aws.Int32(int32(*rollbackConfig.TimeoutMinutes))
+		}
+	}
 	output, err := c.AWSProvider.EKS().UpdateClusterVersion(ctx, input)
 	if err != nil {
 		return nil, err
