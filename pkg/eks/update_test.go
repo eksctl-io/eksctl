@@ -229,13 +229,12 @@ var _ = Describe("EKS API wrapper", func() {
 			Expect(sentInput.RollbackConfig.TimeoutMinutes).To(Equal(aws.Int32(360)))
 		})
 
-		It("sets an empty RollbackConfig when configured without a timeout", func() {
+		It("does not set RollbackConfig when configured without a timeout", func() {
 			cfg.Metadata.RollbackConfig = &api.RollbackConfig{}
 
 			_, err := ctl.UpdateClusterVersion(context.Background(), cfg)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(sentInput.RollbackConfig).NotTo(BeNil())
-			Expect(sentInput.RollbackConfig.TimeoutMinutes).To(BeNil())
+			Expect(sentInput.RollbackConfig).To(BeNil())
 		})
 	})
 })
