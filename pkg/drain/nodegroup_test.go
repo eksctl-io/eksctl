@@ -286,6 +286,57 @@ var _ = Describe("Drain", func() {
 		})
 	})
 
+	When("an eviction fails recoverably due to leader changed", func() {
+		var pod corev1.Pod
+
+		BeforeEach(func() {
+			pod = corev1.Pod{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "pod-1",
+				},
+			}
+
+			for i := 0; i < 2; i++ {
+				fakeEvictor.GetPodsForEvictionReturnsOnCall(i, &evictor.PodDeleteList{
+					Items: []evictor.PodDelete{
+						{
+							Pod: pod,
+							Status: evictor.PodDeleteStatus{
+								Delete: true,
+							},
+						},
+					},
+				}, nil)
+			}
+			fakeEvictor.GetPodsForEvictionReturnsOnCall(2, nil, nil)
+
+			fakeEvictor.EvictOrDeletePodReturnsOnCall(0, errors.New("etcdserver: leader changed"))
+			fakeEvictor.EvictOrDeletePodReturnsOnCall(1, nil)
+
+			_, err := fakeClientSet.CoreV1().Nodes().Create(context.Background(), &corev1.Node{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: nodeName,
+				},
+				Spec: corev1.NodeSpec{
+					Unschedulable: false,
+				},
+			}, metav1.CreateOptions{})
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("does not error", func() {
+			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second, time.Second, 0, false, false, 1)
+			nodeGroupDrainer.SetDrainer(fakeEvictor)
+
+			Expect(nodeGroupDrainer.Drain(ctx, sem)).To(Succeed())
+
+			Expect(fakeEvictor.GetPodsForEvictionCallCount()).To(Equal(3))
+			Expect(fakeEvictor.EvictOrDeletePodCallCount()).To(Equal(2))
+			Expect(fakeEvictor.EvictOrDeletePodArgsForCall(0)).To(Equal(pod))
+			Expect(fakeEvictor.EvictOrDeletePodArgsForCall(1)).To(Equal(pod))
+		})
+	})
+
 	When("an eviction fails irrecoverably", func() {
 		var pod corev1.Pod
 		var evictionError error
