@@ -1072,6 +1072,11 @@
           "description": "the AWS region hosting this cluster",
           "x-intellij-html-description": "the AWS region hosting this cluster"
         },
+        "rollbackConfig": {
+          "$ref": "#/definitions/RollbackConfig",
+          "description": "configures the automatic rollback behaviour when updating the cluster version (including downgrades).",
+          "x-intellij-html-description": "configures the automatic rollback behaviour when updating the cluster version (including downgrades)."
+        },
         "tags": {
           "additionalProperties": {
             "type": "string"
@@ -1092,6 +1097,7 @@
         "region",
         "version",
         "forceUpdateVersion",
+        "rollbackConfig",
         "tags",
         "annotations"
       ],
@@ -3052,6 +3058,21 @@
         "caBundleCert"
       ],
       "additionalProperties": false
+    },
+    "RollbackConfig": {
+      "properties": {
+        "timeoutMinutes": {
+          "type": "integer",
+          "description": "length of time in minutes to wait before cancelling the update. The timeout is a minimum-bound: cancellation occurs no sooner than the time specified, but can occur shortly thereafter. Valid values are between 120 (2 hours) and 10080 (7 days). When unset, EKS defaults to 720 (12 hours).",
+          "x-intellij-html-description": "length of time in minutes to wait before cancelling the update. The timeout is a minimum-bound: cancellation occurs no sooner than the time specified, but can occur shortly thereafter. Valid values are between 120 (2 hours) and 10080 (7 days). When unset, EKS defaults to 720 (12 hours)."
+        }
+      },
+      "preferredOrder": [
+        "timeoutMinutes"
+      ],
+      "additionalProperties": false,
+      "description": "holds the rollback configuration used when updating the cluster version. EKS waits for the configured timeout before automatically cancelling an in-progress cluster version update.",
+      "x-intellij-html-description": "holds the rollback configuration used when updating the cluster version. EKS waits for the configured timeout before automatically cancelling an in-progress cluster version update."
     },
     "SSOIdentity": {
       "required": [

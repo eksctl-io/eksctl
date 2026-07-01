@@ -244,6 +244,80 @@ func (_c *EKS_AssociateIdentityProviderConfig_Call) RunAndReturn(run func(contex
 	return _c
 }
 
+// CancelUpdate provides a mock function with given fields: ctx, params, optFns
+func (_m *EKS) CancelUpdate(ctx context.Context, params *eks.CancelUpdateInput, optFns ...func(*eks.Options)) (*eks.CancelUpdateOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CancelUpdate")
+	}
+
+	var r0 *eks.CancelUpdateOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.CancelUpdateInput, ...func(*eks.Options)) (*eks.CancelUpdateOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.CancelUpdateInput, ...func(*eks.Options)) *eks.CancelUpdateOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.CancelUpdateOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.CancelUpdateInput, ...func(*eks.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EKS_CancelUpdate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CancelUpdate'
+type EKS_CancelUpdate_Call struct {
+	*mock.Call
+}
+
+// CancelUpdate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.CancelUpdateInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) CancelUpdate(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_CancelUpdate_Call {
+	return &EKS_CancelUpdate_Call{Call: _e.mock.On("CancelUpdate",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_CancelUpdate_Call) Run(run func(ctx context.Context, params *eks.CancelUpdateInput, optFns ...func(*eks.Options))) *EKS_CancelUpdate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.CancelUpdateInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_CancelUpdate_Call) Return(_a0 *eks.CancelUpdateOutput, _a1 error) *EKS_CancelUpdate_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_CancelUpdate_Call) RunAndReturn(run func(context.Context, *eks.CancelUpdateInput, ...func(*eks.Options)) (*eks.CancelUpdateOutput, error)) *EKS_CancelUpdate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateAccessEntry provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) CreateAccessEntry(ctx context.Context, params *eks.CreateAccessEntryInput, optFns ...func(*eks.Options)) (*eks.CreateAccessEntryOutput, error) {
 	_va := make([]interface{}, len(optFns))

@@ -55,6 +55,42 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 	})
 
+	Describe("metadata.rollbackConfig validation", func() {
+		var cfg *api.ClusterConfig
+
+		BeforeEach(func() {
+			cfg = api.NewClusterConfig()
+		})
+
+		It("accepts a missing rollbackConfig", func() {
+			Expect(api.ValidateClusterConfig(cfg)).To(Succeed())
+		})
+
+		It("accepts a rollbackConfig without a timeout", func() {
+			cfg.Metadata.RollbackConfig = &api.RollbackConfig{}
+			Expect(api.ValidateClusterConfig(cfg)).To(Succeed())
+		})
+
+		DescribeTable("timeoutMinutes bounds",
+			func(timeoutMinutes int, expectValid bool) {
+				cfg.Metadata.RollbackConfig = &api.RollbackConfig{
+					TimeoutMinutes: aws.Int(timeoutMinutes),
+				}
+				err := api.ValidateClusterConfig(cfg)
+				if expectValid {
+					Expect(err).NotTo(HaveOccurred())
+				} else {
+					Expect(err).To(MatchError(ContainSubstring("metadata.rollbackConfig.timeoutMinutes must be between 120 and 10080")))
+				}
+			},
+			Entry("rejects below the minimum", 119, false),
+			Entry("accepts the minimum", 120, true),
+			Entry("accepts a value within range", 720, true),
+			Entry("accepts the maximum", 10080, true),
+			Entry("rejects above the maximum", 10081, false),
+		)
+	})
+
 	Describe("nodeGroups[*].name validation", func() {
 		var (
 			cfg *api.ClusterConfig
