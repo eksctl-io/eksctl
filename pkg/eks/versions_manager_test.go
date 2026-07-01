@@ -53,12 +53,10 @@ var _ = Describe("upgrade cluster", func() {
 			upgradeVersion, err := cvm.ResolveUpgradeVersion(c.givenVersion, c.eksVersion)
 
 			if c.expectedErrorText != "" {
-				if c.expectedErrorText != "cannot upgrade to a lower version" {
-				} else {
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring(c.expectedErrorText))
-				}
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring(c.expectedErrorText))
 			} else {
+				Expect(err).NotTo(HaveOccurred())
 				Expect(upgradeVersion).To(Equal(c.expectedUpgradeVersion))
 			}
 		},
@@ -99,10 +97,16 @@ var _ = Describe("upgrade cluster", func() {
 			expectedErrorText: "upgrading more than one version at a time is not supported",
 		}),
 
-		Entry("fails when the given version is lower than the current one", upgradeCase{
-			givenVersion:      api.Version1_29,
+		Entry("downgrades to the previous version when specified", upgradeCase{
+			givenVersion:           api.Version1_29,
+			eksVersion:             api.Version1_30,
+			expectedUpgradeVersion: api.Version1_29,
+		}),
+
+		Entry("fails when the downgrade jumps more than one kubernetes version", upgradeCase{
+			givenVersion:      api.Version1_28,
 			eksVersion:        api.Version1_30,
-			expectedErrorText: "cannot upgrade to a lower version",
+			expectedErrorText: "downgrading more than one version at a time is not supported",
 		}),
 
 		Entry("fails when the version is deprecated", upgradeCase{

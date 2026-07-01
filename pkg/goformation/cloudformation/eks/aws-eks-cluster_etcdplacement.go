@@ -6,18 +6,13 @@ import (
 	"github.com/weaveworks/eksctl/pkg/goformation/cloudformation/policies"
 )
 
-// Cluster_ControlPlanePlacement AWS CloudFormation Resource (AWS::EKS::Cluster.ControlPlanePlacement)
-// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-eks-cluster-controlplaneplacement.html
-type Cluster_ControlPlanePlacement struct {
-
-	// GroupName AWS CloudFormation Property
-	// Required: false
-	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-eks-cluster-controlplaneplacement.html#cfn-eks-cluster-controlplaneplacement-groupname
-	GroupName *types.Value `json:"GroupName,omitempty"`
+// Cluster_EtcdPlacement AWS CloudFormation Resource (AWS::EKS::Cluster.EtcdPlacement)
+// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-eks-cluster-etcdplacement.html
+type Cluster_EtcdPlacement struct {
 
 	// SpreadLevel AWS CloudFormation Property
 	// Required: false
-	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-eks-cluster-controlplaneplacement.html#cfn-eks-cluster-controlplaneplacement-spreadlevel
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-eks-cluster-etcdplacement.html#cfn-eks-cluster-etcdplacement-spreadlevel
 	SpreadLevel *types.Value `json:"SpreadLevel,omitempty"`
 
 	// AWSCloudFormationDeletionPolicy represents a CloudFormation DeletionPolicy
@@ -37,6 +32,6 @@ type Cluster_ControlPlanePlacement struct {
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
-func (r *Cluster_ControlPlanePlacement) AWSCloudFormationType() string {
-	return "AWS::EKS::Cluster.ControlPlanePlacement"
+func (r *Cluster_EtcdPlacement) AWSCloudFormationType() string {
+	return "AWS::EKS::Cluster.EtcdPlacement"
 }

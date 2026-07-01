@@ -57,10 +57,10 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 
 	if cfg.AccessConfig == nil {
 		cfg.AccessConfig = &AccessConfig{
-			AuthenticationMode: getDefaultAuthenticationMode(cfg.IsControlPlaneOnOutposts()),
+			AuthenticationMode: getDefaultAuthenticationMode(cfg.IsControlPlaneOnOutposts(), cfg.Outpost != nil && cfg.Outpost.EtcdInstanceType != ""),
 		}
 	} else if cfg.AccessConfig.AuthenticationMode == "" {
-		cfg.AccessConfig.AuthenticationMode = getDefaultAuthenticationMode(cfg.IsControlPlaneOnOutposts())
+		cfg.AccessConfig.AuthenticationMode = getDefaultAuthenticationMode(cfg.IsControlPlaneOnOutposts(), cfg.Outpost != nil && cfg.Outpost.EtcdInstanceType != "")
 	}
 	if cfg.IsAutoModeEnabled() && cfg.AutoModeConfig.NodePools == nil {
 		defaultNodePools := slices.Clone(AutoModeKnownNodePools)
@@ -289,8 +289,8 @@ func getDefaultVolumeType(nodeGroupOnOutposts bool) string {
 	return DefaultNodeVolumeType
 }
 
-func getDefaultAuthenticationMode(nodeGroupOnOutposts bool) ekstypes.AuthenticationMode {
-	if nodeGroupOnOutposts {
+func getDefaultAuthenticationMode(isOutpost bool, isOutpostV2 bool) ekstypes.AuthenticationMode {
+	if isOutpost && !isOutpostV2 {
 		return ekstypes.AuthenticationModeConfigMap
 	}
 	return ekstypes.AuthenticationModeApiAndConfigMap

@@ -96,6 +96,10 @@ func (c *ClusterConfig) validateRemoteNetworkingConfig() error {
 		return nil
 	}
 
+	if c.IsControlPlaneOnOutposts() && c.Outpost.EtcdInstanceType == "" {
+		return fmt.Errorf("remoteNetworkConfig on Outpost clusters requires outpost.etcdInstanceType to be set")
+	}
+
 	if c.IPv6Enabled() {
 		return fmt.Errorf("remoteNetworkConfig is not supported on EKS cluster configured with IPv6 address family")
 	}
@@ -104,11 +108,25 @@ func (c *ClusterConfig) validateRemoteNetworkingConfig() error {
 		return fmt.Errorf("remoteNetworkConfig requires authenticationMode to be either %q or %q", ekstypes.AuthenticationModeApiAndConfigMap, ekstypes.AuthenticationModeApi)
 	}
 
+	if len(rnc.RemoteNodeNetworks) > 1 {
+		return fmt.Errorf("only one remoteNodeNetwork is allowed in remoteNetworkConfig.remoteNodeNetworks")
+	}
+
+	if len(rnc.RemotePodNetworks) > 1 {
+		return fmt.Errorf("only one remotePodNetwork is allowed in remoteNetworkConfig.remotePodNetworks")
+	}
+
 	if len(rnc.RemoteNodeNetworks) == 0 {
 		// Both lists being explicitly empty is valid for upgrades (removes all remote networks).
 		// For creates, this is a no-op since HasRemoteNetworkingConfigured() gates the CFN builder.
 		if rnc.RemotePodNetworks != nil && len(rnc.RemotePodNetworks) == 0 {
 			logger.Warning("remoteNetworkConfig has empty remoteNodeNetworks and remotePodNetworks; this will remove all remote networks on upgrade, or be ignored on create")
+			return nil
+		}
+		if c.IsControlPlaneOnOutposts() {
+			if len(rnc.RemotePodNetworks) == 0 {
+				return setNonEmpty("remoteNetworkConfig.remotePodNetworks")
+			}
 			return nil
 		}
 		return setNonEmpty("remoteNetworkConfig.remoteNodeNetworks")
@@ -164,6 +182,23 @@ func validateSupportType(supportType string) error {
 	return nil
 }
 
+// RollbackTimeoutMinutesMin and RollbackTimeoutMinutesMax are the inclusive
+// bounds EKS accepts for metadata.rollbackConfig.timeoutMinutes.
+const (
+	RollbackTimeoutMinutesMin = 120
+	RollbackTimeoutMinutesMax = 10080
+)
+
+func validateRollbackConfig(rollbackConfig *RollbackConfig) error {
+	if rollbackConfig == nil || rollbackConfig.TimeoutMinutes == nil {
+		return nil
+	}
+	if timeout := *rollbackConfig.TimeoutMinutes; timeout < RollbackTimeoutMinutesMin || timeout > RollbackTimeoutMinutesMax {
+		return fmt.Errorf("metadata.rollbackConfig.timeoutMinutes must be between %d and %d, got %d", RollbackTimeoutMinutesMin, RollbackTimeoutMinutesMax, timeout)
+	}
+	return nil
+}
+
 // ValidateClusterConfig checks compatible fields of a given ClusterConfig
 func ValidateClusterConfig(cfg *ClusterConfig) error {
 	if cfg.UpgradePolicy != nil {
@@ -171,6 +206,12 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 			if err := validateSupportType(cfg.UpgradePolicy.SupportType); err != nil {
 				return err
 			}
+		}
+	}
+
+	if cfg.Metadata != nil {
+		if err := validateRollbackConfig(cfg.Metadata.RollbackConfig); err != nil {
+			return err
 		}
 	}
 
@@ -262,9 +303,6 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 			return err
 		}
 
-		if cfg.AccessConfig.AuthenticationMode != ekstypes.AuthenticationModeConfigMap {
-			return fmt.Errorf("accessConfig.AuthenticationMode must be set to %s on Outposts", ekstypes.AuthenticationModeConfigMap)
-		}
 		if IsDisabled(cfg.AccessConfig.BootstrapClusterCreatorAdminPermissions) {
 			return fmt.Errorf("accessConfig.BootstrapClusterCreatorAdminPermissions can't be set to false on Outposts")
 		}
@@ -306,6 +344,18 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 			if len(cfg.VPC.PublicAccessCIDRs) > 0 {
 				return errors.New("publicAccessCIDRs is not supported on Outposts")
 			}
+		}
+		if cfg.Outpost.EtcdPlacement != nil && cfg.Outpost.EtcdInstanceType == "" {
+			return errors.New("outpost.etcdInstanceType is required when outpost.etcdPlacement is specified")
+		}
+		if cfg.Outpost.ControlPlanePlacement != nil && cfg.Outpost.ControlPlanePlacement.SpreadLevel != "" && cfg.Outpost.EtcdInstanceType == "" {
+			return errors.New("outpost.etcdInstanceType is required when outpost.controlPlanePlacement.spreadLevel is specified")
+		}
+		if cfg.Outpost.ControlPlanePlacement != nil && cfg.Outpost.ControlPlanePlacement.GroupName != "" && cfg.Outpost.EtcdInstanceType != "" {
+			return errors.New("outpost.controlPlanePlacement.groupName is not supported when outpost.etcdInstanceType is specified")
+		}
+		if cfg.Outpost.EtcdInstanceType != "" && cfg.AccessConfig.AuthenticationMode == ekstypes.AuthenticationModeConfigMap {
+			return errors.New("Outpost clusters with EC2 instance store require accessConfig.authenticationMode to be API_AND_CONFIG_MAP or API")
 		}
 	} else if ngOutpostARN != "" && cfg.IsFullyPrivate() {
 		return errors.New("nodeGroup.outpostARN is not supported on a fully-private cluster (privateCluster.enabled)")

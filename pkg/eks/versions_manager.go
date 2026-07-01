@@ -133,8 +133,9 @@ func (cvm *ClusterVersionsManager) ResolveClusterVersion(version string) (string
 }
 
 func (cvm *ClusterVersionsManager) ResolveUpgradeVersion(desiredVersion string, currentVersion string) (string, error) {
-	// Resolve next version
+	// Resolve next and previous versions
 	var nextVersion string
+	var previousVersion string
 	switch {
 	case currentVersion == "":
 		return "", fmt.Errorf("couldn't resolve control plane version")
@@ -144,27 +145,25 @@ func (cvm *ClusterVersionsManager) ResolveUpgradeVersion(desiredVersion string, 
 		return "", fmt.Errorf("control plane version %q is not supported", currentVersion)
 	default:
 		i := slices.Index(cvm.supportedVersions, currentVersion)
-		if i == len(cvm.supportedVersions)-1 {
-			logger.Info("control plane is already on latest version %q", currentVersion)
-			return "", nil
+		// Determine next version
+		if i < len(cvm.supportedVersions)-1 {
+			nextVersion = cvm.supportedVersions[i+1]
 		}
-		nextVersion = cvm.supportedVersions[i+1]
+		// Determine previous version
+		if i > 0 {
+			previousVersion = cvm.supportedVersions[i-1]
+		}
 	}
 
 	// If the version was not specified, default to the next Kubernetes version, and assume the user intended to upgrade if possible.
 	// Also support "auto" as version (see #2461)
 	if desiredVersion == "" || desiredVersion == "auto" {
-		if cvm.IsSupportedVersion(nextVersion) {
+		if nextVersion != "" {
 			return nextVersion, nil
 		}
+		logger.Info("control plane is already on latest version %q", currentVersion)
 		// There is no new version, stay in the current one
 		return "", nil
-	}
-
-	if c, err := utils.CompareVersions(desiredVersion, currentVersion); err != nil {
-		return "", fmt.Errorf("couldn't compare versions for upgrade: %w", err)
-	} else if c < 0 {
-		return "", fmt.Errorf("cannot upgrade to a lower version. Found given target version %q, current cluster version %q", desiredVersion, currentVersion)
 	}
 
 	if cvm.IsDeprecatedVersion(desiredVersion) {
@@ -179,15 +178,37 @@ func (cvm *ClusterVersionsManager) ResolveUpgradeVersion(desiredVersion string, 
 		return "", nil
 	}
 
-	if desiredVersion == nextVersion {
+	c, err := utils.CompareVersions(desiredVersion, currentVersion)
+	if err != nil {
+		return "", fmt.Errorf("couldn't compare versions: %w", err)
+	}
+
+	// Handle upgrade
+	if c > 0 {
+		if desiredVersion == nextVersion {
+			return desiredVersion, nil
+		}
+		return "", fmt.Errorf(
+			"upgrading more than one version at a time is not supported. Found upgrade from %q to %q. Please upgrade to %q first",
+			currentVersion,
+			desiredVersion,
+			nextVersion)
+	}
+
+	// Handle downgrade (rollback)
+	if previousVersion == "" {
+		return "", fmt.Errorf("cannot downgrade: %q is the oldest supported version", currentVersion)
+	}
+
+	if desiredVersion == previousVersion {
 		return desiredVersion, nil
 	}
 
 	return "", fmt.Errorf(
-		"upgrading more than one version at a time is not supported. Found upgrade from %q to %q. Please upgrade to %q first",
+		"downgrading more than one version at a time is not supported. Found downgrade from %q to %q. Please downgrade to %q first",
 		currentVersion,
 		desiredVersion,
-		nextVersion)
+		previousVersion)
 }
 
 func resolveDeprecatedVersions(currentVersion string) ([]string, error) {
