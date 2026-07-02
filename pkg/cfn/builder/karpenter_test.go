@@ -104,6 +104,11 @@ var expectedTemplate = `{
         "EKS": "eks.amazonaws.com",
         "EKSFargatePods": "eks-fargate-pods.amazonaws.com"
       },
+      "aws-eusc": {
+        "EC2": "ec2.amazonaws.com",
+        "EKS": "eks.amazonaws.com",
+        "EKSFargatePods": "eks-fargate-pods.amazonaws.com"
+      },
       "aws-us-gov": {
         "EC2": "ec2.amazonaws.com",
         "EKS": "eks.amazonaws.com",
