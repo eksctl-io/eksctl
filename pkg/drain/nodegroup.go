@@ -3,6 +3,7 @@ package drain
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"golang.org/x/sync/errgroup"
@@ -261,12 +262,27 @@ func isEvictionErrorRecoverable(err error) bool {
 		apierrors.IsTimeout,
 		// IsTooManyRequests also captures PDB errors
 		apierrors.IsTooManyRequests,
+		isTransientControlPlaneError,
 	)
 
 	for _, f := range recoverableCheckerFuncs {
 		if f(err) {
 			return true
 		}
+	}
+	return false
+}
+
+func isTransientControlPlaneError(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := err.Error()
+	if strings.Contains(msg, "etcdserver: leader changed") {
+		return true
+	}
+	if strings.Contains(msg, "raft proposal dropped") {
+		return true
 	}
 	return false
 }
