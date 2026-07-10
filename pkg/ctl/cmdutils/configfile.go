@@ -495,9 +495,10 @@ func validateBareCluster(clusterConfig *api.ClusterConfig) error {
 	}
 	if clusterConfig.HasNodes() || clusterConfig.IsFargateEnabled() || clusterConfig.Karpenter != nil || clusterConfig.HasGitOpsFluxConfigured() ||
 		(clusterConfig.IAM != nil && ((len(clusterConfig.IAM.ServiceAccounts) > 0) || len(clusterConfig.IAM.PodIdentityAssociations) > 0)) {
-		return errors.New("fields nodeGroups, managedNodeGroups, fargateProfiles, karpenter, gitops, iam.serviceAccounts, " +
+		logger.Warning("fields nodeGroups, managedNodeGroups, fargateProfiles, karpenter, gitops, iam.serviceAccounts, " +
 			"and iam.podIdentityAssociations are not supported during cluster creation in a cluster without VPC CNI if Auto Mode is disabled; " +
 			"please remove these fields and add them back after cluster creation is successful")
+		return nil
 	}
 	return nil
 }

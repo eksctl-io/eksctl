@@ -476,7 +476,6 @@ var _ = Describe("cmdutils configfile", func() {
 
 		type bareClusterEntry struct {
 			updateClusterConfig func(*api.ClusterConfig)
-			expectErr           bool
 		}
 
 		DescribeTable("Bare Cluster validation", func(e bareClusterEntry) {
@@ -499,13 +498,7 @@ var _ = Describe("cmdutils configfile", func() {
 			err := NewCreateClusterLoader(cmd, filter.NewNodeGroupFilter(), nil, &CreateClusterCmdParams{
 				ConfigReader: clusterutils.Reader(clusterConfig),
 			}).Load()
-			if e.expectErr {
-				Expect(err).To(MatchError("fields nodeGroups, managedNodeGroups, fargateProfiles, karpenter, gitops, iam.serviceAccounts, " +
-					"and iam.podIdentityAssociations are not supported during cluster creation in a cluster without VPC CNI if Auto Mode is disabled; " +
-					"please remove these fields and add them back after cluster creation is successful"))
-			} else {
-				Expect(err).NotTo(HaveOccurred())
-			}
+			Expect(err).NotTo(HaveOccurred())
 		},
 			Entry("nodeGroups", bareClusterEntry{
 				updateClusterConfig: func(c *api.ClusterConfig) {
@@ -514,7 +507,6 @@ var _ = Describe("cmdutils configfile", func() {
 					ng.DesiredCapacity = aws.Int(1)
 					c.NodeGroups = []*api.NodeGroup{ng}
 				},
-				expectErr: true,
 			}),
 			Entry("managedNodeGroups", bareClusterEntry{
 				updateClusterConfig: func(c *api.ClusterConfig) {
@@ -523,7 +515,6 @@ var _ = Describe("cmdutils configfile", func() {
 					ng.DesiredCapacity = aws.Int(1)
 					c.ManagedNodeGroups = []*api.ManagedNodeGroup{ng}
 				},
-				expectErr: true,
 			}),
 			Entry("fargateProfiles", bareClusterEntry{
 				updateClusterConfig: func(c *api.ClusterConfig) {
@@ -538,7 +529,6 @@ var _ = Describe("cmdutils configfile", func() {
 						},
 					}
 				},
-				expectErr: true,
 			}),
 			Entry("gitops", bareClusterEntry{
 				updateClusterConfig: func(c *api.ClusterConfig) {
@@ -551,13 +541,11 @@ var _ = Describe("cmdutils configfile", func() {
 						},
 					}
 				},
-				expectErr: true,
 			}),
 			Entry("karpenter", bareClusterEntry{
 				updateClusterConfig: func(c *api.ClusterConfig) {
 					c.Karpenter = &api.Karpenter{}
 				},
-				expectErr: true,
 			}),
 			Entry("iam.serviceAccounts", bareClusterEntry{
 				updateClusterConfig: func(c *api.ClusterConfig) {
@@ -572,7 +560,6 @@ var _ = Describe("cmdutils configfile", func() {
 						},
 					}
 				},
-				expectErr: true,
 			}),
 			Entry("iam.podIdentityAssociations", bareClusterEntry{
 				updateClusterConfig: func(c *api.ClusterConfig) {
@@ -580,11 +567,11 @@ var _ = Describe("cmdutils configfile", func() {
 					c.IAM.PodIdentityAssociations = []api.PodIdentityAssociation{
 						{
 							Namespace:            "test",
+							ServiceAccountName:   "test",
 							PermissionPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"},
 						},
 					}
 				},
-				expectErr: true,
 			}),
 			Entry("no unsupported field set", bareClusterEntry{
 				updateClusterConfig: func(c *api.ClusterConfig) {},
