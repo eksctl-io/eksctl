@@ -220,7 +220,7 @@ func setNodeGroupBaseDefaults(ng *NodeGroupBase, meta *ClusterMeta) {
 		ng.InstanceSelector = &InstanceSelector{}
 	}
 	normalizeAMIFamily(ng)
-	if ng.AMIFamily == NodeImageFamilyBottlerocket {
+	if IsBottlerocketImage(ng.AMIFamily) {
 		setBottlerocketNodeGroupDefaults(ng)
 	}
 }
@@ -251,7 +251,7 @@ func setVolumeDefaults(ng *NodeGroupBase, controlPlaneOnOutposts bool, template 
 		}
 	}
 
-	if ng.AMIFamily == NodeImageFamilyBottlerocket && !IsSetAndNonEmptyString(ng.VolumeName) {
+	if IsBottlerocketImage(ng.AMIFamily) && !IsSetAndNonEmptyString(ng.VolumeName) {
 		ng.AdditionalEncryptedVolume = bottlerocketOSDisk
 		ng.VolumeName = aws.String(bottlerocketDataDisk)
 	}

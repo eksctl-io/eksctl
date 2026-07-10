@@ -209,18 +209,19 @@ const (
 // All valid values of supported families should go in this block
 const (
 	// DefaultNodeImageFamily (default)
-	DefaultNodeImageFamily         = NodeImageFamilyAmazonLinux2023
-	NodeImageFamilyAmazonLinux2023 = "AmazonLinux2023"
-	NodeImageFamilyAmazonLinux2    = "AmazonLinux2"
-	NodeImageFamilyUbuntuPro2604   = "UbuntuPro2604"
-	NodeImageFamilyUbuntu2604      = "Ubuntu2604"
-	NodeImageFamilyUbuntuPro2404   = "UbuntuPro2404"
-	NodeImageFamilyUbuntu2404      = "Ubuntu2404"
-	NodeImageFamilyUbuntuPro2204   = "UbuntuPro2204"
-	NodeImageFamilyUbuntu2204      = "Ubuntu2204"
-	NodeImageFamilyUbuntuPro2004   = "UbuntuPro2004"
-	NodeImageFamilyUbuntu2004      = "Ubuntu2004"
-	NodeImageFamilyBottlerocket    = "Bottlerocket"
+	DefaultNodeImageFamily          = NodeImageFamilyAmazonLinux2023
+	NodeImageFamilyAmazonLinux2023  = "AmazonLinux2023"
+	NodeImageFamilyAmazonLinux2     = "AmazonLinux2"
+	NodeImageFamilyUbuntuPro2604    = "UbuntuPro2604"
+	NodeImageFamilyUbuntu2604       = "Ubuntu2604"
+	NodeImageFamilyUbuntuPro2404    = "UbuntuPro2404"
+	NodeImageFamilyUbuntu2404       = "Ubuntu2404"
+	NodeImageFamilyUbuntuPro2204    = "UbuntuPro2204"
+	NodeImageFamilyUbuntu2204       = "Ubuntu2204"
+	NodeImageFamilyUbuntuPro2004    = "UbuntuPro2004"
+	NodeImageFamilyUbuntu2004       = "Ubuntu2004"
+	NodeImageFamilyBottlerocket     = "Bottlerocket"
+	NodeImageFamilyBottlerocketFips = "BottlerocketFips"
 
 	NodeImageFamilyWindowsServer2019CoreContainer = "WindowsServer2019CoreContainer"
 	NodeImageFamilyWindowsServer2019FullContainer = "WindowsServer2019FullContainer"
@@ -609,6 +610,7 @@ func SupportedAMIFamilies() []string {
 		NodeImageFamilyUbuntuPro2004,
 		NodeImageFamilyUbuntu2004,
 		NodeImageFamilyBottlerocket,
+		NodeImageFamilyBottlerocketFips,
 		NodeImageFamilyWindowsServer2019CoreContainer,
 		NodeImageFamilyWindowsServer2019FullContainer,
 		NodeImageFamilyWindowsServer2022CoreContainer,

@@ -48,7 +48,7 @@ func NewBootstrapper(clusterConfig *api.ClusterConfig, ng *api.NodeGroup) (Boots
 	switch ng.AMIFamily {
 	case api.NodeImageFamilyUbuntuPro2604, api.NodeImageFamilyUbuntu2604, api.NodeImageFamilyUbuntuPro2404, api.NodeImageFamilyUbuntu2404, api.NodeImageFamilyUbuntuPro2204, api.NodeImageFamilyUbuntu2204, api.NodeImageFamilyUbuntuPro2004, api.NodeImageFamilyUbuntu2004:
 		return NewUbuntuBootstrapper(clusterConfig, ng, clusterDNS), nil
-	case api.NodeImageFamilyBottlerocket:
+	case api.NodeImageFamilyBottlerocket, api.NodeImageFamilyBottlerocketFips:
 		return NewBottlerocketBootstrapper(clusterConfig, ng), nil
 	case api.NodeImageFamilyAmazonLinux2023:
 		return NewAL2023Bootstrapper(clusterConfig, ng, clusterDNS), nil
@@ -76,7 +76,7 @@ func NewManagedBootstrapper(clusterConfig *api.ClusterConfig, ng *api.ManagedNod
 		return NewManagedAL2023Bootstrapper(clusterConfig, ng, clusterDNS), nil
 	case api.NodeImageFamilyAmazonLinux2:
 		return NewManagedAL2Bootstrapper(ng), nil
-	case api.NodeImageFamilyBottlerocket:
+	case api.NodeImageFamilyBottlerocket, api.NodeImageFamilyBottlerocketFips:
 		return NewManagedBottlerocketBootstrapper(clusterConfig, ng), nil
 	case api.NodeImageFamilyUbuntu2004, api.NodeImageFamilyUbuntuPro2004, api.NodeImageFamilyUbuntu2204, api.NodeImageFamilyUbuntuPro2204, api.NodeImageFamilyUbuntu2404, api.NodeImageFamilyUbuntuPro2404, api.NodeImageFamilyUbuntu2604, api.NodeImageFamilyUbuntuPro2604:
 		return NewUbuntuBootstrapper(clusterConfig, ng, clusterDNS), nil
