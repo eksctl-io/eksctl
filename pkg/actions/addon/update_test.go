@@ -182,10 +182,11 @@ var _ = Describe("Update", func() {
 
 			When("the version is set to latest", func() {
 				It("discovers and uses the latest available version", func() {
-					err := addonManager.Update(context.Background(), &api.Addon{
+					addonObj := &api.Addon{
 						Name:    "my-addon",
 						Version: "latest",
-					}, &podIdentityIAMUpdater, 0)
+					}
+					err := addonManager.Update(context.Background(), addonObj, &podIdentityIAMUpdater, 0)
 
 					Expect(err).NotTo(HaveOccurred())
 					Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
@@ -194,6 +195,7 @@ var _ = Describe("Update", func() {
 					Expect(*updateAddonInput.AddonName).To(Equal("my-addon"))
 					Expect(*updateAddonInput.AddonVersion).To(Equal("v1.7.7-eksbuild.2"))
 					Expect(*updateAddonInput.ServiceAccountRoleArn).To(Equal("original-arn"))
+					Expect(addonObj.Version).To(Equal("v1.7.7-eksbuild.2"))
 				})
 			})
 

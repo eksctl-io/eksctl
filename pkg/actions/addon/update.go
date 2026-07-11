@@ -74,6 +74,7 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, podIdentityIAMUp
 			logger.Info("new version provided %s", latestVersion)
 		}
 		updateAddonInput.AddonVersion = &latestVersion
+		addon.Version = latestVersion
 	}
 
 	var deleteServiceAccountIAMResources []string
