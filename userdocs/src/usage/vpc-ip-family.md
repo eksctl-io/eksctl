@@ -22,20 +22,20 @@ kubernetesNetworkConfig:
   ipFamily: IPv6 # or IPv4
 
 addons:
-  - name: vpc-cni
+  - name: vpc-cni # optional
   - name: coredns
-  - name: kube-proxy
+  - name: kube-proxy # optional
 
+# required if vpc-cni addon is used
 iam:
   withOIDC: true
 ```
 
 This is an in config file setting only. When IPv6 is set, the following restriction must be followed:
 
-- OIDC is enabled
-- managed addons are defined as shows above
+- OIDC is enabled if `vpc-cni` addon is used
 - cluster version must be => 1.21
-- vpc-cni addon version must be => 1.10.0
+- if used, vpc-cni addon version must be => 1.10.0
 - unmanaged nodegroups are not yet supported with IPv6 clusters
 - managed nodegroup creation is not supported with un-owned IPv6 clusters
 - `vpc.NAT` and `serviceIPv4CIDR` fields are created by eksctl for ipv6 clusters and thus, are not supported configuration options
