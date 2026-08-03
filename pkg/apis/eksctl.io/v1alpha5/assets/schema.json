@@ -721,6 +721,21 @@
             "ClusterConfig"
           ]
         },
+        "kubeAPIServerConfig": {
+          "$ref": "#/definitions/KubeAPIServerConfig",
+          "description": "specifies the kube-apiserver configuration.",
+          "x-intellij-html-description": "specifies the kube-apiserver configuration."
+        },
+        "kubeControllerManagerConfig": {
+          "$ref": "#/definitions/KubeControllerManagerConfig",
+          "description": "specifies the kube-controller-manager configuration.",
+          "x-intellij-html-description": "specifies the kube-controller-manager configuration."
+        },
+        "kubeSchedulerConfig": {
+          "$ref": "#/definitions/KubeSchedulerConfig",
+          "description": "specifies the kube-scheduler configuration.",
+          "x-intellij-html-description": "specifies the kube-scheduler configuration."
+        },
         "kubernetesNetworkConfig": {
           "$ref": "#/definitions/KubernetesNetworkConfig"
         },
@@ -809,6 +824,9 @@
         "outpost",
         "controlPlaneScalingConfig",
         "zonalShiftConfig",
+        "kubeAPIServerConfig",
+        "kubeSchedulerConfig",
+        "kubeControllerManagerConfig",
         "capabilities"
       ],
       "additionalProperties": false,
@@ -1410,6 +1428,21 @@
       "description": "groups all configuration options related to enabling GitOps Toolkit on a cluster and linking it to a Git repository. Note: this will replace the older Git types",
       "x-intellij-html-description": "groups all configuration options related to enabling GitOps Toolkit on a cluster and linking it to a Git repository. Note: this will replace the older Git types"
     },
+    "HorizontalPodAutoscalerControllerConfig": {
+      "properties": {
+        "horizontalPodAutoscalerSyncPeriod": {
+          "type": "string",
+          "description": "specifies the interval between each sync of the horizontal pod autoscaler, as a duration string (for example, \"15s\").",
+          "x-intellij-html-description": "specifies the interval between each sync of the horizontal pod autoscaler, as a duration string (for example, &quot;15s&quot;)."
+        }
+      },
+      "preferredOrder": [
+        "horizontalPodAutoscalerSyncPeriod"
+      ],
+      "additionalProperties": false,
+      "description": "holds the horizontal pod autoscaler controller configuration.",
+      "x-intellij-html-description": "holds the horizontal pod autoscaler controller configuration."
+    },
     "IAMIdentityMapping": {
       "properties": {
         "account": {
@@ -1589,6 +1622,57 @@
       "additionalProperties": false,
       "description": "provides configuration options",
       "x-intellij-html-description": "provides configuration options"
+    },
+    "KubeAPIServerConfig": {
+      "properties": {
+        "eventTTL": {
+          "type": "string",
+          "description": "specifies how long Kubernetes events are retained, as a duration string (for example, \"30m\" or \"1h\").",
+          "x-intellij-html-description": "specifies how long Kubernetes events are retained, as a duration string (for example, &quot;30m&quot; or &quot;1h&quot;)."
+        },
+        "serviceNodePortRange": {
+          "$ref": "#/definitions/ServiceNodePortRange",
+          "description": "specifies the port range for NodePort services.",
+          "x-intellij-html-description": "specifies the port range for NodePort services."
+        }
+      },
+      "preferredOrder": [
+        "eventTTL",
+        "serviceNodePortRange"
+      ],
+      "additionalProperties": false,
+      "description": "holds the kube-apiserver configuration.",
+      "x-intellij-html-description": "holds the kube-apiserver configuration."
+    },
+    "KubeControllerManagerConfig": {
+      "properties": {
+        "horizontalPodAutoscalerControllerConfig": {
+          "$ref": "#/definitions/HorizontalPodAutoscalerControllerConfig",
+          "description": "specifies the horizontal pod autoscaler controller configuration.",
+          "x-intellij-html-description": "specifies the horizontal pod autoscaler controller configuration."
+        }
+      },
+      "preferredOrder": [
+        "horizontalPodAutoscalerControllerConfig"
+      ],
+      "additionalProperties": false,
+      "description": "holds the kube-controller-manager configuration.",
+      "x-intellij-html-description": "holds the kube-controller-manager configuration."
+    },
+    "KubeSchedulerConfig": {
+      "properties": {
+        "nodeResourcesFit": {
+          "$ref": "#/definitions/NodeResourcesFitConfig",
+          "description": "specifies the NodeResourcesFit scheduler plugin configuration.",
+          "x-intellij-html-description": "specifies the NodeResourcesFit scheduler plugin configuration."
+        }
+      },
+      "preferredOrder": [
+        "nodeResourcesFit"
+      ],
+      "additionalProperties": false,
+      "description": "holds the kube-scheduler configuration.",
+      "x-intellij-html-description": "holds the kube-scheduler configuration."
     },
     "KubernetesNetworkConfig": {
       "properties": {
@@ -2762,6 +2846,21 @@
       "description": "specifies granular overrides for specific repair actions. These overrides control the repair action and the repair delay time before a node is considered eligible for repair. If you use this, you must specify all the values.",
       "x-intellij-html-description": "specifies granular overrides for specific repair actions. These overrides control the repair action and the repair delay time before a node is considered eligible for repair. If you use this, you must specify all the values."
     },
+    "NodeResourcesFitConfig": {
+      "properties": {
+        "scoringStrategy": {
+          "$ref": "#/definitions/ScoringStrategy",
+          "description": "specifies how nodes are scored during scheduling.",
+          "x-intellij-html-description": "specifies how nodes are scored during scheduling."
+        }
+      },
+      "preferredOrder": [
+        "scoringStrategy"
+      ],
+      "additionalProperties": false,
+      "description": "holds the NodeResourcesFit scheduler plugin configuration.",
+      "x-intellij-html-description": "holds the NodeResourcesFit scheduler plugin configuration."
+    },
     "OIDCIdentityProvider": {
       "required": [
         "name",
@@ -3061,6 +3160,27 @@
       ],
       "additionalProperties": false
     },
+    "ResourceWeight": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "specifies the name of the resource, for example \"cpu\" or \"memory\".",
+          "x-intellij-html-description": "specifies the name of the resource, for example &quot;cpu&quot; or &quot;memory&quot;."
+        },
+        "weight": {
+          "type": "integer",
+          "description": "specifies the weight assigned to the resource for scoring.",
+          "x-intellij-html-description": "specifies the weight assigned to the resource for scoring."
+        }
+      },
+      "preferredOrder": [
+        "name",
+        "weight"
+      ],
+      "additionalProperties": false,
+      "description": "holds a resource weight entry for the scheduler scoring strategy.",
+      "x-intellij-html-description": "holds a resource weight entry for the scheduler scoring strategy."
+    },
     "RollbackConfig": {
       "properties": {
         "timeoutMinutes": {
@@ -3101,6 +3221,30 @@
       "description": "represents an SSO identity",
       "x-intellij-html-description": "represents an SSO identity"
     },
+    "ScoringStrategy": {
+      "properties": {
+        "resources": {
+          "items": {
+            "$ref": "#/definitions/ResourceWeight"
+          },
+          "type": "array",
+          "description": "specifies the resource weights used for scoring nodes.",
+          "x-intellij-html-description": "specifies the resource weights used for scoring nodes."
+        },
+        "type": {
+          "type": "string",
+          "description": "specifies the scoring strategy type. Valid variants are: `LeastAllocated`, `MostAllocated`.",
+          "x-intellij-html-description": "specifies the scoring strategy type. Valid variants are: <code>LeastAllocated</code>, <code>MostAllocated</code>."
+        }
+      },
+      "preferredOrder": [
+        "type",
+        "resources"
+      ],
+      "additionalProperties": false,
+      "description": "holds the scoring strategy for the NodeResourcesFit scheduler plugin.",
+      "x-intellij-html-description": "holds the scoring strategy for the NodeResourcesFit scheduler plugin."
+    },
     "SecretsEncryption": {
       "required": [
         "keyARN"
@@ -3116,6 +3260,27 @@
       "additionalProperties": false,
       "description": "defines the configuration for KMS encryption provider",
       "x-intellij-html-description": "defines the configuration for KMS encryption provider"
+    },
+    "ServiceNodePortRange": {
+      "properties": {
+        "maxPort": {
+          "type": "integer",
+          "description": "specifies the maximum port number in the range.",
+          "x-intellij-html-description": "specifies the maximum port number in the range."
+        },
+        "minPort": {
+          "type": "integer",
+          "description": "specifies the minimum port number in the range.",
+          "x-intellij-html-description": "specifies the minimum port number in the range."
+        }
+      },
+      "preferredOrder": [
+        "minPort",
+        "maxPort"
+      ],
+      "additionalProperties": false,
+      "description": "holds the port range for NodePort services.",
+      "x-intellij-html-description": "holds the port range for NodePort services."
     },
     "UpgradePolicy": {
       "properties": {

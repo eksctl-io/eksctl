@@ -14,6 +14,9 @@
   Health: null
   Id: null
   Identity: null
+  KubeApiServerConfig: null
+  KubeControllerManagerConfig: null
+  KubeSchedulerConfig: null
   KubernetesNetworkConfig: null
   Logging: null
   Name: test-cluster

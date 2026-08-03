@@ -108,8 +108,8 @@ github.com/atotto/clipboard v0.1.4 h1:EH0zSVneZPSuFR11BlR9YppQTVDbh5+16AmcJi4g1z
 github.com/atotto/clipboard v0.1.4/go.mod h1:ZY9tmq7sm5xIbd9bOK4onWV4S6X0u6GY7Vn0Yu86PYI=
 github.com/aws/amazon-ec2-instance-selector/v3 v3.1.3 h1:13qtG4reL2+2UiCm2U7gM9QJthDO8hPPzvn7hTjHask=
 github.com/aws/amazon-ec2-instance-selector/v3 v3.1.3/go.mod h1:wdlMRtz9G4IO6H1yZPsqfGBxR8E6B/bdxHlGkls4kGQ=
-github.com/aws/aws-sdk-go-v2 v1.43.4 h1:b9FTvbRwy+JCsfp2Wp6wV/KbOx3Aj7nkoFb2cRX0IhE=
-github.com/aws/aws-sdk-go-v2 v1.43.4/go.mod h1:70vwSy16txshwG+g55WkpgPKDIByzHI8ccBsOteo3bQ=
+github.com/aws/aws-sdk-go-v2 v1.43.5 h1:yKT5GYnFWhuDo+DqKvE5ZPwVn3RjC4MAeBtZGlh6AVM=
+github.com/aws/aws-sdk-go-v2 v1.43.5/go.mod h1:wZjAJppCntyOGgVSmgVTfDyRJK5PHOasO6Wsy8U7Axk=
 github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.16 h1:aiuaKlDweRC5qExJondpWjOgyzMHpofpwspGXUtwn4c=
 github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.16/go.mod h1:nG/LOlmox9BDe9HvQnXWzgcK8uKbgBMZ/Hp5pVt/21I=
 github.com/aws/aws-sdk-go-v2/config v1.32.35 h1:UEzXuET8E42lxBPijuACu/tEK7v5lFPlk0Q+GT5WD9E=
@@ -118,10 +118,10 @@ github.com/aws/aws-sdk-go-v2/credentials v1.19.34 h1:y6GkSmcv5myd1ngrYbGmiLlwQqB
 github.com/aws/aws-sdk-go-v2/credentials v1.19.34/go.mod h1:w3dTcnDVoQIewjo7JG45hduAToikiIFLC4FIO7fndvw=
 github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.35 h1:+S7kbJoLDDQ5tE+lHrUBgMkzC8NLgsaioS2F3dVoFAE=
 github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.35/go.mod h1:Ak7xXviIARfFdNUJ9Etb0bdVDt/KAvKjMGJVLWXDzik=
-github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.35 h1:kzVuGlatQtYinwBJEEyLAbggepCoavosiaHHX9+fD+c=
-github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.35/go.mod h1:0yLx0yEI+SfqeJMPvOtIEFoZbiQYXMGszBueiutQyaI=
-github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.35 h1:WK6CjihTuLisCjSKKbildJ79sGZZgbBz3iNa7VsKIhU=
-github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.35/go.mod h1:KYleN57luLoe97R7vTnx8PMcVrr9gAcRECtOjl91DNg=
+github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.36 h1:5CrzwxDqf4w3x1Vs3/NiZ0nsC34Hbm3pIDMWbsLebOE=
+github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.36/go.mod h1:A3gHdKZIvG/QXERzZwcxNS3RNDFcRCuhhTFBYp+V/nw=
+github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.36 h1:A4N2f4YPcST0v+dWtX+xrpPPCL9VTBhoIFFUWYqbacE=
+github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.36/go.mod h1:B/Qr859uxWUEfZeGotK5KAEoof4Q9YWgNtPSwV6jcyk=
 github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.36 h1:jbGY4CXLzZElOXgGsexlC3Hi+3YM0rSmk4opFXKqg/k=
 github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.36/go.mod h1:uBu/9aKsS/UQGc72RAt3y54kjgYQxmhut8ZD2dXCDNE=
 github.com/aws/aws-sdk-go-v2/service/autoscaling v1.71.0 h1:hJQ504HwtUQ9g5UMpfnre3/b7Mi0xA6/FGc3DDqLJnY=
@@ -136,8 +136,8 @@ github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.67.4 h1:8dqbeasu
 github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.67.4/go.mod h1:1xYnUW90CGAWwqQQd5rrVxJeTEgKFA/lyqm9KVx+dS8=
 github.com/aws/aws-sdk-go-v2/service/ec2 v1.321.0 h1:XxzwotCCRk2Un1OWcJujk4vAC2OZkGh5l816W1w+Fd8=
 github.com/aws/aws-sdk-go-v2/service/ec2 v1.321.0/go.mod h1:Gi5mEHpABbT34fHwafgyxqrIte9oHUEHscusPBYEdHA=
-github.com/aws/aws-sdk-go-v2/service/eks v1.90.4 h1:WYOOdUEfAom4j2Jfi0iL42d4ROsDX5/Hs1HkH+58Fl8=
-github.com/aws/aws-sdk-go-v2/service/eks v1.90.4/go.mod h1:aRJV0DQ7WnK5npu6r7Fe619TyiLLsyFLGfe8hI2IfVs=
+github.com/aws/aws-sdk-go-v2/service/eks v1.91.0 h1:Aqb+wVKS/L7M2CHIdfYQchj9eHRqEceoi1enmd7/xn0=
+github.com/aws/aws-sdk-go-v2/service/eks v1.91.0/go.mod h1:frF26xgNHHEOeY4ZZIfYGJGr0s5D39CePqNBG+gDnjY=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.36.4 h1:iWvY8WbmY6+N4Oj+lLqp7lk5BalgiNtga/JIzvpzR1U=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.36.4/go.mod h1:FqzuVgj0wplQs5Wc+XAo6UmGUjPqLPbmjoMvJlB8+Qg=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.58.5 h1:3Zphqh8L0blfkrdUv270L8RuNy0RvltPMaskEbs+Xo8=

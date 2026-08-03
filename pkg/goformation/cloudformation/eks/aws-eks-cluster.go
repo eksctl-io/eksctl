@@ -55,6 +55,21 @@ type Cluster struct {
 	// See: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-properties-eks-cluster-controlplanescalingconfig.html
 	ControlPlaneScalingConfig *Cluster_ControlPlaneScalingConfig `json:"ControlPlaneScalingConfig,omitempty"`
 
+	// KubeApiServerConfig AWS CloudFormation Property
+	// Required: false
+	// See: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-eks-cluster.html#cfn-eks-cluster-kubeapiserverconfig
+	KubeApiServerConfig *Cluster_KubeApiServerConfig `json:"KubeApiServerConfig,omitempty"`
+
+	// KubeControllerManagerConfig AWS CloudFormation Property
+	// Required: false
+	// See: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-eks-cluster.html#cfn-eks-cluster-kubecontrollermanagerconfig
+	KubeControllerManagerConfig *Cluster_KubeControllerManagerConfig `json:"KubeControllerManagerConfig,omitempty"`
+
+	// KubeSchedulerConfig AWS CloudFormation Property
+	// Required: false
+	// See: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-eks-cluster.html#cfn-eks-cluster-kubeschedulerconfig
+	KubeSchedulerConfig *Cluster_KubeSchedulerConfig `json:"KubeSchedulerConfig,omitempty"`
+
 	// OutpostConfig AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-eks-cluster.html#cfn-eks-cluster-outpostconfig

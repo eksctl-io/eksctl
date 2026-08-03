@@ -469,6 +469,9 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 			Tier: gfnt.NewString(*c.spec.ControlPlaneScalingConfig.Tier),
 		}
 	}
+	cluster.KubeApiServerConfig = makeKubeAPIServerConfig(c.spec.KubeAPIServerConfig)
+	cluster.KubeSchedulerConfig = makeKubeSchedulerConfig(c.spec.KubeSchedulerConfig)
+	cluster.KubeControllerManagerConfig = makeKubeControllerManagerConfig(c.spec.KubeControllerManagerConfig)
 
 	if c.spec.HasRemoteNetworkingConfigured() {
 		cluster.RemoteNetworkConfig = &gfneks.Cluster_RemoteNetworkConfig{}
@@ -630,4 +633,89 @@ func (c *ClusterResourceSet) generateKarpenterDiscoveryTagsWithValidation() ([]g
 			Value: gfnt.NewString(discoveryValue),
 		},
 	}, nil
+}
+
+// makeKubeAPIServerConfig converts the API kube-apiserver config to its CloudFormation
+// representation. It returns nil if no values are set, so that the property is omitted
+// from the template entirely.
+func makeKubeAPIServerConfig(config *api.KubeAPIServerConfig) *gfneks.Cluster_KubeApiServerConfig {
+	if config == nil {
+		return nil
+	}
+	out := &gfneks.Cluster_KubeApiServerConfig{}
+	isSet := false
+	if config.EventTTL != nil {
+		out.EventTtl = gfnt.NewString(*config.EventTTL)
+		isSet = true
+	}
+	if portRange := config.ServiceNodePortRange; portRange != nil {
+		nodePortRange := &gfneks.Cluster_ServiceNodePortRange{}
+		if portRange.MinPort != nil {
+			nodePortRange.MinPort = gfnt.NewInteger(*portRange.MinPort)
+		}
+		if portRange.MaxPort != nil {
+			nodePortRange.MaxPort = gfnt.NewInteger(*portRange.MaxPort)
+		}
+		if nodePortRange.MinPort != nil || nodePortRange.MaxPort != nil {
+			out.ServiceNodePortRange = nodePortRange
+			isSet = true
+		}
+	}
+	if !isSet {
+		return nil
+	}
+	return out
+}
+
+// makeKubeSchedulerConfig converts the API kube-scheduler config to its CloudFormation
+// representation. It returns nil if no values are set, so that the property is omitted
+// from the template entirely.
+func makeKubeSchedulerConfig(config *api.KubeSchedulerConfig) *gfneks.Cluster_KubeSchedulerConfig {
+	if config == nil || config.NodeResourcesFit == nil || config.NodeResourcesFit.ScoringStrategy == nil {
+		return nil
+	}
+	strategy := config.NodeResourcesFit.ScoringStrategy
+	scoringStrategy := &gfneks.Cluster_ScoringStrategy{}
+	isSet := false
+	if strategy.Type != nil {
+		scoringStrategy.Type = gfnt.NewString(*strategy.Type)
+		isSet = true
+	}
+	for _, resource := range strategy.Resources {
+		resourceWeight := gfneks.Cluster_ResourceWeight{}
+		if resource.Name != nil {
+			resourceWeight.Name = gfnt.NewString(*resource.Name)
+		}
+		if resource.Weight != nil {
+			resourceWeight.Weight = gfnt.NewInteger(*resource.Weight)
+		}
+		scoringStrategy.Resources = append(scoringStrategy.Resources, resourceWeight)
+		isSet = true
+	}
+	if !isSet {
+		return nil
+	}
+	return &gfneks.Cluster_KubeSchedulerConfig{
+		NodeResourcesFit: &gfneks.Cluster_NodeResourcesFitConfig{
+			ScoringStrategy: scoringStrategy,
+		},
+	}
+}
+
+// makeKubeControllerManagerConfig converts the API kube-controller-manager config to its
+// CloudFormation representation. It returns nil if no values are set, so that the property
+// is omitted from the template entirely.
+func makeKubeControllerManagerConfig(config *api.KubeControllerManagerConfig) *gfneks.Cluster_KubeControllerManagerConfig {
+	if config == nil || config.HorizontalPodAutoscalerControllerConfig == nil {
+		return nil
+	}
+	hpaConfig := config.HorizontalPodAutoscalerControllerConfig
+	if hpaConfig.HorizontalPodAutoscalerSyncPeriod == nil {
+		return nil
+	}
+	return &gfneks.Cluster_KubeControllerManagerConfig{
+		HorizontalPodAutoscalerControllerConfig: &gfneks.Cluster_HorizontalPodAutoscalerControllerConfig{
+			HorizontalPodAutoscalerSyncPeriod: gfnt.NewString(*hpaConfig.HorizontalPodAutoscalerSyncPeriod),
+		},
+	}
 }
