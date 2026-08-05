@@ -501,6 +501,10 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 		return errors.New("only one of vpc.securityGroup and vpc.controlPlaneSecurityGroupIDs can be specified")
 	}
 
+	if err := c.validateControlPlaneOnPrivateSubnets(); err != nil {
+		return err
+	}
+
 	if (c.VPC.IPv6Cidr != "" || c.VPC.IPv6Pool != "") && !c.IPv6Enabled() {
 		return fmt.Errorf("Ipv6Cidr and Ipv6CidrPool are only supported when IPFamily is set to IPv6")
 	}
@@ -552,6 +556,67 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 	}
 
 	return nil
+}
+
+// validateControlPlaneOnPrivateSubnets validates vpc.controlPlaneOnPrivateSubnets against
+// the rest of the VPC configuration.
+func (c *ClusterConfig) validateControlPlaneOnPrivateSubnets() error {
+	if !IsEnabled(c.VPC.ControlPlaneOnPrivateSubnets) {
+		return nil
+	}
+
+	if len(c.VPC.ControlPlaneSubnetIDs) > 0 {
+		return errors.New("only one of vpc.controlPlaneSubnetIDs and vpc.controlPlaneOnPrivateSubnets can be specified")
+	}
+
+	// The control plane is already restricted to private subnets on Outposts, where a
+	// single subnet in a single zone is expected, so the checks below do not apply.
+	if c.IsControlPlaneOnOutposts() {
+		return nil
+	}
+
+	// Subnets are nil when eksctl creates the VPC. Private subnets are then derived from
+	// availabilityZones by vpc.SetSubnets, which runs after validation and always covers
+	// every requested zone, so there is nothing to check yet.
+	if c.VPC.Subnets == nil {
+		return nil
+	}
+
+	if numPrivate := len(c.VPC.Subnets.Private); numPrivate < MinRequiredSubnets {
+		return fmt.Errorf("vpc.controlPlaneOnPrivateSubnets requires at least %d private subnets, got %d", MinRequiredSubnets, numPrivate)
+	}
+
+	if azs := distinctSubnetAZs(c.VPC.Subnets.Private); len(azs) < MinRequiredAvailabilityZones {
+		return fmt.Errorf("vpc.controlPlaneOnPrivateSubnets requires private subnets in at least %d availability zones, got %d (%v)", MinRequiredAvailabilityZones, len(azs), azs)
+	}
+
+	return nil
+}
+
+// distinctSubnetAZs returns the unique availability zones covered by the given subnets.
+// A subnet's zone is taken from its AZ field, falling back to the mapping key, which is an
+// AZ name in the common form.
+//
+// This is best-effort: subnets given only by ID have their zone resolved from EC2 later, so
+// their real zone is unknown here and the mapping key is used instead. Such a configuration
+// is allowed through and is rejected by the EKS API if the subnets turn out to share a zone.
+// The check is deliberately permissive rather than risk rejecting a valid pre-existing VPC.
+func distinctSubnetAZs(subnets AZSubnetMapping) []string {
+	seen := make(map[string]struct{}, len(subnets))
+	azs := make([]string, 0, len(subnets))
+	for key, spec := range subnets {
+		az := spec.AZ
+		if az == "" {
+			az = key
+		}
+		if _, ok := seen[az]; ok {
+			continue
+		}
+		seen[az] = struct{}{}
+		azs = append(azs, az)
+	}
+	slices.Sort(azs)
+	return azs
 }
 
 func (c *ClusterConfig) unsupportedVPCCNIAddonVersion() (bool, error) {

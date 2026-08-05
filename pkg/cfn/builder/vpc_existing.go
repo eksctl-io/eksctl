@@ -34,9 +34,8 @@ func NewExistingVPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig
 		clusterConfig: clusterConfig,
 		ec2API:        ec2API,
 		vpcID:         gfnt.NewString(clusterConfig.VPC.ID),
-		subnetDetails: &SubnetDetails{
-			controlPlaneOnOutposts: clusterConfig.IsControlPlaneOnOutposts(),
-		},
+		// autoMode is not applied to a pre-existing VPC; see newSubnetDetails.
+		subnetDetails: newSubnetDetails(clusterConfig, false),
 	}
 }
 

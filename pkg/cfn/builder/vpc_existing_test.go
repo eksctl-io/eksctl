@@ -179,6 +179,50 @@ var _ = Describe("Existing VPC", func() {
 			})
 		})
 
+		Context("when vpc.controlPlaneOnPrivateSubnets is enabled", func() {
+			BeforeEach(func() {
+				cfg.VPC.ControlPlaneOnPrivateSubnets = api.Enabled()
+			})
+
+			It("restricts the control plane to the existing private subnets", func() {
+				Expect(addErr).NotTo(HaveOccurred())
+				Expect(subnetDetails.ControlPlaneSubnetRefs()).To(ConsistOf(
+					gfnt.NewString(privateSubnet1),
+					gfnt.NewString(privateSubnet2),
+				))
+			})
+		})
+
+		Context("when vpc.controlPlaneOnPrivateSubnets is not set", func() {
+			It("uses both the existing public and private subnets for the control plane", func() {
+				Expect(addErr).NotTo(HaveOccurred())
+				Expect(subnetDetails.ControlPlaneSubnetRefs()).To(ConsistOf(
+					gfnt.NewString(publicSubnet1),
+					gfnt.NewString(publicSubnet2),
+					gfnt.NewString(privateSubnet1),
+					gfnt.NewString(privateSubnet2),
+				))
+			})
+		})
+
+		Context("when Auto Mode is enabled", func() {
+			BeforeEach(func() {
+				cfg.AutoModeConfig = &api.AutoModeConfig{Enabled: api.Enabled()}
+			})
+
+			It("does not restrict the control plane to private subnets", func() {
+				// Auto Mode only restricts the control plane for VPCs that eksctl creates.
+				// Restricting a pre-existing VPC requires vpc.controlPlaneOnPrivateSubnets.
+				Expect(addErr).NotTo(HaveOccurred())
+				Expect(subnetDetails.ControlPlaneSubnetRefs()).To(ConsistOf(
+					gfnt.NewString(publicSubnet1),
+					gfnt.NewString(publicSubnet2),
+					gfnt.NewString(privateSubnet1),
+					gfnt.NewString(privateSubnet2),
+				))
+			})
+		})
+
 		Context("when ipv6 is true", func() {
 			BeforeEach(func() {
 				cfg.KubernetesNetworkConfig.IPFamily = api.IPV6Family

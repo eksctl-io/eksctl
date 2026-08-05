@@ -1,6 +1,7 @@
 package cmdutils
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -84,6 +85,9 @@ func NewUpdateClusterVPCLoader(cmd *Cmd, options UpdateClusterVPCOptions) Cluste
 		logger.Info("only changes to vpc.clusterEndpoints, vpc.publicAccessCIDRs, vpc.controlPlaneSubnetIDs, vpc.controlPlaneSecurityGroupIDs and vpc.controlPlaneEgressMode are updated in the EKS API, changes to any other fields will be ignored")
 		if l.ClusterConfig.VPC == nil {
 			l.ClusterConfig.VPC = api.NewClusterVPC(false)
+		}
+		if api.IsEnabled(l.ClusterConfig.VPC.ControlPlaneOnPrivateSubnets) {
+			return errors.New("vpc.controlPlaneOnPrivateSubnets is only supported when creating a cluster; to change the control plane subnets of an existing cluster, set vpc.controlPlaneSubnetIDs to the IDs of the private subnets")
 		}
 		api.SetClusterEndpointAccessDefaults(l.ClusterConfig.VPC)
 		return nil

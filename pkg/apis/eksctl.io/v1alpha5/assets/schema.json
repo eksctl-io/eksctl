@@ -1163,6 +1163,11 @@
           "description": "controls how the control plane routes egress traffic. Valid values: \"AWS_MANAGED\" (default), \"CUSTOMER_ROUTED\"",
           "x-intellij-html-description": "controls how the control plane routes egress traffic. Valid values: &quot;AWS<em>MANAGED&quot; (default), &quot;CUSTOMER</em>ROUTED&quot;"
         },
+        "controlPlaneOnPrivateSubnets": {
+          "type": "boolean",
+          "description": "restricts the control plane (the cross-account ENIs that EKS places in the cluster subnets) to private subnets only, excluding public subnets. It applies both when eksctl creates the VPC and when a pre-existing VPC is used. Cannot be combined with ControlPlaneSubnetIDs. Requires at least two private subnets spanning at least two availability zones, which must have NAT or the relevant VPC endpoints for nodes to reach the API server.",
+          "x-intellij-html-description": "restricts the control plane (the cross-account ENIs that EKS places in the cluster subnets) to private subnets only, excluding public subnets. It applies both when eksctl creates the VPC and when a pre-existing VPC is used. Cannot be combined with ControlPlaneSubnetIDs. Requires at least two private subnets spanning at least two availability zones, which must have NAT or the relevant VPC endpoints for nodes to reach the API server."
+        },
         "controlPlaneSecurityGroupIDs": {
           "items": {
             "type": "string"
@@ -1259,6 +1264,7 @@
         "clusterEndpoints",
         "publicAccessCIDRs",
         "controlPlaneSubnetIDs",
+        "controlPlaneOnPrivateSubnets",
         "controlPlaneSecurityGroupIDs",
         "controlPlaneEgressMode"
       ],

@@ -927,6 +927,12 @@ func (c *ClusterConfig) IsControlPlaneOnOutposts() bool {
 	return c.Outpost != nil && c.Outpost.ControlPlaneOutpostARN != ""
 }
 
+// IsControlPlaneOnPrivateSubnets returns true if the control plane's cross-account ENIs
+// should be restricted to private subnets only.
+func (c *ClusterConfig) IsControlPlaneOnPrivateSubnets() bool {
+	return c.VPC != nil && IsEnabled(c.VPC.ControlPlaneOnPrivateSubnets)
+}
+
 // GetOutpost returns the Outpost info.
 func (c *ClusterConfig) GetOutpost() *Outpost {
 	return c.Outpost
