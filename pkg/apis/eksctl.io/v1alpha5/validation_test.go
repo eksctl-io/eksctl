@@ -1233,7 +1233,7 @@ var _ = Describe("ClusterConfig validation", func() {
 						}
 						cfg.Addons = append(cfg.Addons, &api.Addon{Name: api.KubeProxyAddon})
 						err = api.ValidateClusterConfig(cfg)
-						Expect(err).To(MatchError(ContainSubstring("the default core addons must be defined for IPv6; missing addon(s): vpc-cni, coredns")))
+						Expect(err).To(MatchError(ContainSubstring("the default core addons must be defined for IPv6; missing addon(s): coredns")))
 					})
 				})
 
@@ -1298,6 +1298,14 @@ var _ = Describe("ClusterConfig validation", func() {
 								err = api.ValidateClusterConfig(cfg)
 								Expect(err).To(MatchError(ContainSubstring("Set one of: addonsConfig.autoApplyPodIdentityAssociations, useDefaultPodIdentityAssociations on the vpc-cni addon, apply a custom pod identity on the vpc-cni addon")))
 							})
+						})
+					})
+
+					When("vpc-cni addon is not provided", func() {
+						It("accepts that setting", func() {
+							cfg.Addons = []*api.Addon{{Name: api.CoreDNSAddon}}
+							err = api.ValidateClusterConfig(cfg)
+							Expect(err).To(BeNil())
 						})
 					})
 				})
