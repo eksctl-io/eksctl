@@ -1,19 +1,102 @@
 version: 2
 updates:
+  # ---------------------------------------------------------------------------
+  # Go modules
+  #
+  # Ungrouped, this ecosystem alone can hold ~10 open PRs at once, each needing
+  # its own approval and CI run. Because main is not protected by a strict
+  # up-to-date requirement, those PRs merge without rebasing -- which means the
+  # combined result is never tested anywhere before it lands. Grouping gives one
+  # CI run over the whole batch instead of N runs over N untested combinations.
+  #
+  # Dependencies matching no group below still get their own PR. That is
+  # deliberate: major bumps and heavyweight deps stay individually reviewable.
+  # ---------------------------------------------------------------------------
   - package-ecosystem: "gomod"
     directory: "/"
     schedule:
       interval: "monthly"
     labels:
-    - "skip-release-notes"
-    - "dependencies"
+      - "skip-release-notes"
+      - "dependencies"
     open-pull-requests-limit: 10
+    groups:
+      # Test-only tooling. CI genuinely exercises these: the unit test and lint
+      # jobs run against them, so a green check is real verification. Majors are
+      # included here because a break surfaces as a failing build, not a
+      # production regression.
+      test-tooling:
+        applies-to: version-updates
+        patterns:
+          - "github.com/onsi/ginkgo/v2"
+          - "github.com/onsi/gomega"
+          - "github.com/vektra/mockery/v2"
+          - "github.com/stretchr/testify"
+        update-types:
+          - "major"
+          - "minor"
+          - "patch"
+
+      # AWS SDK v2 moves as a fleet; splitting it is what generates most of the
+      # go.sum churn. Minor/patch only -- an SDK major stays individual.
+      aws-sdk:
+        applies-to: version-updates
+        patterns:
+          - "github.com/aws/aws-sdk-go-v2"
+          - "github.com/aws/aws-sdk-go-v2/**"
+          - "github.com/aws/smithy-go"
+        update-types:
+          - "minor"
+          - "patch"
+
+      # Kubernetes ecosystem, kept separate from the catch-all so that an
+      # unexpected API-surface change is reviewed against a smaller diff.
+      kubernetes:
+        applies-to: version-updates
+        patterns:
+          - "k8s.io/**"
+          - "sigs.k8s.io/**"
+        update-types:
+          - "minor"
+          - "patch"
+
+      # Everything else non-major, including indirect dependencies.
+      #
+      # helm is excluded on purpose: it is load-bearing for eksctl and its
+      # minor releases have carried behavioural change, so it should arrive as
+      # its own reviewable PR rather than buried in a batch.
+      go-minor-patch:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "helm.sh/helm/v3"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # ---------------------------------------------------------------------------
+  # GitHub Actions
+  #
+  # Note: most of these workflows (docker-publish, ecr-publish, release-drafter,
+  # goreleaser) never run on a pull request, so a green PR check does NOT
+  # validate an Actions bump. Batching minor/patch is still safe because the
+  # SHAs are pinned and same-major, but majors must stay individual -- they are
+  # where runtime/node-version and input-contract breakage actually lands.
+  # ---------------------------------------------------------------------------
   - package-ecosystem: "github-actions"
     directory: "/"
-    schedule: 
+    schedule:
       interval: "monthly"
-    labels: 
-     - "skip-release-notes"
-     - "dependencies"
+    labels:
+      - "skip-release-notes"
+      - "dependencies"
     open-pull-requests-limit: 10
-    
+    groups:
+      actions-minor-patch:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
