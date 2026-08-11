@@ -7,7 +7,13 @@ INTERFACE_NAME="${2}"
 
 PACKAGE_NAME="github.com/aws/aws-sdk-go-v2/service/${SERVICE_NAME}"
 
-go get "${PACKAGE_NAME}"
+# Resolve the version already selected in go.mod. Using 'go get' here would
+# upgrade the module to its latest release and rewrite go.mod mid-build, which
+# makes every build non-reproducible: interfaces get generated against whatever
+# AWS published most recently rather than the pinned version, so an upstream
+# release can change generated code, and break tests that serialize SDK types,
+# with no corresponding commit to this repository.
+go mod download "${PACKAGE_NAME}"
 AWS_SDK_DIR=$(go list -m -f '{{.Dir}}' "${PACKAGE_NAME}")
 
 "${GOBIN}/ifacemaker" -f "${AWS_SDK_DIR}/*.go" -s Client -i "${INTERFACE_NAME}" -p awsapi \
