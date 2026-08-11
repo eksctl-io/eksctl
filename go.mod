@@ -17,7 +17,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.60.2
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.302.0
 	github.com/aws/aws-sdk-go-v2/service/eks v1.88.0
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.33.25
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.36.4
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.58.5
 	github.com/aws/aws-sdk-go-v2/service/iam v1.58.1
 	github.com/aws/aws-sdk-go-v2/service/kms v1.53.4
