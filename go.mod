@@ -30,7 +30,7 @@ require (
 	github.com/blang/semver/v4 v4.0.0
 	github.com/cenkalti/backoff/v5 v5.0.3
 	github.com/cloudflare/cfssl v1.6.5
-	github.com/dave/dst v0.27.3
+	github.com/dave/dst v0.27.4
 	github.com/dave/jennifer v1.7.1
 	github.com/dlespiau/kube-test-harness v0.0.0-20230207060801-867d8f54916e
 	github.com/evanphx/json-patch/v5 v5.9.11
