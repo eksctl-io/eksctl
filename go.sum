@@ -921,8 +921,8 @@ github.com/securego/gosec/v2 v2.22.10 h1:ntbBqdWXnu46DUOXn+R2SvPo3PiJCDugTCgTW2g
 github.com/securego/gosec/v2 v2.22.10/go.mod h1:9UNjK3tLpv/w2b0+7r82byV43wCJDNtEDQMeS+H/g2w=
 github.com/sergi/go-diff v1.4.0 h1:n/SP9D5ad1fORl+llWyN+D6qoUETXNZARKjyY2/KVCw=
 github.com/sergi/go-diff v1.4.0/go.mod h1:A0bzQcvG0E7Rwjx0REVgAGH58e96+X0MeOfepqsbeW4=
-github.com/sethvargo/go-password v0.3.1 h1:WqrLTjo7X6AcVYfC6R7GtSyuUQR9hGyAj/f1PYQZCJU=
-github.com/sethvargo/go-password v0.3.1/go.mod h1:rXofC1zT54N7R8K/h1WDUdkf9BOx5OptoxrMBcrXzvs=
+github.com/sethvargo/go-password v0.4.0 h1:eSidVKQw5C7CmTDAtH3RipBTSjdU1ZRxQaynD2GWLVU=
+github.com/sethvargo/go-password v0.4.0/go.mod h1:PO3nYHwUpcHPR0F9woy7a4abZPvzRuqJr0GaeIYTm3k=
 github.com/shopspring/decimal v1.4.0 h1:bxl37RwXBklmTi0C79JfXCEBD1cqqHt0bbgBAGFp81k=
 github.com/shopspring/decimal v1.4.0/go.mod h1:gawqmDU56v4yIKSwfBSFip1HdCCXN8/+DMd9qYNcwME=
 github.com/sirupsen/logrus v1.9.3 h1:dueUQJ1C2q9oE3F7wvmSGAaVtTmUizReu6fjN8uqzbQ=
