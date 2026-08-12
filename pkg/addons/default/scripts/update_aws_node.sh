@@ -37,3 +37,19 @@ fi
 
 # Update the unit test file
 sed -i "s/expectedVersion = \"\(.*\)\"/expectedVersion = \"$latest_release_tag\"/g" "$default_addons_dir/aws_node_test.go"
+
+# The aws-network-policy-agent sidecar is versioned independently of the VPC CNI
+# release tag, so it cannot be derived from $latest_release_tag. Read it back out
+# of the manifest that was just downloaded, otherwise the expected value in the
+# unit test drifts from the manifest whenever the sidecar moves and the aws-node
+# specs fail on an otherwise correct update.
+node_agent_version=$(grep -oE 'aws-network-policy-agent:v[0-9]+\.[0-9]+\.[0-9]+' \
+  "$default_addons_dir/assets/aws-node.yaml" | head -1 | cut -d: -f2)
+
+if [ -z "$node_agent_version" ]; then
+  echo "Could not determine the aws-network-policy-agent version from $default_addons_dir/assets/aws-node.yaml."
+  exit 1
+fi
+
+echo "Found the aws-network-policy-agent version: $node_agent_version"
+sed -i "s/expectedNodeAgentVersion = \"\(.*\)\"/expectedNodeAgentVersion = \"$node_agent_version\"/g" "$default_addons_dir/aws_node_test.go"
