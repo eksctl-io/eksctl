@@ -760,7 +760,12 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 				Context("and gpu instance", func() {
 					BeforeEach(func() {
-						instanceType = "p3.2xlarge"
+						// Any NVIDIA instance type exercises the same "-nvidia"
+						// SSM parameter path. Prefer a current-generation family:
+						// the previous exemplar, p3, has since been retired and
+						// dropped out of the generated instance data, which broke
+						// this spec.
+						instanceType = "g5.xlarge"
 						version = "1.23"
 					})
 
