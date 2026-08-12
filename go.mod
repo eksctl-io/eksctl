@@ -8,23 +8,23 @@ require (
 	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/aws/amazon-ec2-instance-selector/v3 v3.1.3
 	github.com/aws/aws-sdk-go-v2 v1.43.4
-	github.com/aws/aws-sdk-go-v2/config v1.32.16
+	github.com/aws/aws-sdk-go-v2/config v1.32.35
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.34
-	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.66.2
+	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.71.0
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.76.1
-	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.55.11
-	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.73.0
-	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.60.2
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.302.0
-	github.com/aws/aws-sdk-go-v2/service/eks v1.88.0
+	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.58.4
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.82.0
+	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.67.4
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.321.0
+	github.com/aws/aws-sdk-go-v2/service/eks v1.90.4
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.36.4
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.58.5
 	github.com/aws/aws-sdk-go-v2/service/iam v1.58.1
-	github.com/aws/aws-sdk-go-v2/service/kms v1.53.4
-	github.com/aws/aws-sdk-go-v2/service/outposts v1.59.2
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.68.6
+	github.com/aws/aws-sdk-go-v2/service/kms v1.55.4
+	github.com/aws/aws-sdk-go-v2/service/outposts v1.66.1
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.73.4
 	github.com/aws/aws-sdk-go-v2/service/sts v1.45.4
-	github.com/aws/smithy-go v1.27.6
+	github.com/aws/smithy-go v1.27.7
 	github.com/awslabs/amazon-eks-ami/nodeadm v0.0.0-20260213141146-147b13ea3f4a
 	github.com/benjamintf1/unmarshalledmatchers v1.0.0
 	github.com/blang/semver/v4 v4.0.0
@@ -134,7 +134,7 @@ require (
 	github.com/ashanbrown/forbidigo/v2 v2.3.0 // indirect
 	github.com/ashanbrown/makezero/v2 v2.1.0 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
-	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.10 // indirect
+	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.16 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.35 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.35 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.35 // indirect
