@@ -63,6 +63,15 @@ func addBetaResources(stsAPI awsapi.STS, stackName string, clusterTemplate *gfn.
 	if g.EncryptionConfig != nil {
 		customResource.Properties["EncryptionConfig"] = g.EncryptionConfig
 	}
+	if g.KubeApiServerConfig != nil {
+		customResource.Properties["KubeApiServerConfig"] = g.KubeApiServerConfig
+	}
+	if g.KubeControllerManagerConfig != nil {
+		customResource.Properties["KubeControllerManagerConfig"] = g.KubeControllerManagerConfig
+	}
+	if g.KubeSchedulerConfig != nil {
+		customResource.Properties["KubeSchedulerConfig"] = g.KubeSchedulerConfig
+	}
 	if g.KubernetesNetworkConfig != nil {
 		customResource.Properties["KubernetesNetworkConfig"] = g.KubernetesNetworkConfig
 	}

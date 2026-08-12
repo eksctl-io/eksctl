@@ -63,6 +63,32 @@ type Properties struct {
 		Tier string
 	}
 
+	KubeApiServerConfig *struct {
+		EventTtl             string
+		ServiceNodePortRange *struct {
+			MinPort int
+			MaxPort int
+		}
+	}
+
+	KubeSchedulerConfig *struct {
+		NodeResourcesFit *struct {
+			ScoringStrategy *struct {
+				Type      string
+				Resources []struct {
+					Name   string
+					Weight int
+				}
+			}
+		}
+	}
+
+	KubeControllerManagerConfig *struct {
+		HorizontalPodAutoscalerControllerConfig *struct {
+			HorizontalPodAutoscalerSyncPeriod string
+		}
+	}
+
 	LoadBalancerNames                 []string
 	MetricsCollection                 []map[string]interface{}
 	TargetGroupARNs                   []string
