@@ -62,15 +62,23 @@ updates:
 
       # Everything else non-major, including indirect dependencies.
       #
-      # helm is excluded on purpose: it is load-bearing for eksctl and its
-      # minor releases have carried behavioural change, so it should arrive as
-      # its own reviewable PR rather than buried in a batch.
+      # Exclusions are for dependencies that should not be able to block an
+      # otherwise healthy batch:
+      #
+      # - helm is load-bearing for eksctl and its minor releases have carried
+      #   behavioural change, so it should arrive as its own reviewable PR.
+      # - golangci-lint pulls the whole linter tree (staticcheck, and dozens of
+      #   analyser plugins) and is constrained by the `replace` directive
+      #   pinning golang.org/x/tools below the version it needs. A grouped
+      #   update including it therefore cannot build, which blocks every other
+      #   dependency in the same pull request.
       go-minor-patch:
         applies-to: version-updates
         patterns:
           - "*"
         exclude-patterns:
           - "helm.sh/helm/v3"
+          - "github.com/golangci/golangci-lint/v2"
         update-types:
           - "minor"
           - "patch"
