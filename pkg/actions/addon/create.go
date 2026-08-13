@@ -490,6 +490,12 @@ func makeIPv6VPCCNIPolicyDocument(partition string) map[string]interface{} {
 					"ec2:DescribeTags",
 					"ec2:DescribeNetworkInterfaces",
 					"ec2:DescribeInstanceTypes",
+					// Required by the VPC CNI's subnet discovery, which is enabled
+					// by default. Without it ipamd fails to initialise, aws-node
+					// crash-loops and nodes never become ready. The IPv4 path gets
+					// this from the AWS-managed AmazonEKS_CNI_Policy; the IPv6
+					// path uses this inline policy, so it must be granted here.
+					"ec2:DescribeSubnets",
 				},
 				"Resource": "*",
 			},
