@@ -1167,6 +1167,10 @@ var _ = Describe("Create", func() {
 					output, err := rsr.(*builder.IAMRoleResourceSet).RenderJSON()
 					Expect(err).NotTo(HaveOccurred())
 					Expect(string(output)).To(ContainSubstring("AssignIpv6Addresses"))
+					// Subnet discovery is on by default in the VPC CNI; without
+					// this permission ipamd fails to initialise and nodes never
+					// become ready.
+					Expect(string(output)).To(ContainSubstring("DescribeSubnets"))
 					rsr.(*builder.IAMRoleResourceSet).OutputRole = "arn:aws:iam::111122223333:role/role-name-1"
 					return nil
 				}
