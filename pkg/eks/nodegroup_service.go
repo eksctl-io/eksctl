@@ -65,7 +65,7 @@ func (n *NodeGroupService) Normalize(ctx context.Context, nodePools []api.NodePo
 			hasNativeAMIFamilySupport :=
 				ng.AMIFamily == api.NodeImageFamilyAmazonLinux2023 ||
 					ng.AMIFamily == api.NodeImageFamilyAmazonLinux2 ||
-					ng.AMIFamily == api.NodeImageFamilyBottlerocket ||
+					api.IsBottlerocketImage(ng.AMIFamily) ||
 					api.IsWindowsImage(ng.AMIFamily)
 
 			if !hasNativeAMIFamilySupport && !api.IsAMI(ng.AMI) {

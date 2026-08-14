@@ -84,6 +84,8 @@ func MakeSSMParameterName(version, instanceType, imageFamily string) (string, er
 		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-2025-English-%s-EKS_Optimized-%s/%s", windowsAmiType(imageFamily), version, fieldName), nil
 	case api.NodeImageFamilyBottlerocket:
 		return fmt.Sprintf("/aws/service/bottlerocket/aws-k8s-%s/%s/latest/%s", imageType(imageFamily, instanceType, version), instanceEC2ArchName(instanceType), fieldName), nil
+	case api.NodeImageFamilyBottlerocketFips:
+		return fmt.Sprintf("/aws/service/bottlerocket/aws-k8s-%s-fips/%s/latest/%s", imageType(api.NodeImageFamilyBottlerocket, instanceType, version), instanceEC2ArchName(instanceType), fieldName), nil
 	case api.NodeImageFamilyUbuntu2004,
 		api.NodeImageFamilyUbuntuPro2004,
 		api.NodeImageFamilyUbuntu2204,
@@ -148,6 +150,10 @@ func MakeManagedSSMParameterName(version string, amiType ekstypes.AMITypes) stri
 		return fmt.Sprintf("/aws/service/bottlerocket/aws-k8s-%s/arm64/latest/image_version", version)
 	case ekstypes.AMITypesBottlerocketX8664, ekstypes.AMITypesBottlerocketX8664Nvidia:
 		return fmt.Sprintf("/aws/service/bottlerocket/aws-k8s-%s/x86_64/latest/image_version", version)
+	case ekstypes.AMITypesBottlerocketArm64Fips, ekstypes.AMITypesBottlerocketArm64NvidiaFips:
+		return fmt.Sprintf("/aws/service/bottlerocket/aws-k8s-%s-fips/arm64/latest/image_version", version)
+	case ekstypes.AMITypesBottlerocketX8664Fips, ekstypes.AMITypesBottlerocketX8664NvidiaFips:
+		return fmt.Sprintf("/aws/service/bottlerocket/aws-k8s-%s-fips/x86_64/latest/image_version", version)
 	default:
 		return ""
 	}

@@ -209,18 +209,19 @@ const (
 // All valid values of supported families should go in this block
 const (
 	// DefaultNodeImageFamily (default)
-	DefaultNodeImageFamily         = NodeImageFamilyAmazonLinux2023
-	NodeImageFamilyAmazonLinux2023 = "AmazonLinux2023"
-	NodeImageFamilyAmazonLinux2    = "AmazonLinux2"
-	NodeImageFamilyUbuntuPro2604   = "UbuntuPro2604"
-	NodeImageFamilyUbuntu2604      = "Ubuntu2604"
-	NodeImageFamilyUbuntuPro2404   = "UbuntuPro2404"
-	NodeImageFamilyUbuntu2404      = "Ubuntu2404"
-	NodeImageFamilyUbuntuPro2204   = "UbuntuPro2204"
-	NodeImageFamilyUbuntu2204      = "Ubuntu2204"
-	NodeImageFamilyUbuntuPro2004   = "UbuntuPro2004"
-	NodeImageFamilyUbuntu2004      = "Ubuntu2004"
-	NodeImageFamilyBottlerocket    = "Bottlerocket"
+	DefaultNodeImageFamily          = NodeImageFamilyAmazonLinux2023
+	NodeImageFamilyAmazonLinux2023  = "AmazonLinux2023"
+	NodeImageFamilyAmazonLinux2     = "AmazonLinux2"
+	NodeImageFamilyUbuntuPro2604    = "UbuntuPro2604"
+	NodeImageFamilyUbuntu2604       = "Ubuntu2604"
+	NodeImageFamilyUbuntuPro2404    = "UbuntuPro2404"
+	NodeImageFamilyUbuntu2404       = "Ubuntu2404"
+	NodeImageFamilyUbuntuPro2204    = "UbuntuPro2204"
+	NodeImageFamilyUbuntu2204       = "Ubuntu2204"
+	NodeImageFamilyUbuntuPro2004    = "UbuntuPro2004"
+	NodeImageFamilyUbuntu2004       = "Ubuntu2004"
+	NodeImageFamilyBottlerocket     = "Bottlerocket"
+	NodeImageFamilyBottlerocketFips = "BottlerocketFips"
 
 	NodeImageFamilyWindowsServer2019CoreContainer = "WindowsServer2019CoreContainer"
 	NodeImageFamilyWindowsServer2019FullContainer = "WindowsServer2019FullContainer"
@@ -609,6 +610,7 @@ func SupportedAMIFamilies() []string {
 		NodeImageFamilyUbuntuPro2004,
 		NodeImageFamilyUbuntu2004,
 		NodeImageFamilyBottlerocket,
+		NodeImageFamilyBottlerocketFips,
 		NodeImageFamilyWindowsServer2019CoreContainer,
 		NodeImageFamilyWindowsServer2019FullContainer,
 		NodeImageFamilyWindowsServer2022CoreContainer,
@@ -1095,6 +1097,18 @@ type ClusterConfig struct {
 	// ZonalShiftConfig specifies the zonal shift configuration.
 	ZonalShiftConfig *ZonalShiftConfig `json:"zonalShiftConfig,omitempty"`
 
+	// KubeAPIServerConfig specifies the kube-apiserver configuration.
+	// +optional
+	KubeAPIServerConfig *KubeAPIServerConfig `json:"kubeAPIServerConfig,omitempty"`
+
+	// KubeSchedulerConfig specifies the kube-scheduler configuration.
+	// +optional
+	KubeSchedulerConfig *KubeSchedulerConfig `json:"kubeSchedulerConfig,omitempty"`
+
+	// KubeControllerManagerConfig specifies the kube-controller-manager configuration.
+	// +optional
+	KubeControllerManagerConfig *KubeControllerManagerConfig `json:"kubeControllerManagerConfig,omitempty"`
+
 	// Capabilities specifies the capabilities for the cluster.
 	// +optional
 	Capabilities []Capability `json:"capabilities,omitempty"`
@@ -1138,6 +1152,78 @@ type ControlPlaneScalingConfig struct {
 type ZonalShiftConfig struct {
 	// Enabled enables or disables zonal shift.
 	Enabled *bool `json:"enabled,omitempty"`
+}
+
+// KubeAPIServerConfig holds the kube-apiserver configuration.
+type KubeAPIServerConfig struct {
+	// EventTTL specifies how long Kubernetes events are retained, as a duration
+	// string (for example, "30m" or "1h").
+	// +optional
+	EventTTL *string `json:"eventTTL,omitempty"`
+
+	// ServiceNodePortRange specifies the port range for NodePort services.
+	// +optional
+	ServiceNodePortRange *ServiceNodePortRange `json:"serviceNodePortRange,omitempty"`
+}
+
+// ServiceNodePortRange holds the port range for NodePort services.
+type ServiceNodePortRange struct {
+	// MinPort specifies the minimum port number in the range.
+	MinPort *int `json:"minPort,omitempty"`
+
+	// MaxPort specifies the maximum port number in the range.
+	MaxPort *int `json:"maxPort,omitempty"`
+}
+
+// KubeSchedulerConfig holds the kube-scheduler configuration.
+type KubeSchedulerConfig struct {
+	// NodeResourcesFit specifies the NodeResourcesFit scheduler plugin configuration.
+	// +optional
+	NodeResourcesFit *NodeResourcesFitConfig `json:"nodeResourcesFit,omitempty"`
+}
+
+// NodeResourcesFitConfig holds the NodeResourcesFit scheduler plugin configuration.
+type NodeResourcesFitConfig struct {
+	// ScoringStrategy specifies how nodes are scored during scheduling.
+	// +optional
+	ScoringStrategy *ScoringStrategy `json:"scoringStrategy,omitempty"`
+}
+
+// ScoringStrategy holds the scoring strategy for the NodeResourcesFit scheduler plugin.
+type ScoringStrategy struct {
+	// Type specifies the scoring strategy type.
+	// Valid variants are: `LeastAllocated`, `MostAllocated`.
+	// +optional
+	Type *string `json:"type,omitempty"`
+
+	// Resources specifies the resource weights used for scoring nodes.
+	// +optional
+	Resources []ResourceWeight `json:"resources,omitempty"`
+}
+
+// ResourceWeight holds a resource weight entry for the scheduler scoring strategy.
+type ResourceWeight struct {
+	// Name specifies the name of the resource, for example "cpu" or "memory".
+	Name *string `json:"name,omitempty"`
+
+	// Weight specifies the weight assigned to the resource for scoring.
+	Weight *int `json:"weight,omitempty"`
+}
+
+// KubeControllerManagerConfig holds the kube-controller-manager configuration.
+type KubeControllerManagerConfig struct {
+	// HorizontalPodAutoscalerControllerConfig specifies the horizontal pod autoscaler
+	// controller configuration.
+	// +optional
+	HorizontalPodAutoscalerControllerConfig *HorizontalPodAutoscalerControllerConfig `json:"horizontalPodAutoscalerControllerConfig,omitempty"`
+}
+
+// HorizontalPodAutoscalerControllerConfig holds the horizontal pod autoscaler controller configuration.
+type HorizontalPodAutoscalerControllerConfig struct {
+	// HorizontalPodAutoscalerSyncPeriod specifies the interval between each sync of the
+	// horizontal pod autoscaler, as a duration string (for example, "15s").
+	// +optional
+	HorizontalPodAutoscalerSyncPeriod *string `json:"horizontalPodAutoscalerSyncPeriod,omitempty"`
 }
 
 // OutpostInfo describes the Outpost info.

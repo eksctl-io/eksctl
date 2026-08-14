@@ -113,6 +113,77 @@ var _ = Describe("Cluster Template Builder", func() {
 			})
 		})
 
+		Context("when no control plane component config is set", func() {
+			It("should not include any component config in control plane resources", func() {
+				controlPlane := clusterTemplate.Resources["ControlPlane"].Properties
+				Expect(controlPlane.KubeApiServerConfig).To(BeNil())
+				Expect(controlPlane.KubeSchedulerConfig).To(BeNil())
+				Expect(controlPlane.KubeControllerManagerConfig).To(BeNil())
+			})
+		})
+
+		Context("when kubeAPIServerConfig is set", func() {
+			BeforeEach(func() {
+				cfg.KubeAPIServerConfig = &api.KubeAPIServerConfig{
+					EventTTL: aws.String("30m"),
+					ServiceNodePortRange: &api.ServiceNodePortRange{
+						MinPort: aws.Int(30000),
+						MaxPort: aws.Int(32767),
+					},
+				}
+			})
+
+			It("should include KubeApiServerConfig in control plane resources", func() {
+				kubeAPIServerConfig := clusterTemplate.Resources["ControlPlane"].Properties.KubeApiServerConfig
+				Expect(kubeAPIServerConfig).NotTo(BeNil())
+				Expect(kubeAPIServerConfig.EventTtl).To(Equal("30m"))
+				Expect(kubeAPIServerConfig.ServiceNodePortRange).NotTo(BeNil())
+				Expect(kubeAPIServerConfig.ServiceNodePortRange.MinPort).To(Equal(30000))
+				Expect(kubeAPIServerConfig.ServiceNodePortRange.MaxPort).To(Equal(32767))
+			})
+		})
+
+		Context("when kubeSchedulerConfig is set", func() {
+			BeforeEach(func() {
+				cfg.KubeSchedulerConfig = &api.KubeSchedulerConfig{
+					NodeResourcesFit: &api.NodeResourcesFitConfig{
+						ScoringStrategy: &api.ScoringStrategy{
+							Type: aws.String("MostAllocated"),
+							Resources: []api.ResourceWeight{
+								{Name: aws.String("cpu"), Weight: aws.Int(1)},
+								{Name: aws.String("memory"), Weight: aws.Int(1)},
+							},
+						},
+					},
+				}
+			})
+
+			It("should include KubeSchedulerConfig in control plane resources", func() {
+				scoringStrategy := clusterTemplate.Resources["ControlPlane"].Properties.KubeSchedulerConfig.NodeResourcesFit.ScoringStrategy
+				Expect(scoringStrategy).NotTo(BeNil())
+				Expect(scoringStrategy.Type).To(Equal("MostAllocated"))
+				Expect(scoringStrategy.Resources).To(HaveLen(2))
+				Expect(scoringStrategy.Resources[0].Name).To(Equal("cpu"))
+				Expect(scoringStrategy.Resources[0].Weight).To(Equal(1))
+			})
+		})
+
+		Context("when kubeControllerManagerConfig is set", func() {
+			BeforeEach(func() {
+				cfg.KubeControllerManagerConfig = &api.KubeControllerManagerConfig{
+					HorizontalPodAutoscalerControllerConfig: &api.HorizontalPodAutoscalerControllerConfig{
+						HorizontalPodAutoscalerSyncPeriod: aws.String("15s"),
+					},
+				}
+			})
+
+			It("should include KubeControllerManagerConfig in control plane resources", func() {
+				hpaConfig := clusterTemplate.Resources["ControlPlane"].Properties.KubeControllerManagerConfig.HorizontalPodAutoscalerControllerConfig
+				Expect(hpaConfig).NotTo(BeNil())
+				Expect(hpaConfig.HorizontalPodAutoscalerSyncPeriod).To(Equal("15s"))
+			})
+		})
+
 		It("should add vpc resources", func() {
 			Expect(clusterTemplate.Resources).To(HaveKey(vpcResourceKey))
 			Expect(clusterTemplate.Resources).To(HaveKey(igwKey))

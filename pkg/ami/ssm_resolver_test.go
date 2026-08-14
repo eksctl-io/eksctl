@@ -760,7 +760,12 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 				Context("and gpu instance", func() {
 					BeforeEach(func() {
-						instanceType = "p3.2xlarge"
+						// Any NVIDIA instance type exercises the same "-nvidia"
+						// SSM parameter path. Prefer a current-generation family:
+						// the previous exemplar, p3, has since been retired and
+						// dropped out of the generated instance data, which broke
+						// this spec.
+						instanceType = "g5.xlarge"
 						version = "1.23"
 					})
 
@@ -814,11 +819,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 		It("should support SSM parameter generation for all AMI types but Windows", func() {
 			var eksAMIType ekstypes.AMITypes
 			for _, amiType := range eksAMIType.Values() {
-				if amiType == ekstypes.AMITypesCustom || strings.HasPrefix(string(amiType), "WINDOWS_") ||
-					// TODO: remove this condition after support for Bottlerocket FIPS AMI types.
-					amiType == ekstypes.AMITypesBottlerocketArm64Fips || amiType == ekstypes.AMITypesBottlerocketX8664Fips ||
-					// TODO: remove this condition after support for Bottlerocket Nvidia FIPS AMI types.
-					amiType == ekstypes.AMITypesBottlerocketArm64NvidiaFips || amiType == ekstypes.AMITypesBottlerocketX8664NvidiaFips {
+				if amiType == ekstypes.AMITypesCustom || strings.HasPrefix(string(amiType), "WINDOWS_") {
 					continue
 				}
 				ssmParameterName := MakeManagedSSMParameterName(api.Version1_31, amiType)

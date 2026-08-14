@@ -40,6 +40,14 @@ func GetAMIType(amiFamily, instanceType string, strict bool) ekstypes.AMITypes {
 			ARM64Nvidia: ekstypes.AMITypesBottlerocketArm64Nvidia,
 			ARM64Neuron: ekstypes.AMITypesBottlerocketArm64,
 		},
+		NodeImageFamilyBottlerocketFips: {
+			X86x64:      ekstypes.AMITypesBottlerocketX8664Fips,
+			X86Nvidia:   ekstypes.AMITypesBottlerocketX8664NvidiaFips,
+			X86Neuron:   ekstypes.AMITypesBottlerocketX8664Fips,
+			ARM:         ekstypes.AMITypesBottlerocketArm64Fips,
+			ARM64Nvidia: ekstypes.AMITypesBottlerocketArm64NvidiaFips,
+			ARM64Neuron: ekstypes.AMITypesBottlerocketArm64Fips,
+		},
 		NodeImageFamilyWindowsServer2019FullContainer: {
 			X86x64:    ekstypes.AMITypesWindowsFull2019X8664,
 			X86Nvidia: ekstypes.AMITypesWindowsFull2019X8664,

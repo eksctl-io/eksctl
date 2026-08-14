@@ -150,6 +150,7 @@ nav:
       - usage/unowned-clusters.md
       - usage/eks-connector.md
       - usage/customizing-the-kubelet.md
+      - usage/control-plane-component-config.md
       - usage/cloudwatch-cluster-logging.md
       - usage/eks-private-cluster.md
       - usage/addons.md
