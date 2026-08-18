@@ -3,6 +3,7 @@ package addon_test
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"time"
@@ -988,6 +989,12 @@ var _ = Describe("Create", func() {
 						Expect(args[1]).To(BeAssignableToTypeOf(&api.PodIdentityAssociation{}))
 						Expect(args[1].(*api.PodIdentityAssociation).ServiceAccountName).To(Equal("aws-node"))
 						Expect(args[1].(*api.PodIdentityAssociation).PermissionPolicy).NotTo(BeEmpty())
+						// The pod identity path shares the IPv6 CNI policy document with
+						// the IRSA path; subnet discovery permissions must reach both.
+						policy, err := json.Marshal(args[1].(*api.PodIdentityAssociation).PermissionPolicy)
+						Expect(err).NotTo(HaveOccurred())
+						Expect(string(policy)).To(ContainSubstring("ec2:DescribeSubnets"))
+						Expect(string(policy)).To(ContainSubstring("ec2:DescribeSecurityGroups"))
 					}).
 					Return("arn:aws:iam::111122223333:role/aws-node", nil).
 					Once()
@@ -1168,9 +1175,10 @@ var _ = Describe("Create", func() {
 					Expect(err).NotTo(HaveOccurred())
 					Expect(string(output)).To(ContainSubstring("AssignIpv6Addresses"))
 					// Subnet discovery is on by default in the VPC CNI; without
-					// this permission ipamd fails to initialise and nodes never
+					// these permissions ipamd fails to initialise and nodes never
 					// become ready.
 					Expect(string(output)).To(ContainSubstring("DescribeSubnets"))
+					Expect(string(output)).To(ContainSubstring("DescribeSecurityGroups"))
 					rsr.(*builder.IAMRoleResourceSet).OutputRole = "arn:aws:iam::111122223333:role/role-name-1"
 					return nil
 				}
