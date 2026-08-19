@@ -201,6 +201,9 @@ const (
 	// Region represents the region EU ISOE West.
 	RegionEUISOEWest1 = "eu-isoe-west-1"
 
+	// RegionEUSCDEEast1 represents the AWS European Sovereign Cloud region Germany East.
+	RegionEUSCDEEast1 = "eusc-de-east-1"
+
 	// DefaultRegion defines the default region, where to deploy the EKS cluster
 	DefaultRegion = RegionUSWest2
 )
@@ -420,6 +423,9 @@ const (
 
 	// eksResourceAccountEUISOEWest1 defines the AWS EKS account ID that provides node resources in eu-isoe-west-1
 	eksResourceAccountEUISOEWest1 = "249663109785"
+
+	// eksResourceAccountEUSCDEEast1 defines the AWS EKS account ID that provides node resources in eusc-de-east-1
+	eksResourceAccountEUSCDEEast1 = "877088126301"
 )
 
 // Values for `VolumeType`
@@ -581,6 +587,7 @@ func SupportedRegions() []string {
 		RegionUSISOFSouth1,
 		RegionUSISOFEast1,
 		RegionEUISOEWest1,
+		RegionEUSCDEEast1,
 	}
 }
 
@@ -691,6 +698,8 @@ func EKSResourceAccountID(region string) string {
 		return eksResourceAccountUSISOFEast1
 	case RegionEUISOEWest1:
 		return eksResourceAccountEUISOEWest1
+	case RegionEUSCDEEast1:
+		return eksResourceAccountEUSCDEEast1
 	default:
 		return eksResourceAccountStandard
 	}

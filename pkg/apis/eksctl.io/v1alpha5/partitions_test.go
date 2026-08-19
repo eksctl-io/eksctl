@@ -25,6 +25,7 @@ func TestV1SDKDNSPrefix(t *testing.T) {
 		{RegionUSISOBEast1, "sc2s.sgov.gov"},
 		{RegionEUISOEWest1, "cloud.adc-e.uk"},
 		{RegionUSISOFSouth1, "csp.hci.ic.gov"},
+		{RegionEUSCDEEast1, "amazonaws.eu"},
 	}
 	for _, test := range tests {
 		dns, err := Partitions.V1SDKDNSPrefixForRegion(test.region)

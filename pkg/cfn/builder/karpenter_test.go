@@ -84,6 +84,13 @@ var expectedTemplate = `{
         "EKS": "eks.amazonaws.com",
         "EKSFargatePods": "eks-fargate-pods.amazonaws.com"
       },
+      "aws-eusc": {
+        "EC2": "ec2.amazonaws.com",
+        "EKS": "eks.amazonaws.com",
+        "EKSFargatePods": "eks-fargate-pods.amazonaws.com",
+        "IRA": "rolesanywhere.amazonaws.com",
+        "SSM": "ssm.amazonaws.com"
+      },
       "aws-iso": {
         "EC2": "ec2.c2s.ic.gov",
         "EKS": "eks.amazonaws.com",
@@ -244,6 +251,13 @@ var expectedTemplateWithPermissionBoundary = `{
         "EC2": "ec2.amazonaws.com.cn",
         "EKS": "eks.amazonaws.com",
         "EKSFargatePods": "eks-fargate-pods.amazonaws.com"
+      },
+      "aws-eusc": {
+        "EC2": "ec2.amazonaws.com",
+        "EKS": "eks.amazonaws.com",
+        "EKSFargatePods": "eks-fargate-pods.amazonaws.com",
+        "IRA": "rolesanywhere.amazonaws.com",
+        "SSM": "ssm.amazonaws.com"
       },
       "aws-iso": {
         "EC2": "ec2.c2s.ic.gov",
@@ -406,6 +420,13 @@ var expectedTemplateWithSpotInterruptionQueue = `{
         "EC2": "ec2.amazonaws.com.cn",
         "EKS": "eks.amazonaws.com",
         "EKSFargatePods": "eks-fargate-pods.amazonaws.com"
+      },
+      "aws-eusc": {
+        "EC2": "ec2.amazonaws.com",
+        "EKS": "eks.amazonaws.com",
+        "EKSFargatePods": "eks-fargate-pods.amazonaws.com",
+        "IRA": "rolesanywhere.amazonaws.com",
+        "SSM": "ssm.amazonaws.com"
       },
       "aws-iso": {
         "EC2": "ec2.c2s.ic.gov",

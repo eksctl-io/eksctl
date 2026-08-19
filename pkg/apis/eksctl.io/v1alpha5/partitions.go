@@ -11,6 +11,7 @@ const (
 	PartitionISOB  = "aws-iso-b"
 	PartitionISOF  = "aws-iso-f"
 	PartitionISOE  = "aws-iso-e"
+	PartitionEUSC  = "aws-eusc"
 )
 
 // partition is an AWS partition.
@@ -148,6 +149,13 @@ var Partitions = partitions{
 		endpointServiceDomainPrefix:    standardPartitionServiceDomainPrefix,
 		endpointServiceDomainPrefixAlt: "gov.ic.hci.csp",
 		v1SDKDNSPrefix:                 "csp.hci.ic.gov",
+	},
+	{
+		name:                        PartitionEUSC,
+		serviceMappings:             standardServiceMappings,
+		regions:                     []string{RegionEUSCDEEast1},
+		endpointServiceDomainPrefix: standardPartitionServiceDomainPrefix,
+		v1SDKDNSPrefix:              "amazonaws.eu",
 	},
 }
 
