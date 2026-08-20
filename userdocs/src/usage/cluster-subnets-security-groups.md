@@ -67,7 +67,9 @@ public subnets at all, see [EKS Private Cluster without Outbound Internet Access
 Note the following when using this setting:
 
 - At least two private subnets across at least two availability zones are required, because EKS places its cross-account
-  ENIs in a minimum of two zones. eksctl validates this before creating anything.
+  ENIs in a minimum of two zones. eksctl validates this before creating anything, except when pre-existing subnets are
+  specified only by ID: their availability zone is not known until eksctl looks them up in EC2, which happens after
+  validation, so insufficient AZ coverage is instead rejected by the EKS API.
 - The private subnets must have a NAT gateway or the relevant VPC endpoints, otherwise nodes cannot reach the API server.
   When eksctl creates the VPC this is handled by the `vpc.nat` configuration.
 - It cannot be combined with `vpc.controlPlaneSubnetIDs`; specify one or the other.

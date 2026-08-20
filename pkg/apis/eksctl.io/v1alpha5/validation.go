@@ -18,6 +18,7 @@ import (
 	"github.com/kris-nova/logger"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/validation"
 	kubeletapis "k8s.io/kubelet/pkg/apis"
 
@@ -576,9 +577,14 @@ func (c *ClusterConfig) validateControlPlaneOnPrivateSubnets() error {
 	}
 
 	// Subnets are nil when eksctl creates the VPC. Private subnets are then derived from
-	// availabilityZones by vpc.SetSubnets, which runs after validation and always covers
-	// every requested zone, so there is nothing to check yet.
+	// availabilityZones by vpc.SetSubnets, which runs after validation and keys private
+	// subnets by zone name, so duplicate zones collapse into a single subnet.
+	// validateAvailabilityZones only checks the count of c.AvailabilityZones and explicitly
+	// permits duplicates, so distinct zones must be counted here instead.
 	if c.VPC.Subnets == nil {
+		if azs := sets.NewString(c.AvailabilityZones...); azs.Len() < MinRequiredAvailabilityZones {
+			return fmt.Errorf("vpc.controlPlaneOnPrivateSubnets requires at least %d distinct availability zones, got %d (%v)", MinRequiredAvailabilityZones, azs.Len(), c.AvailabilityZones)
+		}
 		return nil
 	}
 

@@ -6,6 +6,10 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/spf13/cobra"
+
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
 type updateClusterVPCEntry struct {
@@ -42,22 +46,32 @@ vpc:
 		return path
 	}
 
+	// load runs the loader for `eksctl utils update-cluster-vpc-config` directly, without
+	// going through the command handler that talks to AWS.
+	load := func(configFile string) error {
+		cfg := api.NewClusterConfig()
+		cmd := &cmdutils.Cmd{
+			ClusterConfig:     cfg,
+			ClusterConfigFile: configFile,
+			CobraCommand: &cobra.Command{
+				Use: "update-cluster-vpc-config",
+				Run: func(_ *cobra.Command, _ []string) {},
+			},
+		}
+		return cmdutils.NewUpdateClusterVPCLoader(cmd, cmdutils.UpdateClusterVPCOptions{}).Load()
+	}
+
 	When("vpc.controlPlaneOnPrivateSubnets is set", func() {
-		It("returns an error instead of silently ignoring it", func() {
-			cmd := newMockCmd("update-cluster-vpc-config", "-f", writeConfigFile("  controlPlaneOnPrivateSubnets: true\n"))
-			_, err := cmd.execute()
-			Expect(err).To(MatchError(ContainSubstring("vpc.controlPlaneOnPrivateSubnets is only supported when creating a cluster")))
+		It("does not return a validation error", func() {
+			err := load(writeConfigFile("  controlPlaneOnPrivateSubnets: true\n"))
+			Expect(err).NotTo(HaveOccurred())
 		})
 	})
 
 	When("vpc.controlPlaneOnPrivateSubnets is explicitly false", func() {
 		It("does not return a validation error", func() {
-			cmd := newMockCmd("update-cluster-vpc-config", "-f", writeConfigFile("  controlPlaneOnPrivateSubnets: false\n  controlPlaneSubnetIDs: [subnet-1234, subnet-5678]\n"))
-			_, err := cmd.execute()
-			// The command proceeds past validation and fails when reaching AWS.
-			if err != nil {
-				Expect(err.Error()).NotTo(ContainSubstring("controlPlaneOnPrivateSubnets"))
-			}
+			err := load(writeConfigFile("  controlPlaneOnPrivateSubnets: false\n  controlPlaneSubnetIDs: [subnet-1234, subnet-5678]\n"))
+			Expect(err).NotTo(HaveOccurred())
 		})
 	})
 })

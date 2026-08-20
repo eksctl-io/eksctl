@@ -1,7 +1,6 @@
 package cmdutils
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -87,7 +86,7 @@ func NewUpdateClusterVPCLoader(cmd *Cmd, options UpdateClusterVPCOptions) Cluste
 			l.ClusterConfig.VPC = api.NewClusterVPC(false)
 		}
 		if api.IsEnabled(l.ClusterConfig.VPC.ControlPlaneOnPrivateSubnets) {
-			return errors.New("vpc.controlPlaneOnPrivateSubnets is only supported when creating a cluster; to change the control plane subnets of an existing cluster, set vpc.controlPlaneSubnetIDs to the IDs of the private subnets")
+			logger.Warning("vpc.controlPlaneOnPrivateSubnets is not supported by `eksctl utils update-cluster-vpc-config` and will be ignored; to change the control plane subnets of an existing cluster, set vpc.controlPlaneSubnetIDs to the IDs of the private subnets")
 		}
 		api.SetClusterEndpointAccessDefaults(l.ClusterConfig.VPC)
 		return nil

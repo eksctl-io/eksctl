@@ -1538,12 +1538,33 @@ var _ = Describe("ClusterConfig validation", func() {
 				return m
 			}
 
-			When("it is enabled and eksctl creates the VPC", func() {
+			When("it is enabled and eksctl creates the VPC with two distinct availability zones", func() {
 				It("does not reject the config, since subnets are derived from availabilityZones later", func() {
 					cfg.VPC.Subnets = nil
+					cfg.AvailabilityZones = []string{"us-west-2a", "us-west-2b"}
 					cfg.VPC.ControlPlaneOnPrivateSubnets = api.Enabled()
 					err = cfg.ValidateVPCConfig()
 					Expect(err).NotTo(HaveOccurred())
+				})
+			})
+
+			When("it is enabled and eksctl creates the VPC with a duplicated availability zone", func() {
+				It("returns an error, since the duplicate collapses into a single private subnet", func() {
+					cfg.VPC.Subnets = nil
+					cfg.AvailabilityZones = []string{"us-west-2a", "us-west-2a"}
+					cfg.VPC.ControlPlaneOnPrivateSubnets = api.Enabled()
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(MatchError("vpc.controlPlaneOnPrivateSubnets requires at least 2 distinct availability zones, got 1 ([us-west-2a us-west-2a])"))
+				})
+			})
+
+			When("it is enabled and eksctl creates the VPC without availability zones set", func() {
+				It("returns an error", func() {
+					cfg.VPC.Subnets = nil
+					cfg.AvailabilityZones = nil
+					cfg.VPC.ControlPlaneOnPrivateSubnets = api.Enabled()
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(MatchError("vpc.controlPlaneOnPrivateSubnets requires at least 2 distinct availability zones, got 0 ([])"))
 				})
 			})
 
