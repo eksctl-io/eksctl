@@ -1559,12 +1559,12 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 
 			When("it is enabled and eksctl creates the VPC without availability zones set", func() {
-				It("returns an error", func() {
+				It("does not reject the config, since eksctl selects distinct zones itself later", func() {
 					cfg.VPC.Subnets = nil
 					cfg.AvailabilityZones = nil
 					cfg.VPC.ControlPlaneOnPrivateSubnets = api.Enabled()
 					err = cfg.ValidateVPCConfig()
-					Expect(err).To(MatchError("vpc.controlPlaneOnPrivateSubnets requires at least 2 distinct availability zones, got 0 ([])"))
+					Expect(err).NotTo(HaveOccurred())
 				})
 			})
 

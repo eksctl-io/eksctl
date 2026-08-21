@@ -581,9 +581,16 @@ func (c *ClusterConfig) validateControlPlaneOnPrivateSubnets() error {
 	// subnets by zone name, so duplicate zones collapse into a single subnet.
 	// validateAvailabilityZones only checks the count of c.AvailabilityZones and explicitly
 	// permits duplicates, so distinct zones must be counted here instead.
+	//
+	// availabilityZones is optional: when it is left unset, eksctl selects the zones itself
+	// in eks.SetAvailabilityZones, which runs after validation, so c.AvailabilityZones is
+	// still empty here. Auto-selection always yields distinct zones, so there is nothing to
+	// validate on that path.
 	if c.VPC.Subnets == nil {
-		if azs := sets.NewString(c.AvailabilityZones...); azs.Len() < MinRequiredAvailabilityZones {
-			return fmt.Errorf("vpc.controlPlaneOnPrivateSubnets requires at least %d distinct availability zones, got %d (%v)", MinRequiredAvailabilityZones, azs.Len(), c.AvailabilityZones)
+		if len(c.AvailabilityZones) > 0 {
+			if azs := sets.New(c.AvailabilityZones...); azs.Len() < MinRequiredAvailabilityZones {
+				return fmt.Errorf("vpc.controlPlaneOnPrivateSubnets requires at least %d distinct availability zones, got %d (%v)", MinRequiredAvailabilityZones, azs.Len(), c.AvailabilityZones)
+			}
 		}
 		return nil
 	}
