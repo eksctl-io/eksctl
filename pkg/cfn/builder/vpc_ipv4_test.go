@@ -443,6 +443,34 @@ var _ = Describe("VPC Template Builder", func() {
 			Expect(refs).To(ContainElement(makePrimitive(privateSubnetRef2)))
 		})
 	})
+
+	Describe("ControlPlaneSubnetRefs", func() {
+		It("returns both public and private subnet references by default", func() {
+			_, subnetDetails, err := vpcRs.CreateTemplate(context.Background())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(subnetDetails.ControlPlaneSubnetRefs()).To(ConsistOf(
+				makePrimitive(publicSubnetRef1),
+				makePrimitive(publicSubnetRef2),
+				makePrimitive(privateSubnetRef1),
+				makePrimitive(privateSubnetRef2),
+			))
+		})
+
+		Context("when vpc.controlPlaneOnPrivateSubnets is enabled", func() {
+			BeforeEach(func() {
+				cfg.VPC.ControlPlaneOnPrivateSubnets = api.Enabled()
+			})
+
+			It("returns only the private subnet references", func() {
+				_, subnetDetails, err := vpcRs.CreateTemplate(context.Background())
+				Expect(err).NotTo(HaveOccurred())
+				Expect(subnetDetails.ControlPlaneSubnetRefs()).To(ConsistOf(
+					makePrimitive(privateSubnetRef1),
+					makePrimitive(privateSubnetRef2),
+				))
+			})
+		})
+	})
 })
 
 func makePrimitive(primitive string) *gfnt.Value {

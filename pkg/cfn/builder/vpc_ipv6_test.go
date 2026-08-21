@@ -604,6 +604,31 @@ var _ = Describe("IPv6 VPC builder", func() {
 		})
 	})
 
+	Context("when vpc.controlPlaneOnPrivateSubnets is enabled", func() {
+		It("restricts the control plane to private subnets", func() {
+			cfg.VPC.ControlPlaneOnPrivateSubnets = api.Enabled()
+			vpcRs := builder.NewIPv6VPCResourceSet(builder.NewRS(), cfg, nil)
+			_, subnetDetails, err := vpcRs.CreateTemplate(context.Background())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(subnetDetails.ControlPlaneSubnetRefs()).To(ConsistOf(
+				makePrimitive(builder.PrivateSubnetKey+azAFormatted),
+				makePrimitive(builder.PrivateSubnetKey+azBFormatted),
+			))
+		})
+
+		It("is also honoured for a fully-private cluster", func() {
+			cfg.VPC.ControlPlaneOnPrivateSubnets = api.Enabled()
+			cfg.PrivateCluster = &api.PrivateCluster{Enabled: true}
+			vpcRs := builder.NewIPv6VPCResourceSet(builder.NewRS(), cfg, nil)
+			_, subnetDetails, err := vpcRs.CreateTemplate(context.Background())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(subnetDetails.ControlPlaneSubnetRefs()).To(ConsistOf(
+				makePrimitive(builder.PrivateSubnetKey+azAFormatted),
+				makePrimitive(builder.PrivateSubnetKey+azBFormatted),
+			))
+		})
+	})
+
 	Context("when there are 3 AZs", func() {
 		BeforeEach(func() {
 			cfg.AvailabilityZones = []string{azA, azB, azC}

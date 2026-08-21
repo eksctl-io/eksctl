@@ -1,0 +1,29 @@
+# An example config for restricting the EKS control plane's cross-account ENIs to private
+# subnets at cluster creation time.
+# To create the cluster, run `eksctl create cluster -f 49-control-plane-on-private-subnets.yaml`
+#
+# Public subnets are still created and used for the NAT gateways and for internet-facing load
+# balancers; only the subnets passed to the EKS API are restricted. Requires at least two
+# private subnets across at least two availability zones.
+
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: cluster-49
+  region: us-west-2
+
+availabilityZones:
+  - us-west-2a
+  - us-west-2b
+
+vpc:
+  controlPlaneOnPrivateSubnets: true
+  nat:
+    gateway: HighlyAvailable
+  clusterEndpoints:
+    publicAccess: true
+    privateAccess: true
+
+managedNodeGroups:
+  - name: mng1
+    privateNetworking: true

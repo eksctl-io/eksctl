@@ -178,6 +178,14 @@ type (
 		// ControlPlaneSubnetIDs configures the subnets for the control plane.
 		// +optional
 		ControlPlaneSubnetIDs []string `json:"controlPlaneSubnetIDs,omitempty"`
+		// ControlPlaneOnPrivateSubnets restricts the control plane (the cross-account ENIs
+		// that EKS places in the cluster subnets) to private subnets only, excluding public
+		// subnets. It applies both when eksctl creates the VPC and when a pre-existing VPC
+		// is used. Cannot be combined with ControlPlaneSubnetIDs. Requires at least two
+		// private subnets spanning at least two availability zones, which must have NAT or
+		// the relevant VPC endpoints for nodes to reach the API server.
+		// +optional
+		ControlPlaneOnPrivateSubnets *bool `json:"controlPlaneOnPrivateSubnets,omitempty"`
 		// ControlPlaneSecurityGroupIDs configures the security groups for the control plane.
 		// +optional
 		ControlPlaneSecurityGroupIDs []string `json:"controlPlaneSecurityGroupIDs,omitempty"`
