@@ -77,6 +77,9 @@ Note the following when using this setting:
   When eksctl creates the VPC this is handled by the `vpc.nat` configuration.
 - It cannot be combined with `vpc.controlPlaneSubnetIDs`; specify one or the other.
 - It applies both when eksctl creates the VPC and when a pre-existing VPC is supplied via `vpc.id`.
+- It only takes effect at cluster creation time. `eksctl utils update-cluster-vpc-config` warns and ignores it, since it
+  updates the EKS API directly and cannot keep the cluster's CloudFormation stack in sync; use
+  `vpc.controlPlaneSubnetIDs` to change the control plane subnets of an existing cluster.
 
 ## Updating control plane security groups
 To manage traffic between the control plane and worker nodes, EKS supports passing additional security groups that are applied to the cross-account network interfaces

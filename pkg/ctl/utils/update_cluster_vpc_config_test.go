@@ -1,9 +1,11 @@
 package utils_test
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 
+	"github.com/kris-nova/logger"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/cobra"
@@ -47,8 +49,14 @@ vpc:
 	}
 
 	// load runs the loader for `eksctl utils update-cluster-vpc-config` directly, without
-	// going through the command handler that talks to AWS.
-	load := func(configFile string) error {
+	// going through the command handler that talks to AWS. It returns the log output so
+	// that the warning can be asserted on.
+	load := func(configFile string) (*api.ClusterConfig, string, error) {
+		output := &bytes.Buffer{}
+		defaultWriter := logger.Writer
+		logger.Writer = output
+		defer func() { logger.Writer = defaultWriter }()
+
 		cfg := api.NewClusterConfig()
 		cmd := &cmdutils.Cmd{
 			ClusterConfig:     cfg,
@@ -58,20 +66,25 @@ vpc:
 				Run: func(_ *cobra.Command, _ []string) {},
 			},
 		}
-		return cmdutils.NewUpdateClusterVPCLoader(cmd, cmdutils.UpdateClusterVPCOptions{}).Load()
+		err := cmdutils.NewUpdateClusterVPCLoader(cmd, cmdutils.UpdateClusterVPCOptions{}).Load()
+		return cfg, output.String(), err
 	}
 
 	When("vpc.controlPlaneOnPrivateSubnets is set", func() {
-		It("does not return a validation error", func() {
-			err := load(writeConfigFile("  controlPlaneOnPrivateSubnets: true\n"))
+		It("warns that it is ignored instead of returning an error", func() {
+			cfg, output, err := load(writeConfigFile("  controlPlaneOnPrivateSubnets: true\n"))
 			Expect(err).NotTo(HaveOccurred())
+			Expect(output).To(ContainSubstring("vpc.controlPlaneOnPrivateSubnets is not supported by `eksctl utils update-cluster-vpc-config` and will be ignored"))
+			// The field is ignored rather than translated into control plane subnets.
+			Expect(cfg.VPC.ControlPlaneSubnetIDs).To(BeEmpty())
 		})
 	})
 
 	When("vpc.controlPlaneOnPrivateSubnets is explicitly false", func() {
-		It("does not return a validation error", func() {
-			err := load(writeConfigFile("  controlPlaneOnPrivateSubnets: false\n  controlPlaneSubnetIDs: [subnet-1234, subnet-5678]\n"))
+		It("does not warn and does not return an error", func() {
+			_, output, err := load(writeConfigFile("  controlPlaneOnPrivateSubnets: false\n  controlPlaneSubnetIDs: [subnet-1234, subnet-5678]\n"))
 			Expect(err).NotTo(HaveOccurred())
+			Expect(output).NotTo(ContainSubstring("vpc.controlPlaneOnPrivateSubnets"))
 		})
 	})
 })
