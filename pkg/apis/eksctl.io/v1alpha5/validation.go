@@ -1795,8 +1795,7 @@ func IsUbuntuImage(imageFamily string) bool {
 		NodeImageFamilyUbuntuPro2404,
 		NodeImageFamilyUbuntu2404,
 		NodeImageFamilyUbuntuPro2204,
-		NodeImageFamilyUbuntu2204,
-		NodeImageFamilyUbuntuPro2004:
+		NodeImageFamilyUbuntu2204:
 		return true
 
 	default:
