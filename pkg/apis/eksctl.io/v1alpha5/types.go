@@ -218,7 +218,6 @@ const (
 	NodeImageFamilyUbuntu2404       = "Ubuntu2404"
 	NodeImageFamilyUbuntuPro2204    = "UbuntuPro2204"
 	NodeImageFamilyUbuntu2204       = "Ubuntu2204"
-	NodeImageFamilyUbuntuPro2004    = "UbuntuPro2004"
 	NodeImageFamilyBottlerocket     = "Bottlerocket"
 	NodeImageFamilyBottlerocketFips = "BottlerocketFips"
 
@@ -606,7 +605,6 @@ func SupportedAMIFamilies() []string {
 		NodeImageFamilyUbuntu2404,
 		NodeImageFamilyUbuntuPro2204,
 		NodeImageFamilyUbuntu2204,
-		NodeImageFamilyUbuntuPro2004,
 		NodeImageFamilyBottlerocket,
 		NodeImageFamilyBottlerocketFips,
 		NodeImageFamilyWindowsServer2019CoreContainer,

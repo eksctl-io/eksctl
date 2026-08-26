@@ -57,7 +57,6 @@ The `--node-ami-family` can take following keywords:
 |--------------------------------|:---------------------------------------------------------------------------------------------------------------------------:|
 | AmazonLinux2                   | Indicates that the EKS AMI image based on Amazon Linux 2 should be used (default).                                          |
 | AmazonLinux2023                | Indicates that the EKS AMI image based on Amazon Linux 2023 should be used.                                                 |
-| UbuntuPro2004                  | Indicates that the EKS AMI image based on Ubuntu Pro 20.04 LTS (Focal) should be used (available for EKS >= 1.27, <= 1.29). |
 | Ubuntu2204                     | Indicates that the EKS AMI image based on Ubuntu 22.04 LTS (Jammy) should be used (available for EKS >= 1.29).              |
 | UbuntuPro2204                  | Indicates that the EKS AMI image based on Ubuntu Pro 22.04 LTS (Jammy) should be used (available for EKS >= 1.29).          |
 | Ubuntu2404                     | Indicates that the EKS AMI image based on Ubuntu 24.04 LTS (Noble) should be used (available for EKS >= 1.31).              |
