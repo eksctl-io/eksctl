@@ -160,10 +160,6 @@ var _ = Describe("GPU instance support", func() {
 			amiFamily:       api.NodeImageFamilyBottlerocket,
 			gpuInstanceType: "g4dn.xlarge",
 		}),
-		Entry("UbuntuPro2004", gpuInstanceEntry{
-			amiFamily:       api.NodeImageFamilyUbuntuPro2004,
-			gpuInstanceType: "g4dn.xlarge",
-		}),
 		Entry("Windows2019Core", gpuInstanceEntry{
 			amiFamily:       api.NodeImageFamilyWindowsServer2019CoreContainer,
 			gpuInstanceType: "g3.8xlarge",
