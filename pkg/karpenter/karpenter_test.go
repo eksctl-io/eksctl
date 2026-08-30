@@ -90,7 +90,12 @@ var _ = Describe("Install", func() {
 					defaultInstanceProfile: "dummy",
 					clusterName:            cfg.Metadata.Name,
 					clusterEndpoint:        cfg.Status.Endpoint,
-					interruptionQueueName:  cfg.Metadata.Name,
+					// The flattened Karpenter chart names this value
+					// "interruptionQueue", not "interruptionQueueName" --
+					// see charts/karpenter/values.yaml from v0.32.0 onwards.
+					// Asserted as a literal rather than via a constant so the
+					// test pins the key the chart actually reads.
+					"interruptionQueue": cfg.Metadata.Name,
 				},
 			}
 			Expect(opts.Values[settings]).To(Equal(values[settings]))

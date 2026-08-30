@@ -30,6 +30,7 @@ const (
 	serviceAccountName       = "name"
 	settings                 = "settings"
 	interruptionQueueName    = "interruptionQueueName"
+	interruptionQueue        = "interruptionQueue"
 )
 
 // Options contains values which Karpenter uses to configure the installation.
@@ -72,27 +73,37 @@ func (k *Installer) Install(ctx context.Context, serviceAccountRoleARN string, i
 		serviceAccountName: DefaultServiceAccountName,
 	}
 
+	settingsValues := map[string]interface{}{
+		defaultInstanceProfile: instanceProfileName,
+		clusterName:            k.ClusterConfig.Metadata.Name,
+		clusterEndpoint:        k.ClusterConfig.Status.Endpoint,
+	}
+
+	// The Karpenter chart renamed the interruption queue Helm value when it
+	// flattened `settings`: charts before v0.33.0 read
+	// `settings.aws.interruptionQueueName`, while the flattened layout reads
+	// `settings.interruptionQueue`. A flattened chart silently ignores the old
+	// spelling, which leaves INTERRUPTION_QUEUE unset on the Karpenter pod and
+	// disables spot interruption handling without reporting an error.
+	version := k.ClusterConfig.Karpenter.Version
+	compareVersions, err := utils.CompareVersions(version, "0.33.0")
+	if err == nil && compareVersions < 0 {
+		settingsValues[interruptionQueueName] = k.ClusterConfig.Metadata.Name
+		settingsValues = map[string]interface{}{
+			aws: settingsValues,
+		}
+	} else {
+		settingsValues[interruptionQueue] = k.ClusterConfig.Metadata.Name
+	}
+
 	values := map[string]interface{}{
 		clusterName:     k.ClusterConfig.Metadata.Name,
 		clusterEndpoint: k.ClusterConfig.Status.Endpoint,
 		aws: map[string]interface{}{
 			defaultInstanceProfile: instanceProfileName,
 		},
-		settings: map[string]interface{}{
-			defaultInstanceProfile: instanceProfileName,
-			clusterName:            k.ClusterConfig.Metadata.Name,
-			clusterEndpoint:        k.ClusterConfig.Status.Endpoint,
-			interruptionQueueName:  k.ClusterConfig.Metadata.Name,
-		},
+		settings:       settingsValues,
 		serviceAccount: serviceAccountMap,
-	}
-
-	version := k.ClusterConfig.Karpenter.Version
-	compareVersions, err := utils.CompareVersions(version, "0.33.0")
-	if err == nil && compareVersions < 0 {
-		values[settings] = map[string]interface{}{
-			aws: values[settings],
-		}
 	}
 
 	registryClient, err := registry.NewClient(
