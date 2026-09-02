@@ -151,16 +151,25 @@ func makeKubeSchedulerConfigRequest(config *api.KubeSchedulerConfig) *ekstypes.K
 // component is omitted from the request entirely and left unchanged.
 // It mirrors makeKubeControllerManagerConfig in pkg/cfn/builder/cluster.go.
 func makeKubeControllerManagerConfigRequest(config *api.KubeControllerManagerConfig) *ekstypes.KubeControllerManagerConfigRequest {
-	if config == nil || config.HorizontalPodAutoscalerControllerConfig == nil {
+	if config == nil {
 		return nil
 	}
-	hpaConfig := config.HorizontalPodAutoscalerControllerConfig
-	if hpaConfig.HorizontalPodAutoscalerSyncPeriod == nil {
-		return nil
-	}
-	return &ekstypes.KubeControllerManagerConfigRequest{
-		HorizontalPodAutoscalerControllerConfig: &ekstypes.HorizontalPodAutoscalerControllerConfigRequest{
+	result := &ekstypes.KubeControllerManagerConfigRequest{}
+	set := false
+	if hpaConfig := config.HorizontalPodAutoscalerControllerConfig; hpaConfig != nil && hpaConfig.HorizontalPodAutoscalerSyncPeriod != nil {
+		result.HorizontalPodAutoscalerControllerConfig = &ekstypes.HorizontalPodAutoscalerControllerConfigRequest{
 			HorizontalPodAutoscalerSyncPeriod: hpaConfig.HorizontalPodAutoscalerSyncPeriod,
-		},
+		}
+		set = true
 	}
+	if podGCConfig := config.PodGCControllerConfig; podGCConfig != nil && podGCConfig.TerminatedPodGCThreshold != nil {
+		result.PodGcControllerConfig = &ekstypes.PodGcControllerConfigRequest{
+			TerminatedPodGcThreshold: aws.Int32(int32(*podGCConfig.TerminatedPodGCThreshold)),
+		}
+		set = true
+	}
+	if !set {
+		return nil
+	}
+	return result
 }

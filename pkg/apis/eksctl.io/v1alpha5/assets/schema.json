@@ -1656,10 +1656,16 @@
           "$ref": "#/definitions/HorizontalPodAutoscalerControllerConfig",
           "description": "specifies the horizontal pod autoscaler controller configuration.",
           "x-intellij-html-description": "specifies the horizontal pod autoscaler controller configuration."
+        },
+        "podGCControllerConfig": {
+          "$ref": "#/definitions/PodGCControllerConfig",
+          "description": "specifies the pod garbage collector controller configuration.",
+          "x-intellij-html-description": "specifies the pod garbage collector controller configuration."
         }
       },
       "preferredOrder": [
-        "horizontalPodAutoscalerControllerConfig"
+        "horizontalPodAutoscalerControllerConfig",
+        "podGCControllerConfig"
       ],
       "additionalProperties": false,
       "description": "holds the kube-controller-manager configuration.",
@@ -2980,6 +2986,21 @@
       "additionalProperties": false,
       "description": "specifies placement group information",
       "x-intellij-html-description": "specifies placement group information"
+    },
+    "PodGCControllerConfig": {
+      "properties": {
+        "terminatedPodGCThreshold": {
+          "type": "integer",
+          "description": "specifies the number of terminated pods that can exist before the pod garbage collector starts deleting terminated pods.",
+          "x-intellij-html-description": "specifies the number of terminated pods that can exist before the pod garbage collector starts deleting terminated pods."
+        }
+      },
+      "preferredOrder": [
+        "terminatedPodGCThreshold"
+      ],
+      "additionalProperties": false,
+      "description": "holds the pod garbage collector controller configuration.",
+      "x-intellij-html-description": "holds the pod garbage collector controller configuration."
     },
     "PodIdentityAssociation": {
       "properties": {
