@@ -30,6 +30,9 @@ var _ = Describe("Install", func() {
 				Version:                "0.15.3",
 				CreateServiceAccount:   api.Disabled(),
 				DefaultInstanceProfile: nil,
+				// The queue name is only sent when eksctl provisioned the queue,
+				// so the specs that assert on it enable it explicitly.
+				WithSpotInterruptionQueue: api.Enabled(),
 			}
 			cfg.Status = &api.ClusterStatus{
 				Endpoint: "https://endpoint.com",
@@ -99,6 +102,46 @@ var _ = Describe("Install", func() {
 				},
 			}
 			Expect(opts.Values[settings]).To(Equal(values[settings]))
+			// The legacy specs assert the whole values map; do the same here so
+			// the top-level keys are guarded on the flattened path too.
+			Expect(opts.Values[aws]).To(Equal(map[string]interface{}{defaultInstanceProfile: "dummy"}))
+			Expect(opts.Values[clusterName]).To(Equal(cfg.Metadata.Name))
+			Expect(opts.Values[clusterEndpoint]).To(Equal(cfg.Status.Endpoint))
+		})
+
+		When("withSpotInterruptionQueue is disabled", func() {
+
+			BeforeEach(func() {
+				cfg.Karpenter.WithSpotInterruptionQueue = api.Disabled()
+			})
+
+			// pkg/cfn/builder only creates the SQS queue, and only grants the
+			// controller role sqs:ReceiveMessage on it, when the queue is
+			// enabled. Advertising a queue name in either chart layout would
+			// point Karpenter at a queue that does not exist and that it
+			// cannot poll.
+			It("omits the queue name from the legacy settings.aws values", func() {
+				Expect(installerUnderTest.Install(context.Background(), "dummy", "dummy")).To(Succeed())
+				_, opts := fakeHelmInstaller.InstallChartArgsForCall(0)
+				Expect(opts.Values[settings]).To(Equal(map[string]interface{}{
+					aws: map[string]interface{}{
+						defaultInstanceProfile: "dummy",
+						clusterName:            cfg.Metadata.Name,
+						clusterEndpoint:        cfg.Status.Endpoint,
+					},
+				}))
+			})
+
+			It("omits the queue name from the flattened settings values", func() {
+				installerUnderTest.ClusterConfig.Karpenter.Version = "0.33.0"
+				Expect(installerUnderTest.Install(context.Background(), "dummy", "dummy")).To(Succeed())
+				_, opts := fakeHelmInstaller.InstallChartArgsForCall(0)
+				Expect(opts.Values[settings]).To(Equal(map[string]interface{}{
+					defaultInstanceProfile: "dummy",
+					clusterName:            cfg.Metadata.Name,
+					clusterEndpoint:        cfg.Status.Endpoint,
+				}))
+			})
 		})
 
 		When("install chart fails", func() {

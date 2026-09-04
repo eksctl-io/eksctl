@@ -87,12 +87,23 @@ func (k *Installer) Install(ctx context.Context, serviceAccountRoleARN string, i
 	// disables spot interruption handling without reporting an error.
 	version := k.ClusterConfig.Karpenter.Version
 	compareVersions, err := utils.CompareVersions(version, "0.33.0")
-	if err == nil && compareVersions < 0 {
-		settingsValues[interruptionQueueName] = k.ClusterConfig.Metadata.Name
+	legacyChart := err == nil && compareVersions < 0
+
+	// Only advertise the interruption queue when eksctl actually provisioned it.
+	// pkg/cfn/builder creates the SQS queue -- and grants the controller role
+	// sqs:ReceiveMessage on it -- only when withSpotInterruptionQueue is enabled,
+	// so sending the name unconditionally would point Karpenter at a queue that
+	// does not exist and that it has no permission to poll.
+	queueEnabled := api.IsEnabled(k.ClusterConfig.Karpenter.WithSpotInterruptionQueue)
+
+	if legacyChart {
+		if queueEnabled {
+			settingsValues[interruptionQueueName] = k.ClusterConfig.Metadata.Name
+		}
 		settingsValues = map[string]interface{}{
 			aws: settingsValues,
 		}
-	} else {
+	} else if queueEnabled {
 		settingsValues[interruptionQueue] = k.ClusterConfig.Metadata.Name
 	}
 
