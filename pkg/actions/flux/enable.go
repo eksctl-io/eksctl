@@ -28,6 +28,23 @@ type Installer struct {
 	fluxClient InstallerClient
 }
 
+// ValidateFlags checks that the Flux flags configured for bootstrap are
+// recognised by the Flux CLI, without performing an actual bootstrap. It is
+// intended to be called before cluster creation, so misconfigured flags are
+// caught early instead of after a lengthy cluster creation.
+func ValidateFlags(opts *api.GitOps) error {
+	if opts == nil || opts.Flux == nil {
+		return nil
+	}
+
+	fluxClient, err := flux.NewClient(opts.Flux)
+	if err != nil {
+		return err
+	}
+
+	return fluxClient.Validate()
+}
+
 func New(k8sClientSet kubeclient.Interface, opts *api.GitOps) (*Installer, error) {
 	if opts.Flux == nil {
 		return nil, errors.New("expected gitops.flux in cluster configuration but found nil")

@@ -239,6 +239,9 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		if _, err := exec.LookPath("flux"); err != nil {
 			return fmt.Errorf("flux binary is required when gitops configuration is set: %w", err)
 		}
+		if err := flux.ValidateFlags(cfg.GitOps); err != nil {
+			return fmt.Errorf("validating Flux configuration: %w", err)
+		}
 	}
 
 	if params.InstallWindowsVPCController {
