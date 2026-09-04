@@ -1222,6 +1222,10 @@ type KubeControllerManagerConfig struct {
 	// controller configuration.
 	// +optional
 	HorizontalPodAutoscalerControllerConfig *HorizontalPodAutoscalerControllerConfig `json:"horizontalPodAutoscalerControllerConfig,omitempty"`
+
+	// PodGCControllerConfig specifies the pod garbage collector controller configuration.
+	// +optional
+	PodGCControllerConfig *PodGCControllerConfig `json:"podGCControllerConfig,omitempty"`
 }
 
 // HorizontalPodAutoscalerControllerConfig holds the horizontal pod autoscaler controller configuration.
@@ -1230,6 +1234,14 @@ type HorizontalPodAutoscalerControllerConfig struct {
 	// horizontal pod autoscaler, as a duration string (for example, "15s").
 	// +optional
 	HorizontalPodAutoscalerSyncPeriod *string `json:"horizontalPodAutoscalerSyncPeriod,omitempty"`
+}
+
+// PodGCControllerConfig holds the pod garbage collector controller configuration.
+type PodGCControllerConfig struct {
+	// TerminatedPodGCThreshold specifies the number of terminated pods that can exist
+	// before the pod garbage collector starts deleting terminated pods.
+	// +optional
+	TerminatedPodGCThreshold *int `json:"terminatedPodGCThreshold,omitempty"`
 }
 
 // OutpostInfo describes the Outpost info.

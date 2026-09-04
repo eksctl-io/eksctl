@@ -38,6 +38,8 @@ kubeSchedulerConfig:
 kubeControllerManagerConfig:
   horizontalPodAutoscalerControllerConfig:
     horizontalPodAutoscalerSyncPeriod: 15s
+  podGCControllerConfig:
+    terminatedPodGCThreshold: 12000
 ```
 
 ```shell
@@ -98,11 +100,18 @@ look after a pod is placed on them.
 kubeControllerManagerConfig:
   horizontalPodAutoscalerControllerConfig:
     horizontalPodAutoscalerSyncPeriod: 15s
+  podGCControllerConfig:
+    terminatedPodGCThreshold: 12000
 ```
 
 - `horizontalPodAutoscalerSyncPeriod` — the interval between horizontal pod autoscaler syncs, as a duration
   string such as `15s`. Shorter intervals make autoscaling more responsive at the cost of more frequent
-  metric queries.
+  metric queries. Only configurable on provisioned control plane (PCP) scaling tiers (for example `tier-xl`);
+  on the Standard tier it is fixed at the default (15s).
+- `terminatedPodGCThreshold` — the number of terminated pods that can accumulate before the pod garbage
+  collector starts deleting them. Lower values reclaim resources sooner; higher values keep more terminated
+  pods around for inspection. Only configurable on provisioned control plane (PCP) scaling tiers (for example
+  `tier-xl`); on the Standard tier it is fixed at the default (12500).
 
 ## Notes
 
