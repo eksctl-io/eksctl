@@ -22,7 +22,7 @@ var _ = Describe("Managed Ubuntu User Data", func() {
 		clusterConfig.Status = be.clusterStatus
 		ng := &api.ManagedNodeGroup{
 			NodeGroupBase: &api.NodeGroupBase{
-				AMIFamily: api.NodeImageFamilyUbuntu2004,
+				AMIFamily: api.NodeImageFamilyUbuntu2204,
 			},
 		}
 
