@@ -306,7 +306,7 @@ func ValidateExistingNodeGroupsForCompatibility(ctx context.Context, cfg *api.Cl
 	}
 
 	if len(incompatibleNodeGroups) == 0 {
-		logger.Info("all nodegroups have up-to-date cloudformation templates")
+		logger.Info("all nodegroups have compatible shared security group configuration")
 		return nil
 	}
 
