@@ -282,6 +282,42 @@ var _ = Describe("control plane component config template properties", func() {
 					},
 				},
 			}),
+			Entry("empty pod GC config is omitted", entry{
+				config: &api.KubeControllerManagerConfig{
+					PodGCControllerConfig: &api.PodGCControllerConfig{},
+				},
+				expected: nil,
+			}),
+			Entry("terminated pod GC threshold set", entry{
+				config: &api.KubeControllerManagerConfig{
+					PodGCControllerConfig: &api.PodGCControllerConfig{
+						TerminatedPodGCThreshold: aws.Int(12000),
+					},
+				},
+				expected: &gfneks.Cluster_KubeControllerManagerConfig{
+					PodGcControllerConfig: &gfneks.Cluster_PodGcControllerConfig{
+						TerminatedPodGcThreshold: gfnt.NewInteger(12000),
+					},
+				},
+			}),
+			Entry("both sync period and terminated pod GC threshold set", entry{
+				config: &api.KubeControllerManagerConfig{
+					HorizontalPodAutoscalerControllerConfig: &api.HorizontalPodAutoscalerControllerConfig{
+						HorizontalPodAutoscalerSyncPeriod: aws.String("15s"),
+					},
+					PodGCControllerConfig: &api.PodGCControllerConfig{
+						TerminatedPodGCThreshold: aws.Int(12000),
+					},
+				},
+				expected: &gfneks.Cluster_KubeControllerManagerConfig{
+					HorizontalPodAutoscalerControllerConfig: &gfneks.Cluster_HorizontalPodAutoscalerControllerConfig{
+						HorizontalPodAutoscalerSyncPeriod: gfnt.NewString("15s"),
+					},
+					PodGcControllerConfig: &gfneks.Cluster_PodGcControllerConfig{
+						TerminatedPodGcThreshold: gfnt.NewInteger(12000),
+					},
+				},
+			}),
 		)
 	})
 })

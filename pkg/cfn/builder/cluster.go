@@ -706,16 +706,25 @@ func makeKubeSchedulerConfig(config *api.KubeSchedulerConfig) *gfneks.Cluster_Ku
 // CloudFormation representation. It returns nil if no values are set, so that the property
 // is omitted from the template entirely.
 func makeKubeControllerManagerConfig(config *api.KubeControllerManagerConfig) *gfneks.Cluster_KubeControllerManagerConfig {
-	if config == nil || config.HorizontalPodAutoscalerControllerConfig == nil {
+	if config == nil {
 		return nil
 	}
-	hpaConfig := config.HorizontalPodAutoscalerControllerConfig
-	if hpaConfig.HorizontalPodAutoscalerSyncPeriod == nil {
-		return nil
-	}
-	return &gfneks.Cluster_KubeControllerManagerConfig{
-		HorizontalPodAutoscalerControllerConfig: &gfneks.Cluster_HorizontalPodAutoscalerControllerConfig{
+	result := &gfneks.Cluster_KubeControllerManagerConfig{}
+	set := false
+	if hpaConfig := config.HorizontalPodAutoscalerControllerConfig; hpaConfig != nil && hpaConfig.HorizontalPodAutoscalerSyncPeriod != nil {
+		result.HorizontalPodAutoscalerControllerConfig = &gfneks.Cluster_HorizontalPodAutoscalerControllerConfig{
 			HorizontalPodAutoscalerSyncPeriod: gfnt.NewString(*hpaConfig.HorizontalPodAutoscalerSyncPeriod),
-		},
+		}
+		set = true
 	}
+	if podGCConfig := config.PodGCControllerConfig; podGCConfig != nil && podGCConfig.TerminatedPodGCThreshold != nil {
+		result.PodGcControllerConfig = &gfneks.Cluster_PodGcControllerConfig{
+			TerminatedPodGcThreshold: gfnt.NewInteger(*podGCConfig.TerminatedPodGCThreshold),
+		}
+		set = true
+	}
+	if !set {
+		return nil
+	}
+	return result
 }
