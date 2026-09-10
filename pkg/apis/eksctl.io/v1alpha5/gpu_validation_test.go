@@ -210,6 +210,21 @@ var _ = Describe("GPU instance support", func() {
 			Expect(output.String()).NotTo(ContainSubstring(api.GPUDriversWarning(mng.AMIFamily)))
 		}
 	},
+		Entry("Ubuntu without GPU instances", gpuInstanceEntry{
+			amiFamily: api.NodeImageFamilyUbuntu2204,
+			instanceSelector: &api.InstanceSelector{
+				VCPUs: 4,
+				GPUs:  newInt(0),
+			},
+		}),
+		Entry("Ubuntu with implicit GPU instance", gpuInstanceEntry{
+			amiFamily: api.NodeImageFamilyUbuntu2204,
+			instanceSelector: &api.InstanceSelector{
+				VCPUs: 4,
+				GPUs:  newInt(2),
+			},
+			expectWarning: true,
+		}),
 		Entry("Windows with explicit GPU instance", gpuInstanceEntry{
 			amiFamily:       api.NodeImageFamilyWindowsServer2019FullContainer,
 			gpuInstanceType: "g4dn.xlarge",
