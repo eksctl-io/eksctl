@@ -15,6 +15,13 @@ import (
 const (
 	fluxBin             = "flux"
 	minSupportedVersion = "0.32.0"
+
+	// validationFlag is appended to the args we pass to `flux bootstrap` when
+	// validating flags. It is never a flag Flux recognises, so pflag will
+	// fail to parse it. Since pflag stops at the first unrecognised flag,
+	// an error that doesn't mention validationFlag means a real flag (one
+	// that appears earlier in the args) is invalid.
+	validationFlag = "eksctl-internal-validate-only"
 )
 
 type Client struct {
@@ -57,6 +64,25 @@ func (c *Client) Bootstrap() error {
 	}
 
 	return c.runFluxCmd(args...)
+}
+
+// Validate checks that the Flux flags configured for bootstrap are
+// recognised by the Flux CLI, without performing an actual bootstrap.
+// Flux has no dry-run mode for bootstrap, so this works around that by
+// appending a flag Flux cannot recognise: see validationFlag.
+func (c *Client) Validate() error {
+	args := []string{"bootstrap", c.opts.GitProvider}
+
+	for k, v := range c.opts.Flags {
+		args = append(args, fmt.Sprintf("--%s", k), v)
+	}
+	args = append(args, fmt.Sprintf("--%s", validationFlag))
+
+	err := c.runFluxCmd(args...)
+	if err == nil || strings.Contains(err.Error(), validationFlag) {
+		return nil
+	}
+	return fmt.Errorf("invalid flux flags: %w", err)
 }
 
 func (c *Client) runFluxCmd(args ...string) error {

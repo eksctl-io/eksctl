@@ -2,8 +2,10 @@ package flux_test
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -170,6 +172,53 @@ var _ = Describe("Flux", func() {
 			It("returns the error", func() {
 				Expect(fluxClient.Bootstrap()).To(MatchError("omg"))
 				Expect(fakeExecutor.ExecCallCount()).To(Equal(1))
+			})
+		})
+	})
+
+	Context("Validate", func() {
+		// recognisedFlags simulates the real `flux bootstrap` command:
+		// pflag parses args in order and fails on the first flag it doesn't
+		// recognise.
+		recognisedFlags := map[string]bool{
+			"owner":      true,
+			"repository": true,
+			"branch":     true,
+			"path":       true,
+		}
+
+		BeforeEach(func() {
+			fakeExecutor.ExecCalls(func(_ string, args ...string) error {
+				for _, arg := range args {
+					if !strings.HasPrefix(arg, "--") {
+						continue
+					}
+					flagName := strings.TrimPrefix(arg, "--")
+					if !recognisedFlags[flagName] {
+						return fmt.Errorf("unknown flag: --%s", flagName)
+					}
+				}
+				return nil
+			})
+		})
+
+		When("all configured flags are recognised by Flux", func() {
+			BeforeEach(func() {
+				opts.Flags = api.FluxFlags{"owner": "me", "repository": "my-repo"}
+			})
+
+			It("succeeds, having failed only on the validation sentinel flag", func() {
+				Expect(fluxClient.Validate()).To(Succeed())
+			})
+		})
+
+		When("a configured flag is not recognised by Flux", func() {
+			BeforeEach(func() {
+				opts.Flags = api.FluxFlags{"owner": "me", "totally-bogus-flag": "oops"}
+			})
+
+			It("returns an error identifying the invalid flag, instead of the validation sentinel", func() {
+				Expect(fluxClient.Validate()).To(MatchError(ContainSubstring("totally-bogus-flag")))
 			})
 		})
 	})
