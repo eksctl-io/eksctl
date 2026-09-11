@@ -33,6 +33,9 @@ jobs:
       name: release candidate
     secrets:
       customToken: ${{ secrets.EKSCTLBOT_TOKEN }}
-    permissions: 
+    permissions:
       contents: write
       pull-requests: write
+      # Required for cosign keyless signing: lets cosign exchange the Actions
+      # OIDC token for a short-lived Fulcio certificate.
+      id-token: write
