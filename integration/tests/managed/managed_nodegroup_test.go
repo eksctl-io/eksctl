@@ -116,6 +116,13 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 			"--cluster", params.ClusterName,
 		)
 	},
+		Entry("Ubuntu with dry-run", managedCLIEntry{
+			createArgs: []string{
+				"--node-ami-family=Ubuntu2204",
+				"--dry-run",
+			},
+		}),
+
 		Entry("Windows AMI with dry-run", managedCLIEntry{
 			createArgs: []string{
 				"--node-ami-family=WindowsServer2019FullContainer",
@@ -128,13 +135,6 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				"--node-ami-family=Bottlerocket",
 				"--instance-prefix=bottle",
 				"--instance-name=rocket",
-				"--dry-run",
-			},
-		}),
-
-		Entry("Ubuntu with dry-run", managedCLIEntry{
-			createArgs: []string{
-				"--node-ami-family=Ubuntu2004",
 				"--dry-run",
 			},
 		}),
