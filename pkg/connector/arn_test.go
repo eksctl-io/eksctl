@@ -23,6 +23,7 @@ var arnTests = []struct {
 	{"arn:aws-iso-b:iam::123456789012:user/Chris", "arn:aws-iso-b:iam::123456789012:user/Chris", nil},
 	{"arn:aws-iso-f:iam::123456789012:user/Chris", "arn:aws-iso-f:iam::123456789012:user/Chris", nil},
 	{"arn:aws-iso-e:iam::123456789012:user/Chris", "arn:aws-iso-e:iam::123456789012:user/Chris", nil},
+	{"arn:aws-eusc:iam::123456789012:user/Chris", "arn:aws-eusc:iam::123456789012:user/Chris", nil},
 }
 
 func TestUserARN(t *testing.T) {
