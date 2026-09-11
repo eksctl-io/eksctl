@@ -32,10 +32,16 @@ jobs:
           commitish: main
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v7.0.1
+        with:
+          # The Upsert pull request step below authenticates with its own token,
+          # so there is no need to leave a credential behind in the git config.
+          persist-credentials: false
       - name: Copy release notes from Draft
+        env:
+          TAG_NAME: ${{ steps.draft.outputs.tag_name }}
+          RELEASE_BODY: ${{ steps.draft.outputs.body }}
         run: |
-          tag_name=${{ steps.draft.outputs.tag_name }}
-          echo "${{ steps.draft.outputs.body }}" > docs/release_notes/${tag_name:1}.md
+          printf '%s\n' "$RELEASE_BODY" > "docs/release_notes/${TAG_NAME#v}.md"
       - name: Upsert pull request
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 #v8.1.1
         with:
