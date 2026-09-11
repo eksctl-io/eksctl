@@ -78,6 +78,37 @@ rm eksctl_$PLATFORM.zip
 
 The `eksctl` executable is placed in `$HOME/bin`, which is in `$PATH` from Git Bash.
 
+### Verifying the release signature
+
+A checksum tells you the archive you downloaded matches `eksctl_checksums.txt`, but not that
+the checksum file itself came from the eksctl release pipeline. From v0.220.0 onwards each
+release also publishes a [Sigstore](https://www.sigstore.dev/) signature over the checksum
+file — `eksctl_checksums.txt.sig` and `eksctl_checksums.txt.pem` — so the whole chain can be
+verified back to the GitHub Actions workflow that built it.
+
+Verify with [cosign](https://docs.sigstore.dev/cosign/system_config/installation/):
+
+```sh
+BASE="https://github.com/eksctl-io/eksctl/releases/latest/download"
+curl -sLO "$BASE/eksctl_checksums.txt"
+curl -sLO "$BASE/eksctl_checksums.txt.sig"
+curl -sLO "$BASE/eksctl_checksums.txt.pem"
+
+cosign verify-blob eksctl_checksums.txt \
+  --signature eksctl_checksums.txt.sig \
+  --certificate eksctl_checksums.txt.pem \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  --certificate-identity-regexp '^https://github.com/eksctl-io/eksctl/\.github/workflows/publish-release\.yaml@refs/tags/'
+```
+
+The two `--certificate-*` flags are the part that matters: they assert the signature was
+produced by that workflow in that repository, not merely by somebody with a Sigstore
+identity. Once `cosign` reports `Verified OK`, check your archive against the now-trusted
+checksum file as shown above.
+
+Each archive additionally ships a CycloneDX SBOM at `<archive>.sbom.json`, listing the Go
+modules compiled into that binary.
+
 ### Docker
 
 For every release and RC a container image is pushed to ECR repository `public.ecr.aws/eksctl/eksctl`. Learn more about the usage on [ECR Public Gallery - eksctl](https://gallery.ecr.aws/eksctl/eksctl). For example, 
