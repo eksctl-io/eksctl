@@ -2,6 +2,7 @@ package filter
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/eks"
@@ -35,6 +36,7 @@ type NodeGroupFilter struct {
 	onlyRemote       bool
 	localNodegroups  sets.Set[string]
 	remoteNodegroups sets.Set[string]
+	nodeGroupStacks  []manager.NodeGroupStack
 }
 
 // NewNodeGroupFilter creates a new NodeGroupFilter struct
@@ -80,9 +82,31 @@ func (f *NodeGroupFilter) AppendIncludeNames(names ...string) {
 func (f *NodeGroupFilter) SetOnlyLocal(ctx context.Context, eksAPI awsapi.EKS, lister StackLister, clusterConfig *api.ClusterConfig) error {
 	f.onlyLocal = true
 
+	// Capture the nodegroups the user actually asked for *before* loading, since
+	// loadLocalAndRemoteNodegroups appends remote-only nodegroups to the config.
+	configNodeGroupNames := sets.New(clusterConfig.GetAllNodeGroupNames()...)
+
 	err := f.loadLocalAndRemoteNodegroups(ctx, eksAPI, lister, clusterConfig)
 	if err != nil {
 		return err
+	}
+
+	// Stacks stuck in a failed or rolled-back state (e.g. ROLLBACK_COMPLETE) cannot
+	// be used and would otherwise be silently treated as healthy existing nodegroups,
+	// causing `create nodegroup` to do nothing. Fail fast when a nodegroup in the
+	// user's config already has such a stack.
+	var notOperationalNodeGroups []string
+	for _, s := range f.nodeGroupStacks {
+		if configNodeGroupNames.Has(s.NodeGroupName) && s.Stack != nil && manager.StackStatusIsNotOperational(s.Stack) {
+			notOperationalNodeGroups = append(notOperationalNodeGroups, s.NodeGroupName)
+		}
+	}
+	if len(notOperationalNodeGroups) > 0 {
+		return fmt.Errorf(
+			"nodegroup(s) %q have a CloudFormation stack in a failed or rolled-back state (e.g. ROLLBACK_COMPLETE) and cannot be used; "+
+				"delete the failed stack(s) first with 'eksctl delete nodegroup --cluster %s --name %s' and then retry",
+			strings.Join(notOperationalNodeGroups, ", "), clusterConfig.Metadata.Name, notOperationalNodeGroups[0],
+		)
 	}
 
 	// Remote ones will be excluded
@@ -126,6 +150,7 @@ func (f *NodeGroupFilter) loadLocalAndRemoteNodegroups(ctx context.Context, eksA
 	if err != nil {
 		return err
 	}
+	f.nodeGroupStacks = nodeGroupsWithStacks
 	for _, s := range nodeGroupsWithStacks {
 		f.remoteNodegroups.Insert(s.NodeGroupName)
 	}
