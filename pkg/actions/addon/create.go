@@ -267,11 +267,11 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, iamRoleCreator I
 			defer func() {
 				deleteAddonIAMTasks, err := NewRemover(a.stackManager).DeleteAddonIAMTasksFiltered(ctx, addon.Name, false)
 				if err != nil {
-					logger.Warning("failed to cleanup IAM role stacks: %w; please remove any remaining stacks manually", err)
+					logger.Warning("failed to cleanup IAM role stacks: %v; please remove any remaining stacks manually", err)
 					return
 				}
 				if err := runAllTasks(deleteAddonIAMTasks); err != nil {
-					logger.Warning("failed to cleanup IAM role stacks: %w; please remove any remaining stacks manually", err)
+					logger.Warning("failed to cleanup IAM role stacks: %v; please remove any remaining stacks manually", err)
 				}
 			}()
 			var addonServiceAccounts []string
