@@ -40,3 +40,25 @@ archives:
 
 checksum:
   name_template: "eksctl_checksums.txt"
+
+sboms:
+  - id: archive
+    artifacts: archive
+    # Defaults to `syft`, producing `<archive>.sbom.json` in CycloneDX JSON.
+
+signs:
+  # Keyless (Sigstore/Fulcio) signature over the checksum file, which in turn
+  # covers every archive in the release. Requires `id-token: write` on the
+  # calling job so cosign can exchange the Actions OIDC token for a
+  # short-lived certificate -- there is no long-lived signing key to hold.
+  - id: cosign-checksum
+    cmd: cosign
+    artifacts: checksum
+    output: true
+    certificate: "${artifact}.pem"
+    args:
+      - sign-blob
+      - "--output-certificate=${certificate}"
+      - "--output-signature=${signature}"
+      - "${artifact}"
+      - "--yes"
