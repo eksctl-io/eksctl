@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/stretchr/testify/mock"
 
@@ -137,6 +138,81 @@ var _ = Describe("nodegroup filter", func() {
 			Expect(included.HasAll("test-ng3a", "test-ng3b")).To(BeTrue())
 			Expect(excluded).To(HaveLen(4))
 			Expect(excluded.HasAll("test-ng1a", "test-ng1b", "test-ng2a", "test-ng2b")).To(BeTrue())
+		})
+	})
+
+	Context("ROLLBACK_COMPLETE handling", func() {
+		var (
+			filter       *NodeGroupFilter
+			cfg          *api.ClusterConfig
+			mockProvider *mockprovider.MockProvider
+		)
+
+		BeforeEach(func() {
+			cfg = newClusterConfig()
+			addGroupA(cfg)
+
+			filter = NewNodeGroupFilter()
+
+			mockProvider = mockprovider.NewMockProvider()
+			mockProvider.MockEKS().On("ListNodegroups", mock.Anything, mock.Anything, mock.Anything).Return(&eks.ListNodegroupsOutput{Nodegroups: nil}, nil)
+		})
+
+		It("should return an error when SetOnlyLocal finds a config nodegroup in ROLLBACK_COMPLETE", func() {
+			mockLister := newMockStackListerWithStacks([]manager.NodeGroupStack{
+				{
+					NodeGroupName: "test-ng1a",
+					Stack: &manager.Stack{
+						StackStatus: cfntypes.StackStatusRollbackComplete,
+					},
+				},
+				{
+					NodeGroupName: "test-ng2a",
+					Stack: &manager.Stack{
+						StackStatus: cfntypes.StackStatusCreateComplete,
+					},
+				},
+			})
+
+			err := filter.SetOnlyLocal(context.Background(), mockProvider.EKS(), mockLister, cfg)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("ROLLBACK_COMPLETE"))
+			Expect(err.Error()).To(ContainSubstring("test-ng1a"))
+			Expect(err.Error()).To(ContainSubstring("eksctl delete nodegroup"))
+		})
+
+		It("should not error when a non-config nodegroup is in ROLLBACK_COMPLETE", func() {
+			mockLister := newMockStackListerWithStacks([]manager.NodeGroupStack{
+				{
+					NodeGroupName: "unrelated-ng",
+					Stack: &manager.Stack{
+						StackStatus: cfntypes.StackStatusRollbackComplete,
+					},
+				},
+				{
+					NodeGroupName: "test-ng1a",
+					Stack: &manager.Stack{
+						StackStatus: cfntypes.StackStatusCreateComplete,
+					},
+				},
+			})
+
+			err := filter.SetOnlyLocal(context.Background(), mockProvider.EKS(), mockLister, cfg)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("should not error when SetOnlyRemote finds a config nodegroup in ROLLBACK_COMPLETE", func() {
+			mockLister := newMockStackListerWithStacks([]manager.NodeGroupStack{
+				{
+					NodeGroupName: "test-ng1a",
+					Stack: &manager.Stack{
+						StackStatus: cfntypes.StackStatusRollbackComplete,
+					},
+				},
+			})
+
+			err := filter.SetOnlyRemote(context.Background(), mockProvider.EKS(), mockLister, cfg)
+			Expect(err).NotTo(HaveOccurred())
 		})
 	})
 
@@ -668,12 +744,18 @@ func (s *mockStackLister) ListNodeGroupStacksWithStatuses(_ context.Context) ([]
 }
 
 func newMockStackLister(ngs ...string) *mockStackLister {
-	stacks := make([]manager.NodeGroupStack, 0)
+	stacks := make([]manager.NodeGroupStack, 0, len(ngs))
 	for _, ng := range ngs {
 		stacks = append(stacks, manager.NodeGroupStack{
 			NodeGroupName: ng,
 		})
 	}
+	return &mockStackLister{
+		nodesResult: stacks,
+	}
+}
+
+func newMockStackListerWithStacks(stacks []manager.NodeGroupStack) *mockStackLister {
 	return &mockStackLister{
 		nodesResult: stacks,
 	}
