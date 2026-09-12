@@ -22,6 +22,32 @@ import (
 )
 
 var _ = Describe("StackCollection", func() {
+	Context("StackStatusIsNotOperational", func() {
+		It("returns true for failed and rolled-back states", func() {
+			for _, status := range []types.StackStatus{
+				types.StackStatusCreateFailed,
+				types.StackStatusRollbackComplete,
+				types.StackStatusRollbackFailed,
+				types.StackStatusUpdateRollbackFailed,
+				types.StackStatusDeleteFailed,
+			} {
+				Expect(StackStatusIsNotOperational(&Stack{StackStatus: status})).To(BeTrue(), "expected %q to be not operational", status)
+			}
+		})
+
+		It("returns false for healthy and transitional states", func() {
+			for _, status := range []types.StackStatus{
+				types.StackStatusCreateComplete,
+				types.StackStatusUpdateComplete,
+				types.StackStatusUpdateRollbackComplete,
+				types.StackStatusCreateInProgress,
+				types.StackStatusRollbackInProgress,
+			} {
+				Expect(StackStatusIsNotOperational(&Stack{StackStatus: status})).To(BeFalse(), "expected %q to be operational", status)
+			}
+		})
+	})
+
 	Context("PropagateManagedNodeGroupTagsToASG", func() {
 		var (
 			asgName string

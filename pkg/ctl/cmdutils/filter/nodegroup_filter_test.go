@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/stretchr/testify/mock"
 
@@ -115,6 +116,60 @@ var _ = Describe("nodegroup filter", func() {
 			Expect(included.HasAll("test-ng1b")).To(BeTrue())
 			Expect(excluded).To(HaveLen(5))
 			Expect(excluded.HasAll("test-ng1a", "test-ng2a", "test-ng3a", "test-ng2b", "test-ng3b")).To(BeTrue())
+		})
+
+		It("should error when a nodegroup stack is in a failed or rolled-back state", func() {
+			mockLister := &mockStackLister{
+				nodesResult: []manager.NodeGroupStack{
+					{
+						NodeGroupName: "test-ng1a",
+						Stack: &manager.Stack{
+							StackStatus: types.StackStatusRollbackComplete,
+						},
+					},
+					{
+						NodeGroupName: "test-ng2a",
+						Stack: &manager.Stack{
+							StackStatus: types.StackStatusCreateComplete,
+						},
+					},
+				},
+			}
+			err := filter.SetOnlyLocal(context.Background(), mockProvider.EKS(), mockLister, cfg)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("test-ng1a"))
+			Expect(err.Error()).To(ContainSubstring("failed or rolled-back"))
+			Expect(err.Error()).To(ContainSubstring("delete nodegroup"))
+		})
+
+		It("should allow healthy nodegroup stacks", func() {
+			mockLister := &mockStackLister{
+				nodesResult: []manager.NodeGroupStack{
+					{
+						NodeGroupName: "test-ng1a",
+						Stack: &manager.Stack{
+							StackStatus: types.StackStatusUpdateRollbackComplete,
+						},
+					},
+				},
+			}
+			err := filter.SetOnlyLocal(context.Background(), mockProvider.EKS(), mockLister, cfg)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("should ignore failed or rolled-back stacks for nodegroups not in the config", func() {
+			mockLister := &mockStackLister{
+				nodesResult: []manager.NodeGroupStack{
+					{
+						NodeGroupName: "remote-ng-not-in-config",
+						Stack: &manager.Stack{
+							StackStatus: types.StackStatusRollbackComplete,
+						},
+					},
+				},
+			}
+			err := filter.SetOnlyLocal(context.Background(), mockProvider.EKS(), mockLister, cfg)
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should match only local nodegroups with exclude and include rules", func() {
