@@ -313,6 +313,11 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 				return err
 			}
 		}
+		for _, capability := range clusterConfig.Capabilities {
+			if err := capability.Validate(); err != nil {
+				return err
+			}
+		}
 		if clusterConfig.IsAutoModeEnabled() {
 			if len(clusterConfig.NodeGroups) > 0 || len(clusterConfig.ManagedNodeGroups) > 0 {
 				return errors.New("creation of managed or self-managed nodegroups is not supported during cluster creation " +
@@ -1186,7 +1191,7 @@ func emptyConfigField(v reflect.Value) bool {
 		return v.Uint() == 0
 	case reflect.String:
 		return v.String() == ""
-	case reflect.Ptr, reflect.Slice, reflect.Map, reflect.Interface, reflect.Chan:
+	case reflect.Pointer, reflect.Slice, reflect.Map, reflect.Interface, reflect.Chan:
 		return v.IsNil()
 	case reflect.Bool:
 		return !v.Bool()
