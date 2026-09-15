@@ -1,5 +1,5 @@
 mkdocs                  == 1.6.1
-mkdocs-material         == 9.5.49
+mkdocs-material         == 9.7.7
 mkdocs-redirects
 mkdocs-minify-plugin
 mkdocs-glightbox
