@@ -979,11 +979,7 @@ func validateNodeGroupBase(np NodePool, path string, controlPlaneOnOutposts bool
 		}
 	}
 
-	if err := validateConnectionTracking(ng.ConnectionTracking, path); err != nil {
-		return err
-	}
-
-	return nil
+	return validateConnectionTracking(ng.ConnectionTracking, path)
 }
 
 func validateConnectionTracking(connectionTracking *ConnectionTracking, path string) error {
