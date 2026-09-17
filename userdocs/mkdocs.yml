@@ -180,6 +180,7 @@ nav:
       - usage/nodegroup-additional-volume-mappings.md
       - usage/hybrid-nodes.md
       - usage/nodegroup-node-repair-config.md
+      - usage/nodegroup-connection-tracking.md
     - usage/eksctl-karpenter.md
     - usage/eksctl-anywhere.md
     - GitOps:

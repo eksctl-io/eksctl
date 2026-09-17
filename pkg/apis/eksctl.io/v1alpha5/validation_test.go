@@ -2869,6 +2869,92 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 	})
 
+	Describe("Connection Tracking validation", func() {
+		var (
+			cfg *api.ClusterConfig
+			ng  *api.NodeGroup
+		)
+
+		BeforeEach(func() {
+			cfg = api.NewClusterConfig()
+			ng = cfg.NewNodeGroup()
+			ng.Name = "ng"
+		})
+
+		When("ConnectionTracking is not set", func() {
+			It("does not fail", func() {
+				Expect(api.ValidateNodeGroup(0, ng, cfg)).To(Succeed())
+			})
+		})
+
+		When("all timeouts are within range", func() {
+			It("does not fail", func() {
+				ng.ConnectionTracking = &api.ConnectionTracking{
+					TCPEstablishedTimeout: aws.Int(api.MaxTCPEstablishedTimeout),
+					UDPStreamTimeout:      aws.Int(api.MaxUDPStreamTimeout),
+					UDPTimeout:            aws.Int(api.MinUDPTimeout),
+				}
+				Expect(api.ValidateNodeGroup(0, ng, cfg)).To(Succeed())
+			})
+		})
+
+		When("only one timeout is set", func() {
+			It("does not fail", func() {
+				ng.ConnectionTracking = &api.ConnectionTracking{
+					TCPEstablishedTimeout: aws.Int(3600),
+				}
+				Expect(api.ValidateNodeGroup(0, ng, cfg)).To(Succeed())
+			})
+		})
+
+		When("no timeouts are set", func() {
+			It("returns an error", func() {
+				ng.ConnectionTracking = &api.ConnectionTracking{}
+				Expect(api.ValidateNodeGroup(0, ng, cfg)).To(MatchError(ContainSubstring("at least one of nodeGroups[0].connectionTracking.tcpEstablishedTimeout, nodeGroups[0].connectionTracking.udpStreamTimeout or nodeGroups[0].connectionTracking.udpTimeout must be set")))
+			})
+		})
+
+		DescribeTable("out of range timeouts", func(connectionTracking api.ConnectionTracking, expectedErr string) {
+			ng.ConnectionTracking = &connectionTracking
+			Expect(api.ValidateNodeGroup(0, ng, cfg)).To(MatchError(ContainSubstring(expectedErr)))
+		},
+			Entry("tcpEstablishedTimeout below the minimum",
+				api.ConnectionTracking{TCPEstablishedTimeout: aws.Int(api.MinTCPEstablishedTimeout - 1)},
+				"value for nodeGroups[0].connectionTracking.tcpEstablishedTimeout must be within range 60-432000",
+			),
+			Entry("tcpEstablishedTimeout above the maximum",
+				api.ConnectionTracking{TCPEstablishedTimeout: aws.Int(api.MaxTCPEstablishedTimeout + 1)},
+				"value for nodeGroups[0].connectionTracking.tcpEstablishedTimeout must be within range 60-432000",
+			),
+			Entry("udpStreamTimeout below the minimum",
+				api.ConnectionTracking{UDPStreamTimeout: aws.Int(api.MinUDPStreamTimeout - 1)},
+				"value for nodeGroups[0].connectionTracking.udpStreamTimeout must be within range 60-180",
+			),
+			Entry("udpStreamTimeout above the maximum",
+				api.ConnectionTracking{UDPStreamTimeout: aws.Int(api.MaxUDPStreamTimeout + 1)},
+				"value for nodeGroups[0].connectionTracking.udpStreamTimeout must be within range 60-180",
+			),
+			Entry("udpTimeout below the minimum",
+				api.ConnectionTracking{UDPTimeout: aws.Int(api.MinUDPTimeout - 1)},
+				"value for nodeGroups[0].connectionTracking.udpTimeout must be within range 30-60",
+			),
+			Entry("udpTimeout above the maximum",
+				api.ConnectionTracking{UDPTimeout: aws.Int(api.MaxUDPTimeout + 1)},
+				"value for nodeGroups[0].connectionTracking.udpTimeout must be within range 30-60",
+			),
+		)
+
+		When("a managed nodegroup supplies its own launch template", func() {
+			It("returns an error", func() {
+				mng := api.NewManagedNodeGroup()
+				mng.Name = "mng"
+				mng.LaunchTemplate = &api.LaunchTemplate{ID: "lt-1234"}
+				mng.ConnectionTracking = &api.ConnectionTracking{TCPEstablishedTimeout: aws.Int(3600)}
+				Expect(api.ValidateManagedNodeGroup(0, mng)).To(MatchError(ContainSubstring("connectionTracking")))
+			})
+		})
+	})
+
 	Describe("Instance Market Options validation", func() {
 		var (
 			cfg *api.ClusterConfig
