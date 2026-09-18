@@ -1,0 +1,27 @@
+# An example of a cluster whose nodegroups keep the pre-Nitro-v6 idle TCP connection
+# tracking timeout, for workloads that rely on long-lived idle connections.
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: connection-tracking
+  region: us-west-2
+
+managedNodeGroups:
+  - name: ng-managed
+    instanceType: c8in.8xlarge
+    desiredCapacity: 2
+    connectionTracking:
+      # Keep idle established TCP connections tracked for 5 days, instead of the
+      # 350 seconds Nitro v6 instance types default to.
+      tcpEstablishedTimeout: 432000
+
+nodeGroups:
+  - name: ng-self-managed
+    instanceType: m8i.4xlarge
+    desiredCapacity: 2
+    connectionTracking:
+      tcpEstablishedTimeout: 3600
+      udpStreamTimeout: 180
+      udpTimeout: 60

@@ -505,7 +505,7 @@ func newLaunchTemplateData(ctx context.Context, n *NodeGroupResourceSet) (*gfnec
 		}
 	}
 
-	if err := buildNetworkInterfaces(ctx, launchTemplateData, ng.InstanceTypeList(), api.IsEnabled(ng.EFAEnabled), n.securityGroups, n.ec2API); err != nil {
+	if err := buildNetworkInterfaces(ctx, launchTemplateData, ng.InstanceTypeList(), api.IsEnabled(ng.EFAEnabled), n.securityGroups, ng.ConnectionTracking, n.ec2API); err != nil {
 		return nil, fmt.Errorf("couldn't build network interfaces for launch template data: %w", err)
 	}
 

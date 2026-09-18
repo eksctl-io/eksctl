@@ -2045,6 +2045,34 @@ type NodeGroupBase struct {
 	// OutpostARN specifies the Outpost ARN in which the nodegroup should be created.
 	// +optional
 	OutpostARN string `json:"outpostARN,omitempty"`
+
+	// ConnectionTracking specifies the idle connection tracking timeouts for the
+	// network interfaces of nodes in this group.
+	// +optional
+	ConnectionTracking *ConnectionTracking `json:"connectionTracking,omitempty"`
+}
+
+// ConnectionTracking specifies the idle connection tracking timeouts applied to the
+// network interfaces of a nodegroup's nodes. Timeouts left unset keep the EC2 default
+// for the instance type. See [relevant AWS
+// docs](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-connection-tracking.html#connection-tracking-timeouts)
+type ConnectionTracking struct {
+	// TCPEstablishedTimeout is the timeout, in seconds, for idle TCP connections in an
+	// established state. Must be between 60 and 432000 (5 days).
+	// +optional
+	TCPEstablishedTimeout *int `json:"tcpEstablishedTimeout,omitempty"`
+
+	// UDPStreamTimeout is the timeout, in seconds, for idle UDP flows classified as
+	// streams, which have seen more than one request-response transaction.
+	// Must be between 60 and 180 (3 minutes).
+	// +optional
+	UDPStreamTimeout *int `json:"udpStreamTimeout,omitempty"`
+
+	// UDPTimeout is the timeout, in seconds, for idle UDP flows that have seen traffic
+	// only in a single direction or a single request-response transaction.
+	// Must be between 30 and 60.
+	// +optional
+	UDPTimeout *int `json:"udpTimeout,omitempty"`
 }
 
 // CapacityReservation defines a nodegroup's Capacity Reservation targeting option

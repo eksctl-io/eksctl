@@ -1290,6 +1290,33 @@
       "description": "holds global subnet and all child subnets",
       "x-intellij-html-description": "holds global subnet and all child subnets"
     },
+    "ConnectionTracking": {
+      "properties": {
+        "tcpEstablishedTimeout": {
+          "type": "integer",
+          "description": "timeout, in seconds, for idle TCP connections in an established state. Must be between 60 and 432000 (5 days).",
+          "x-intellij-html-description": "timeout, in seconds, for idle TCP connections in an established state. Must be between 60 and 432000 (5 days)."
+        },
+        "udpStreamTimeout": {
+          "type": "integer",
+          "description": "timeout, in seconds, for idle UDP flows classified as streams, which have seen more than one request-response transaction. Must be between 60 and 180 (3 minutes).",
+          "x-intellij-html-description": "timeout, in seconds, for idle UDP flows classified as streams, which have seen more than one request-response transaction. Must be between 60 and 180 (3 minutes)."
+        },
+        "udpTimeout": {
+          "type": "integer",
+          "description": "timeout, in seconds, for idle UDP flows that have seen traffic only in a single direction or a single request-response transaction. Must be between 30 and 60.",
+          "x-intellij-html-description": "timeout, in seconds, for idle UDP flows that have seen traffic only in a single direction or a single request-response transaction. Must be between 30 and 60."
+        }
+      },
+      "preferredOrder": [
+        "tcpEstablishedTimeout",
+        "udpStreamTimeout",
+        "udpTimeout"
+      ],
+      "additionalProperties": false,
+      "description": "specifies the idle connection tracking timeouts applied to the network interfaces of a nodegroup's nodes. Timeouts left unset keep the EC2 default for the instance type. See [relevant AWS docs](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-connection-tracking.html#connection-tracking-timeouts)",
+      "x-intellij-html-description": "specifies the idle connection tracking timeouts applied to the network interfaces of a nodegroup's nodes. Timeouts left unset keep the EC2 default for the instance type. See <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-connection-tracking.html#connection-tracking-timeouts\">relevant AWS docs</a>"
+    },
     "ControlPlaneScalingConfig": {
       "properties": {
         "tier": {
@@ -1809,6 +1836,11 @@
           "description": "defines reservation policy for a nodegroup",
           "x-intellij-html-description": "defines reservation policy for a nodegroup"
         },
+        "connectionTracking": {
+          "$ref": "#/definitions/ConnectionTracking",
+          "description": "specifies the idle connection tracking timeouts for the network interfaces of nodes in this group.",
+          "x-intellij-html-description": "specifies the idle connection tracking timeouts for the network interfaces of nodes in this group."
+        },
         "desiredCapacity": {
           "type": "integer"
         },
@@ -2059,6 +2091,7 @@
         "capacityReservation",
         "instanceMarketOptions",
         "outpostARN",
+        "connectionTracking",
         "instanceTypes",
         "spot",
         "taints",
@@ -2182,6 +2215,11 @@
           "type": "string",
           "description": "[Custom address](/usage/vpc-networking/#custom-cluster-dns-address) used for DNS lookups",
           "x-intellij-html-description": "<a href=\"/usage/vpc-networking/#custom-cluster-dns-address\">Custom address</a> used for DNS lookups"
+        },
+        "connectionTracking": {
+          "$ref": "#/definitions/ConnectionTracking",
+          "description": "specifies the idle connection tracking timeouts for the network interfaces of nodes in this group.",
+          "x-intellij-html-description": "specifies the idle connection tracking timeouts for the network interfaces of nodes in this group."
         },
         "containerRuntime": {
           "type": "string",
@@ -2445,6 +2483,7 @@
         "capacityReservation",
         "instanceMarketOptions",
         "outpostARN",
+        "connectionTracking",
         "instancesDistribution",
         "asgMetricsCollection",
         "cpuCredits",

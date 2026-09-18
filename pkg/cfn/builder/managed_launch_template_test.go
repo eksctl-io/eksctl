@@ -456,6 +456,20 @@ API_SERVER_URL=https://test.com
 			},
 			resourcesFilename: "launch_template_with_capacity_reservation_preference.json",
 		}),
+		Entry("Connection tracking is set", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name:         "connection-tracking",
+					InstanceType: "m5.xlarge",
+					ConnectionTracking: &api.ConnectionTracking{
+						TCPEstablishedTimeout: aws.Int(432000),
+						UDPStreamTimeout:      aws.Int(180),
+						UDPTimeout:            aws.Int(60),
+					},
+				},
+			},
+			resourcesFilename: "connection_tracking.json",
+		}),
 	)
 
 	Context("version-aware EFA security group creation", func() {

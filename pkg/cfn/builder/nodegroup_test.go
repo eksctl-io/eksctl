@@ -1500,6 +1500,50 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 					Expect(properties.LaunchTemplateData.EnclaveOptions.Enabled).To(Equal(aws.Bool(true)))
 				})
 			})
+
+			Context("ng.ConnectionTracking is set", func() {
+				BeforeEach(func() {
+					ng.ConnectionTracking = &api.ConnectionTracking{
+						TCPEstablishedTimeout: aws.Int(432000),
+						UDPStreamTimeout:      aws.Int(180),
+						UDPTimeout:            aws.Int(60),
+					}
+				})
+
+				It("sets the timeouts on the launch template's network interface", func() {
+					networkInterfaces := ngTemplate.Resources["NodeGroupLaunchTemplate"].Properties.LaunchTemplateData.NetworkInterfaces
+					Expect(networkInterfaces).To(HaveLen(1))
+					Expect(networkInterfaces[0].ConnectionTrackingSpecification).To(Equal(&fakes.ConnectionTrackingSpecification{
+						TCPEstablishedTimeout: aws.Int(432000),
+						UDPStreamTimeout:      aws.Int(180),
+						UDPTimeout:            aws.Int(60),
+					}))
+				})
+			})
+
+			Context("ng.ConnectionTracking sets a single timeout", func() {
+				BeforeEach(func() {
+					ng.ConnectionTracking = &api.ConnectionTracking{
+						TCPEstablishedTimeout: aws.Int(3600),
+					}
+				})
+
+				It("omits the timeouts that were not set", func() {
+					networkInterfaces := ngTemplate.Resources["NodeGroupLaunchTemplate"].Properties.LaunchTemplateData.NetworkInterfaces
+					Expect(networkInterfaces).To(HaveLen(1))
+					Expect(networkInterfaces[0].ConnectionTrackingSpecification).To(Equal(&fakes.ConnectionTrackingSpecification{
+						TCPEstablishedTimeout: aws.Int(3600),
+					}))
+				})
+			})
+
+			Context("ng.ConnectionTracking is not set", func() {
+				It("does not set a connection tracking specification", func() {
+					networkInterfaces := ngTemplate.Resources["NodeGroupLaunchTemplate"].Properties.LaunchTemplateData.NetworkInterfaces
+					Expect(networkInterfaces).To(HaveLen(1))
+					Expect(networkInterfaces[0].ConnectionTrackingSpecification).To(BeNil())
+				})
+			})
 		})
 	})
 
