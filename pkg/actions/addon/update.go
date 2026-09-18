@@ -73,6 +73,11 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, podIdentityIAMUp
 		if summary.Version != latestVersion {
 			logger.Info("new version provided %s", latestVersion)
 		}
+		// Resolve the resolved version back into the addon so that subsequent
+		// steps (e.g. describing recommended pod identity policies) use the
+		// concrete version instead of the "latest" keyword, which the EKS API
+		// rejects (see https://github.com/eksctl-io/eksctl/issues/7841).
+		addon.Version = latestVersion
 		updateAddonInput.AddonVersion = &latestVersion
 	}
 
@@ -102,7 +107,7 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, podIdentityIAMUp
 		if requiresIAMPermissions {
 			pidConfigList, supportsPodIdentity, err := a.getRecommendedPoliciesForPodID(ctx, addon)
 			if err != nil {
-				return fmt.Errorf("getting recommended policies for addon %s", addon.Name)
+				return fmt.Errorf("getting recommended policies for addon %s: %w", addon.Name, err)
 			}
 			if !supportsPodIdentity {
 				return &unsupportedPodIdentityErr{addonName: addon.Name}
