@@ -33,6 +33,9 @@ type Drainer struct {
 
 // Drain drains nodegroups.
 func (d *Drainer) Drain(ctx context.Context, input *DrainInput) error {
+	if len(input.NodeGroups) == 0 {
+		return nil
+	}
 	parallelLimit := int64(input.Parallel)
 	sem := semaphore.NewWeighted(parallelLimit)
 	logger.Info("starting parallel draining, max in-flight of %d", parallelLimit)
