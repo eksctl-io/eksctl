@@ -192,7 +192,11 @@ func (c *OwnedCluster) Delete(ctx context.Context, _, podEvictionWaitPeriod time
 			DeleteTasks(ctx, []podidentityassociation.Identifier{})
 	}
 
-	tasks, err := c.stackManager.NewTasksToDeleteClusterWithNodeGroups(ctx, c.clusterStack, allStacks, clusterOperable, newOIDCManager, newTasksToDeleteAddonIAM, newTasksToDeleteCapability, newTasksToDeletePodIdentityRoles, c.ctl.Status.ClusterInfo.Cluster, kubernetes.NewCachedClientSet(clientSet), wait, force, func(errs chan error, _ string) error {
+	var cluster *ekstypes.Cluster
+	if c.ctl.Status.ClusterInfo != nil {
+		cluster = c.ctl.Status.ClusterInfo.Cluster
+	}
+	tasks, err := c.stackManager.NewTasksToDeleteClusterWithNodeGroups(ctx, c.clusterStack, allStacks, clusterOperable, newOIDCManager, newTasksToDeleteAddonIAM, newTasksToDeleteCapability, newTasksToDeletePodIdentityRoles, cluster, kubernetes.NewCachedClientSet(clientSet), wait, force, func(errs chan error, _ string) error {
 		logger.Info("trying to cleanup dangling network interfaces")
 		stack, err := c.stackManager.DescribeClusterStack(ctx)
 		if err != nil {
