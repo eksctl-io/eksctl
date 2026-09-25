@@ -544,9 +544,32 @@ func nonTransitionalReadyStackStatuses() []types.StackStatus {
 	return []types.StackStatus{
 		types.StackStatusCreateComplete,
 		types.StackStatusUpdateComplete,
-		types.StackStatusRollbackComplete,
+		// Note: ROLLBACK_COMPLETE is deliberately excluded. It means the stack's
+		// CREATE failed and was rolled back, so no resources exist and CloudFormation
+		// refuses to update it; grouping it with healthy terminal states caused
+		// broken stacks to be treated as healthy existing nodegroups (see
+		// https://github.com/eksctl-io/eksctl/issues/8712). UPDATE_ROLLBACK_COMPLETE
+		// is genuinely healthy (an update rolled back to a known-good state) and
+		// remains included.
 		types.StackStatusUpdateRollbackComplete,
 	}
+}
+
+// StackStatusIsNotOperational reports whether the stack is in a terminal failed or
+// rolled-back state (e.g. ROLLBACK_COMPLETE) in which it cannot serve the resources
+// it represents. Such stacks must not be treated as healthy existing nodegroups: a
+// nodegroup whose stack is in ROLLBACK_COMPLETE was never created successfully, and
+// CloudFormation refuses to update it, so it has to be deleted and recreated.
+func StackStatusIsNotOperational(s *Stack) bool {
+	switch s.StackStatus {
+	case types.StackStatusCreateFailed,
+		types.StackStatusRollbackComplete,
+		types.StackStatusRollbackFailed,
+		types.StackStatusUpdateRollbackFailed,
+		types.StackStatusDeleteFailed:
+		return true
+	}
+	return false
 }
 
 func allNonDeletedStackStatuses() []types.StackStatus {
