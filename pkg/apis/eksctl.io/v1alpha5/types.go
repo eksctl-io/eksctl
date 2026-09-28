@@ -2054,7 +2054,8 @@ type NodeGroupBase struct {
 
 // ConnectionTracking specifies the idle connection tracking timeouts applied to the
 // network interfaces of a nodegroup's nodes. Timeouts left unset keep the EC2 default
-// for the instance type. See [relevant AWS
+// for the instance type. Only Nitro-based instance types support configurable timeouts.
+// See [relevant AWS
 // docs](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-connection-tracking.html#connection-tracking-timeouts)
 type ConnectionTracking struct {
 	// TCPEstablishedTimeout is the timeout, in seconds, for idle TCP connections in an

@@ -177,6 +177,12 @@ func TestBuildNetworkInterfaces(t *testing.T) {
 				UDPStreamTimeout:      aws.Int(180),
 				UDPTimeout:            aws.Int(60),
 			},
+			mockInstanceTypes: []ec2types.InstanceTypeInfo{
+				{
+					InstanceType: ec2types.InstanceTypeC8in8xlarge,
+					Hypervisor:   ec2types.InstanceTypeHypervisorNitro,
+				},
+			},
 			expectedNetworkInterfaces: 1,
 			expectedInterfaceType:     "",
 		},
@@ -189,6 +195,12 @@ func TestBuildNetworkInterfaces(t *testing.T) {
 			},
 			connectionTracking: &api.ConnectionTracking{
 				TCPEstablishedTimeout: aws.Int(3600),
+			},
+			mockInstanceTypes: []ec2types.InstanceTypeInfo{
+				{
+					InstanceType: ec2types.InstanceTypeC8in8xlarge,
+					Hypervisor:   ec2types.InstanceTypeHypervisorNitro,
+				},
 			},
 			expectedNetworkInterfaces: 1,
 			expectedInterfaceType:     "",
@@ -208,6 +220,7 @@ func TestBuildNetworkInterfaces(t *testing.T) {
 			mockInstanceTypes: []ec2types.InstanceTypeInfo{
 				{
 					InstanceType: ec2types.InstanceTypeC5n18xlarge,
+					Hypervisor:   ec2types.InstanceTypeHypervisorNitro,
 					NetworkInfo: &ec2types.NetworkInfo{
 						MaximumNetworkCards: aws.Int32(4),
 						EfaSupported:        aws.Bool(true),
@@ -217,13 +230,105 @@ func TestBuildNetworkInterfaces(t *testing.T) {
 			expectedNetworkInterfaces: 4,
 			expectedInterfaceType:     "efa",
 		},
+		{
+			// Bare metal instance types report no hypervisor at all, but they are delivered on
+			// the Nitro system, so they must not be rejected.
+			name:          "nodegroup with connection tracking on a bare metal instance type",
+			instanceTypes: []string{"c5n.metal"},
+			efaEnabled:    false,
+			securityGroups: []*gfnt.Value{
+				gfnt.NewString("sg-12345"),
+			},
+			connectionTracking: &api.ConnectionTracking{
+				TCPEstablishedTimeout: aws.Int(432000),
+			},
+			mockInstanceTypes: []ec2types.InstanceTypeInfo{
+				{
+					InstanceType: ec2types.InstanceTypeC5nMetal,
+					BareMetal:    aws.Bool(true),
+				},
+			},
+			expectedNetworkInterfaces: 1,
+			expectedInterfaceType:     "",
+		},
+		{
+			name:          "nodegroup with connection tracking on a non-Nitro instance type",
+			instanceTypes: []string{"m4.large"},
+			efaEnabled:    false,
+			securityGroups: []*gfnt.Value{
+				gfnt.NewString("sg-12345"),
+			},
+			connectionTracking: &api.ConnectionTracking{
+				TCPEstablishedTimeout: aws.Int(432000),
+			},
+			mockInstanceTypes: []ec2types.InstanceTypeInfo{
+				{
+					InstanceType: ec2types.InstanceTypeM4Large,
+					Hypervisor:   ec2types.InstanceTypeHypervisorXen,
+					BareMetal:    aws.Bool(false),
+				},
+			},
+			expectedError: "connectionTracking is only supported on Nitro-based instance types; m4.large cannot be used with it",
+		},
+		{
+			name:          "nodegroup with connection tracking on a mixed instance list containing non-Nitro types",
+			instanceTypes: []string{"m5.large", "m4.large", "t2.medium"},
+			efaEnabled:    false,
+			securityGroups: []*gfnt.Value{
+				gfnt.NewString("sg-12345"),
+			},
+			connectionTracking: &api.ConnectionTracking{
+				TCPEstablishedTimeout: aws.Int(432000),
+			},
+			mockInstanceTypes: []ec2types.InstanceTypeInfo{
+				{
+					InstanceType: ec2types.InstanceTypeM5Large,
+					Hypervisor:   ec2types.InstanceTypeHypervisorNitro,
+				},
+				{
+					InstanceType: ec2types.InstanceTypeM4Large,
+					Hypervisor:   ec2types.InstanceTypeHypervisorXen,
+				},
+				{
+					InstanceType: ec2types.InstanceTypeT2Medium,
+					Hypervisor:   ec2types.InstanceTypeHypervisorXen,
+				},
+			},
+			expectedError: "connectionTracking is only supported on Nitro-based instance types; m4.large, t2.medium cannot be used with it",
+		},
+		{
+			// EFA enabled and connection tracking set share a single DescribeInstanceTypes call,
+			// and the support check runs before the EFA interface count.
+			name:          "EFA nodegroup with connection tracking on a non-Nitro instance type",
+			instanceTypes: []string{"m4.large"},
+			efaEnabled:    true,
+			securityGroups: []*gfnt.Value{
+				gfnt.NewString("sg-12345"),
+			},
+			connectionTracking: &api.ConnectionTracking{
+				TCPEstablishedTimeout: aws.Int(432000),
+			},
+			mockInstanceTypes: []ec2types.InstanceTypeInfo{
+				{
+					InstanceType: ec2types.InstanceTypeM4Large,
+					Hypervisor:   ec2types.InstanceTypeHypervisorXen,
+					NetworkInfo: &ec2types.NetworkInfo{
+						MaximumNetworkCards: aws.Int32(1),
+						EfaSupported:        aws.Bool(false),
+					},
+				},
+			},
+			expectedError: "connectionTracking is only supported on Nitro-based instance types; m4.large cannot be used with it",
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockProvider := mockprovider.NewMockProvider()
 
-			if tt.efaEnabled && tt.expectedError == "" {
+			// The instance type description is fetched once for EFA, for connection tracking,
+			// or for both together.
+			if tt.efaEnabled || tt.connectionTracking != nil {
 				mockProvider.MockEC2().On("DescribeInstanceTypes",
 					context.Background(),
 					&ec2.DescribeInstanceTypesInput{
@@ -236,21 +341,7 @@ func TestBuildNetworkInterfaces(t *testing.T) {
 						}(),
 					}).Return(&ec2.DescribeInstanceTypesOutput{
 					InstanceTypes: tt.mockInstanceTypes,
-				}, nil)
-			} else if tt.efaEnabled && tt.expectedError != "" {
-				mockProvider.MockEC2().On("DescribeInstanceTypes",
-					context.Background(),
-					&ec2.DescribeInstanceTypesInput{
-						InstanceTypes: func() []ec2types.InstanceType {
-							var types []ec2types.InstanceType
-							for _, it := range tt.instanceTypes {
-								types = append(types, ec2types.InstanceType(it))
-							}
-							return types
-						}(),
-					}).Return(&ec2.DescribeInstanceTypesOutput{
-					InstanceTypes: tt.mockInstanceTypes,
-				}, nil)
+				}, nil).Once()
 			}
 
 			launchTemplateData := &gfnec2.LaunchTemplate_LaunchTemplateData{}
@@ -264,6 +355,8 @@ func TestBuildNetworkInterfaces(t *testing.T) {
 				tt.connectionTracking,
 				mockProvider.EC2(),
 			)
+
+			mockProvider.MockEC2().AssertExpectations(t)
 
 			if tt.expectedError != "" {
 				require.Error(t, err)

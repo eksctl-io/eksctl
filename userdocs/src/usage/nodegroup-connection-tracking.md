@@ -55,10 +55,23 @@ Because `connectionTracking` is applied through the launch template that `eksctl
 it cannot be combined with a nodegroup that supplies its own launch template through
 `launchTemplate.id`. Set the timeouts in your own launch template in that case.
 
-!!! note
-    Changing `connectionTracking` on an existing nodegroup does not update the nodes that
-    are already running. Create a new nodegroup, or replace the existing nodes, to pick up
-    the new timeouts.
+Configurable connection tracking timeouts are an EC2 feature of Nitro-based instances only, so
+every instance type a nodegroup can launch must be Nitro-based. `eksctl` checks this against
+the instance types it resolves for the nodegroup - including the ones an `instanceSelector`
+expands to - and fails the nodegroup before creating anything, naming the instance types that
+are not Nitro-based. EC2 itself accepts the timeouts in a launch template for any instance
+type and only fails when a node launches, which is why `eksctl` checks up front.
+
+!!! note "`connectionTracking` takes effect at nodegroup creation"
+    The timeouts are written into the launch template `eksctl` generates when it creates the
+    nodegroup, and no `eksctl` command re-applies them afterwards - `eksctl update nodegroup`
+    only applies `updateConfig`. Editing `connectionTracking` in your config file and then
+    replacing the nodegroup's instances therefore leaves them on the old timeouts.
+
+    To change the timeouts, create a new nodegroup with the values you want and migrate the
+    workload to it. Editing the launch template `eksctl` generated, by hand or through the EC2
+    API, is not a supported alternative: the template belongs to the nodegroup's CloudFormation
+    stack and changes made outside `eksctl` drift from it.
 
 ## Further information
 
