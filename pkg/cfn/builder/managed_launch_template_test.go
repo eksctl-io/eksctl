@@ -38,6 +38,26 @@ type mngCase struct {
 	errMsg      string
 }
 
+// mockInstanceTypeHypervisor stubs the DescribeInstanceTypes call that the connection tracking
+// support check makes, reporting the given hypervisor for the given instance type.
+func mockInstanceTypeHypervisor(instanceType ec2types.InstanceType, hypervisor ec2types.InstanceTypeHypervisor) func(*mockprovider.MockProvider) {
+	return func(provider *mockprovider.MockProvider) {
+		provider.MockEC2().On("DescribeInstanceTypes",
+			mock.Anything,
+			&ec2.DescribeInstanceTypesInput{
+				InstanceTypes: []ec2types.InstanceType{instanceType},
+			},
+		).Return(&ec2.DescribeInstanceTypesOutput{
+			InstanceTypes: []ec2types.InstanceTypeInfo{
+				{
+					InstanceType: instanceType,
+					Hypervisor:   hypervisor,
+				},
+			},
+		}, nil)
+	}
+}
+
 var _ = Describe("ManagedNodeGroup builder", func() {
 	DescribeTable("Add resources", func(m *mngCase) {
 		clusterConfig := api.NewClusterConfig()
@@ -455,6 +475,34 @@ API_SERVER_URL=https://test.com
 				},
 			},
 			resourcesFilename: "launch_template_with_capacity_reservation_preference.json",
+		}),
+		Entry("Connection tracking is set", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name:         "connection-tracking",
+					InstanceType: "m5.xlarge",
+					ConnectionTracking: &api.ConnectionTracking{
+						TCPEstablishedTimeout: aws.Int(432000),
+						UDPStreamTimeout:      aws.Int(180),
+						UDPTimeout:            aws.Int(60),
+					},
+				},
+			},
+			mockFetcherFn:     mockInstanceTypeHypervisor(ec2types.InstanceTypeM5Xlarge, ec2types.InstanceTypeHypervisorNitro),
+			resourcesFilename: "connection_tracking.json",
+		}),
+		Entry("Connection tracking is set on a non-Nitro instance type", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name:         "connection-tracking-non-nitro",
+					InstanceType: "m4.large",
+					ConnectionTracking: &api.ConnectionTracking{
+						TCPEstablishedTimeout: aws.Int(432000),
+					},
+				},
+			},
+			mockFetcherFn: mockInstanceTypeHypervisor(ec2types.InstanceTypeM4Large, ec2types.InstanceTypeHypervisorXen),
+			errMsg:        "connectionTracking is only supported on Nitro-based instance types; m4.large cannot be used with it",
 		}),
 	)
 

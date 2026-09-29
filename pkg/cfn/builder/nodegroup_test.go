@@ -51,6 +51,8 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 			[]string{}, // local zones
 			[]ec2types.InstanceType{
 				api.DefaultNodeType,
+				ec2types.InstanceTypeC8in8xlarge,
+				ec2types.InstanceTypeM4Large,
 			})
 	})
 
@@ -1500,10 +1502,103 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 					Expect(properties.LaunchTemplateData.EnclaveOptions.Enabled).To(Equal(aws.Bool(true)))
 				})
 			})
+
+			Context("ng.ConnectionTracking is set", func() {
+				BeforeEach(func() {
+					ng.InstanceType = "c8in.8xlarge"
+					ng.ConnectionTracking = &api.ConnectionTracking{
+						TCPEstablishedTimeout: aws.Int(432000),
+						UDPStreamTimeout:      aws.Int(180),
+						UDPTimeout:            aws.Int(60),
+					}
+					mockInstanceTypeHypervisors(p, ec2types.InstanceTypeInfo{
+						InstanceType: ec2types.InstanceTypeC8in8xlarge,
+						Hypervisor:   ec2types.InstanceTypeHypervisorNitro,
+					})
+				})
+
+				It("does not error", func() {
+					Expect(addErr).NotTo(HaveOccurred())
+				})
+
+				It("sets the timeouts on the launch template's network interface", func() {
+					networkInterfaces := ngTemplate.Resources["NodeGroupLaunchTemplate"].Properties.LaunchTemplateData.NetworkInterfaces
+					Expect(networkInterfaces).To(HaveLen(1))
+					Expect(networkInterfaces[0].ConnectionTrackingSpecification).To(Equal(&fakes.ConnectionTrackingSpecification{
+						TCPEstablishedTimeout: aws.Int(432000),
+						UDPStreamTimeout:      aws.Int(180),
+						UDPTimeout:            aws.Int(60),
+					}))
+				})
+			})
+
+			Context("ng.ConnectionTracking sets a single timeout", func() {
+				BeforeEach(func() {
+					ng.InstanceType = "c8in.8xlarge"
+					ng.ConnectionTracking = &api.ConnectionTracking{
+						TCPEstablishedTimeout: aws.Int(3600),
+					}
+					mockInstanceTypeHypervisors(p, ec2types.InstanceTypeInfo{
+						InstanceType: ec2types.InstanceTypeC8in8xlarge,
+						Hypervisor:   ec2types.InstanceTypeHypervisorNitro,
+					})
+				})
+
+				It("omits the timeouts that were not set", func() {
+					networkInterfaces := ngTemplate.Resources["NodeGroupLaunchTemplate"].Properties.LaunchTemplateData.NetworkInterfaces
+					Expect(networkInterfaces).To(HaveLen(1))
+					Expect(networkInterfaces[0].ConnectionTrackingSpecification).To(Equal(&fakes.ConnectionTrackingSpecification{
+						TCPEstablishedTimeout: aws.Int(3600),
+					}))
+				})
+			})
+
+			Context("ng.ConnectionTracking is set on a non-Nitro instance type", func() {
+				BeforeEach(func() {
+					ng.InstanceType = "m4.large"
+					ng.ConnectionTracking = &api.ConnectionTracking{
+						TCPEstablishedTimeout: aws.Int(3600),
+					}
+					mockInstanceTypeHypervisors(p, ec2types.InstanceTypeInfo{
+						InstanceType: ec2types.InstanceTypeM4Large,
+						Hypervisor:   ec2types.InstanceTypeHypervisorXen,
+					})
+				})
+
+				It("returns an error", func() {
+					Expect(addErr).To(MatchError(ContainSubstring("connectionTracking is only supported on Nitro-based instance types; m4.large cannot be used with it")))
+				})
+			})
+
+			Context("ng.ConnectionTracking is not set", func() {
+				It("does not set a connection tracking specification", func() {
+					networkInterfaces := ngTemplate.Resources["NodeGroupLaunchTemplate"].Properties.LaunchTemplateData.NetworkInterfaces
+					Expect(networkInterfaces).To(HaveLen(1))
+					Expect(networkInterfaces[0].ConnectionTrackingSpecification).To(BeNil())
+				})
+			})
 		})
 	})
 
 })
+
+// mockInstanceTypeHypervisors stubs the DescribeInstanceTypes call that the connection tracking
+// support check makes. The input is matched exactly, so a stub only applies to the nodegroup
+// whose instance types it describes.
+func mockInstanceTypeHypervisors(provider *mockprovider.MockProvider, instanceTypeInfo ...ec2types.InstanceTypeInfo) {
+	instanceTypes := make([]ec2types.InstanceType, 0, len(instanceTypeInfo))
+	for _, info := range instanceTypeInfo {
+		instanceTypes = append(instanceTypes, info.InstanceType)
+	}
+	provider.MockEC2().On("DescribeInstanceTypes",
+		mock.Anything,
+		&ec2.DescribeInstanceTypesInput{
+			InstanceTypes: instanceTypes,
+		},
+	).Return(&ec2.DescribeInstanceTypesOutput{
+		InstanceTypes: instanceTypeInfo,
+	}, nil)
+}
 
 func newClusterAndNodeGroup() (*api.ClusterConfig, *api.NodeGroup) {
 	cfg := api.NewClusterConfig()

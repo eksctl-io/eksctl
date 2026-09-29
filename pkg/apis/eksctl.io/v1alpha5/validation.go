@@ -40,6 +40,16 @@ const (
 	OneDay        = 86400
 )
 
+// https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-connectiontrackingspecification.html
+const (
+	MinTCPEstablishedTimeout = 60
+	MaxTCPEstablishedTimeout = 432000
+	MinUDPStreamTimeout      = 60
+	MaxUDPStreamTimeout      = 180
+	MinUDPTimeout            = 30
+	MaxUDPTimeout            = 60
+)
+
 var (
 	// ErrClusterEndpointNoAccess indicates the config prevents API access
 	ErrClusterEndpointNoAccess = errors.New("Kubernetes API access must have one of public or private clusterEndpoints enabled")
@@ -969,7 +979,29 @@ func validateNodeGroupBase(np NodePool, path string, controlPlaneOnOutposts bool
 		}
 	}
 
-	return nil
+	return validateConnectionTracking(ng.ConnectionTracking, path)
+}
+
+func validateConnectionTracking(connectionTracking *ConnectionTracking, path string) error {
+	if connectionTracking == nil {
+		return nil
+	}
+	if connectionTracking.TCPEstablishedTimeout == nil && connectionTracking.UDPStreamTimeout == nil && connectionTracking.UDPTimeout == nil {
+		return fmt.Errorf("at least one of %[1]s.connectionTracking.tcpEstablishedTimeout, %[1]s.connectionTracking.udpStreamTimeout or %[1]s.connectionTracking.udpTimeout must be set", path)
+	}
+	validateRange := func(value *int, field string, minValue, maxValue int) error {
+		if value != nil && (*value < minValue || *value > maxValue) {
+			return fmt.Errorf("value for %s.connectionTracking.%s must be within range %d-%d", path, field, minValue, maxValue)
+		}
+		return nil
+	}
+	if err := validateRange(connectionTracking.TCPEstablishedTimeout, "tcpEstablishedTimeout", MinTCPEstablishedTimeout, MaxTCPEstablishedTimeout); err != nil {
+		return err
+	}
+	if err := validateRange(connectionTracking.UDPStreamTimeout, "udpStreamTimeout", MinUDPStreamTimeout, MaxUDPStreamTimeout); err != nil {
+		return err
+	}
+	return validateRange(connectionTracking.UDPTimeout, "udpTimeout", MinUDPTimeout, MaxUDPTimeout)
 }
 
 func validateVolumeOpts(ng *NodeGroupBase, path string, controlPlaneOnOutposts bool) error {
@@ -1534,12 +1566,13 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 		if ng.InstanceType != "" || ng.AMI != "" || IsEnabled(ng.SSH.Allow) || IsEnabled(ng.SSH.EnableSSM) || len(ng.SSH.SourceSecurityGroupIDs) > 0 ||
 			ng.VolumeSize != nil || len(ng.PreBootstrapCommands) > 0 || ng.OverrideBootstrapCommand != nil ||
 			len(ng.SecurityGroups.AttachIDs) > 0 || ng.InstanceName != "" || ng.InstancePrefix != "" || ng.MaxPodsPerNode != 0 ||
-			IsDisabled(ng.DisableIMDSv1) || IsEnabled(ng.DisablePodIMDS) || ng.Placement != nil {
+			IsDisabled(ng.DisableIMDSv1) || IsEnabled(ng.DisablePodIMDS) || ng.Placement != nil || ng.ConnectionTracking != nil {
 
 			incompatibleFields := []string{
 				"instanceType", "ami", "ssh.allow", "ssh.enableSSM", "ssh.sourceSecurityGroupIds", "securityGroups",
 				"volumeSize", "instanceName", "instancePrefix", "maxPodsPerNode", "disableIMDSv1",
 				"disablePodIMDS", "preBootstrapCommands", "overrideBootstrapCommand", "placement",
+				"connectionTracking",
 			}
 			return fmt.Errorf("cannot set %s in managedNodeGroup when a launch template is supplied", strings.Join(incompatibleFields, ", "))
 		}

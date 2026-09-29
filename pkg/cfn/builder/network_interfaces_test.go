@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	gfnec2 "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/ec2"
 	gfnt "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/types"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
@@ -21,6 +22,7 @@ func TestBuildNetworkInterfaces(t *testing.T) {
 		instanceTypes             []string
 		efaEnabled                bool
 		securityGroups            []*gfnt.Value
+		connectionTracking        *api.ConnectionTracking
 		mockInstanceTypes         []ec2types.InstanceTypeInfo
 		expectedNetworkInterfaces int
 		expectedInterfaceType     string
@@ -163,13 +165,170 @@ func TestBuildNetworkInterfaces(t *testing.T) {
 			expectedNetworkInterfaces: 4,
 			expectedInterfaceType:     "efa",
 		},
+		{
+			name:          "non-EFA nodegroup with connection tracking",
+			instanceTypes: []string{"c8in.8xlarge"},
+			efaEnabled:    false,
+			securityGroups: []*gfnt.Value{
+				gfnt.NewString("sg-12345"),
+			},
+			connectionTracking: &api.ConnectionTracking{
+				TCPEstablishedTimeout: aws.Int(432000),
+				UDPStreamTimeout:      aws.Int(180),
+				UDPTimeout:            aws.Int(60),
+			},
+			mockInstanceTypes: []ec2types.InstanceTypeInfo{
+				{
+					InstanceType: ec2types.InstanceTypeC8in8xlarge,
+					Hypervisor:   ec2types.InstanceTypeHypervisorNitro,
+				},
+			},
+			expectedNetworkInterfaces: 1,
+			expectedInterfaceType:     "",
+		},
+		{
+			name:          "non-EFA nodegroup with a single connection tracking timeout",
+			instanceTypes: []string{"c8in.8xlarge"},
+			efaEnabled:    false,
+			securityGroups: []*gfnt.Value{
+				gfnt.NewString("sg-12345"),
+			},
+			connectionTracking: &api.ConnectionTracking{
+				TCPEstablishedTimeout: aws.Int(3600),
+			},
+			mockInstanceTypes: []ec2types.InstanceTypeInfo{
+				{
+					InstanceType: ec2types.InstanceTypeC8in8xlarge,
+					Hypervisor:   ec2types.InstanceTypeHypervisorNitro,
+				},
+			},
+			expectedNetworkInterfaces: 1,
+			expectedInterfaceType:     "",
+		},
+		{
+			name:          "EFA nodegroup with connection tracking",
+			instanceTypes: []string{"c5n.18xlarge"},
+			efaEnabled:    true,
+			securityGroups: []*gfnt.Value{
+				gfnt.NewString("sg-12345"),
+			},
+			connectionTracking: &api.ConnectionTracking{
+				TCPEstablishedTimeout: aws.Int(432000),
+				UDPStreamTimeout:      aws.Int(180),
+				UDPTimeout:            aws.Int(60),
+			},
+			mockInstanceTypes: []ec2types.InstanceTypeInfo{
+				{
+					InstanceType: ec2types.InstanceTypeC5n18xlarge,
+					Hypervisor:   ec2types.InstanceTypeHypervisorNitro,
+					NetworkInfo: &ec2types.NetworkInfo{
+						MaximumNetworkCards: aws.Int32(4),
+						EfaSupported:        aws.Bool(true),
+					},
+				},
+			},
+			expectedNetworkInterfaces: 4,
+			expectedInterfaceType:     "efa",
+		},
+		{
+			// Bare metal instance types report no hypervisor at all, but they are delivered on
+			// the Nitro system, so they must not be rejected.
+			name:          "nodegroup with connection tracking on a bare metal instance type",
+			instanceTypes: []string{"c5n.metal"},
+			efaEnabled:    false,
+			securityGroups: []*gfnt.Value{
+				gfnt.NewString("sg-12345"),
+			},
+			connectionTracking: &api.ConnectionTracking{
+				TCPEstablishedTimeout: aws.Int(432000),
+			},
+			mockInstanceTypes: []ec2types.InstanceTypeInfo{
+				{
+					InstanceType: ec2types.InstanceTypeC5nMetal,
+					BareMetal:    aws.Bool(true),
+				},
+			},
+			expectedNetworkInterfaces: 1,
+			expectedInterfaceType:     "",
+		},
+		{
+			name:          "nodegroup with connection tracking on a non-Nitro instance type",
+			instanceTypes: []string{"m4.large"},
+			efaEnabled:    false,
+			securityGroups: []*gfnt.Value{
+				gfnt.NewString("sg-12345"),
+			},
+			connectionTracking: &api.ConnectionTracking{
+				TCPEstablishedTimeout: aws.Int(432000),
+			},
+			mockInstanceTypes: []ec2types.InstanceTypeInfo{
+				{
+					InstanceType: ec2types.InstanceTypeM4Large,
+					Hypervisor:   ec2types.InstanceTypeHypervisorXen,
+					BareMetal:    aws.Bool(false),
+				},
+			},
+			expectedError: "connectionTracking is only supported on Nitro-based instance types; m4.large cannot be used with it",
+		},
+		{
+			name:          "nodegroup with connection tracking on a mixed instance list containing non-Nitro types",
+			instanceTypes: []string{"m5.large", "m4.large", "t2.medium"},
+			efaEnabled:    false,
+			securityGroups: []*gfnt.Value{
+				gfnt.NewString("sg-12345"),
+			},
+			connectionTracking: &api.ConnectionTracking{
+				TCPEstablishedTimeout: aws.Int(432000),
+			},
+			mockInstanceTypes: []ec2types.InstanceTypeInfo{
+				{
+					InstanceType: ec2types.InstanceTypeM5Large,
+					Hypervisor:   ec2types.InstanceTypeHypervisorNitro,
+				},
+				{
+					InstanceType: ec2types.InstanceTypeM4Large,
+					Hypervisor:   ec2types.InstanceTypeHypervisorXen,
+				},
+				{
+					InstanceType: ec2types.InstanceTypeT2Medium,
+					Hypervisor:   ec2types.InstanceTypeHypervisorXen,
+				},
+			},
+			expectedError: "connectionTracking is only supported on Nitro-based instance types; m4.large, t2.medium cannot be used with it",
+		},
+		{
+			// EFA enabled and connection tracking set share a single DescribeInstanceTypes call,
+			// and the support check runs before the EFA interface count.
+			name:          "EFA nodegroup with connection tracking on a non-Nitro instance type",
+			instanceTypes: []string{"m4.large"},
+			efaEnabled:    true,
+			securityGroups: []*gfnt.Value{
+				gfnt.NewString("sg-12345"),
+			},
+			connectionTracking: &api.ConnectionTracking{
+				TCPEstablishedTimeout: aws.Int(432000),
+			},
+			mockInstanceTypes: []ec2types.InstanceTypeInfo{
+				{
+					InstanceType: ec2types.InstanceTypeM4Large,
+					Hypervisor:   ec2types.InstanceTypeHypervisorXen,
+					NetworkInfo: &ec2types.NetworkInfo{
+						MaximumNetworkCards: aws.Int32(1),
+						EfaSupported:        aws.Bool(false),
+					},
+				},
+			},
+			expectedError: "connectionTracking is only supported on Nitro-based instance types; m4.large cannot be used with it",
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockProvider := mockprovider.NewMockProvider()
 
-			if tt.efaEnabled && tt.expectedError == "" {
+			// The instance type description is fetched once for EFA, for connection tracking,
+			// or for both together.
+			if tt.efaEnabled || tt.connectionTracking != nil {
 				mockProvider.MockEC2().On("DescribeInstanceTypes",
 					context.Background(),
 					&ec2.DescribeInstanceTypesInput{
@@ -182,21 +341,7 @@ func TestBuildNetworkInterfaces(t *testing.T) {
 						}(),
 					}).Return(&ec2.DescribeInstanceTypesOutput{
 					InstanceTypes: tt.mockInstanceTypes,
-				}, nil)
-			} else if tt.efaEnabled && tt.expectedError != "" {
-				mockProvider.MockEC2().On("DescribeInstanceTypes",
-					context.Background(),
-					&ec2.DescribeInstanceTypesInput{
-						InstanceTypes: func() []ec2types.InstanceType {
-							var types []ec2types.InstanceType
-							for _, it := range tt.instanceTypes {
-								types = append(types, ec2types.InstanceType(it))
-							}
-							return types
-						}(),
-					}).Return(&ec2.DescribeInstanceTypesOutput{
-					InstanceTypes: tt.mockInstanceTypes,
-				}, nil)
+				}, nil).Once()
 			}
 
 			launchTemplateData := &gfnec2.LaunchTemplate_LaunchTemplateData{}
@@ -207,8 +352,11 @@ func TestBuildNetworkInterfaces(t *testing.T) {
 				tt.instanceTypes,
 				tt.efaEnabled,
 				tt.securityGroups,
+				tt.connectionTracking,
 				mockProvider.EC2(),
 			)
+
+			mockProvider.MockEC2().AssertExpectations(t)
 
 			if tt.expectedError != "" {
 				require.Error(t, err)
@@ -232,6 +380,11 @@ func TestBuildNetworkInterfaces(t *testing.T) {
 			assert.Len(t, groupsSlice, len(tt.securityGroups))
 			for i, sg := range tt.securityGroups {
 				assert.Equal(t, sg.Raw(), groupsSlice[i].Raw())
+			}
+
+			// Verify connection tracking is applied to every network interface
+			for _, ni := range launchTemplateData.NetworkInterfaces {
+				assertConnectionTracking(t, tt.connectionTracking, ni.ConnectionTrackingSpecification)
 			}
 
 			if tt.efaEnabled && tt.expectedError == "" {
@@ -283,6 +436,7 @@ func TestBuildNetworkInterfaces_EC2APIError(t *testing.T) {
 		instanceTypes,
 		true, // EFA enabled
 		securityGroups,
+		nil,
 		mockProvider.EC2(),
 	)
 
@@ -296,14 +450,63 @@ func TestDefaultNetworkInterface(t *testing.T) {
 		gfnt.NewString("sg-67890"),
 	}
 
-	ni := defaultNetworkInterface(securityGroups, 1, 2)
+	ni := defaultNetworkInterface(securityGroups, 1, 2, nil)
 
 	assert.Nil(t, ni.AssociatePublicIpAddress)
 	assert.Equal(t, gfnt.Integer(1), ni.DeviceIndex.Raw())
 	assert.Equal(t, gfnt.Integer(2), ni.NetworkCardIndex.Raw())
+	assert.Nil(t, ni.ConnectionTrackingSpecification)
 	require.NotNil(t, ni.Groups)
 	groupsSlice := ni.Groups.Raw().(gfnt.Slice)
 	assert.Len(t, groupsSlice, 2)
 	assert.Equal(t, gfnt.String("sg-12345"), groupsSlice[0].Raw())
 	assert.Equal(t, gfnt.String("sg-67890"), groupsSlice[1].Raw())
+}
+
+func TestMakeConnectionTrackingSpecification(t *testing.T) {
+	t.Run("nil connection tracking", func(t *testing.T) {
+		assert.Nil(t, makeConnectionTrackingSpecification(nil))
+	})
+
+	t.Run("all timeouts set", func(t *testing.T) {
+		spec := makeConnectionTrackingSpecification(&api.ConnectionTracking{
+			TCPEstablishedTimeout: aws.Int(432000),
+			UDPStreamTimeout:      aws.Int(180),
+			UDPTimeout:            aws.Int(60),
+		})
+		require.NotNil(t, spec)
+		assert.Equal(t, gfnt.Integer(432000), spec.TcpEstablishedTimeout.Raw())
+		assert.Equal(t, gfnt.Integer(180), spec.UdpStreamTimeout.Raw())
+		assert.Equal(t, gfnt.Integer(60), spec.UdpTimeout.Raw())
+	})
+
+	t.Run("unset timeouts are omitted", func(t *testing.T) {
+		spec := makeConnectionTrackingSpecification(&api.ConnectionTracking{
+			UDPTimeout: aws.Int(30),
+		})
+		require.NotNil(t, spec)
+		assert.Nil(t, spec.TcpEstablishedTimeout)
+		assert.Nil(t, spec.UdpStreamTimeout)
+		assert.Equal(t, gfnt.Integer(30), spec.UdpTimeout.Raw())
+	})
+}
+
+func assertConnectionTracking(t *testing.T, expected *api.ConnectionTracking, actual *gfnec2.LaunchTemplate_ConnectionTrackingSpecification) {
+	t.Helper()
+	if expected == nil {
+		assert.Nil(t, actual)
+		return
+	}
+	require.NotNil(t, actual)
+	assertTimeout := func(expected *int, actual *gfnt.Value) {
+		if expected == nil {
+			assert.Nil(t, actual)
+			return
+		}
+		require.NotNil(t, actual)
+		assert.Equal(t, gfnt.Integer(*expected), actual.Raw())
+	}
+	assertTimeout(expected.TCPEstablishedTimeout, actual.TcpEstablishedTimeout)
+	assertTimeout(expected.UDPStreamTimeout, actual.UdpStreamTimeout)
+	assertTimeout(expected.UDPTimeout, actual.UdpTimeout)
 }

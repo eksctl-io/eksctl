@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	awsec2 "github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	. "github.com/onsi/gomega"
 
 	corev1 "k8s.io/api/core/v1"
@@ -40,7 +42,9 @@ func ListNodes(clientset kubernetes.Interface, nodeGroupName string) *corev1.Nod
 	return nodeList
 }
 
-func AssertNodeVolumes(kubeConfig, region, nodeGroupName, volumeName string) {
+// NodeInstanceIDs returns the EC2 instance IDs of a nodegroup's nodes, read from their
+// Kubernetes provider IDs.
+func NodeInstanceIDs(kubeConfig, nodeGroupName string) []string {
 	config, err := clientcmd.BuildConfigFromFlags("", kubeConfig)
 	Expect(err).NotTo(HaveOccurred())
 	clientSet, err := kubernetes.NewForConfig(config)
@@ -60,6 +64,44 @@ func AssertNodeVolumes(kubeConfig, region, nodeGroupName, volumeName string) {
 		)
 		instanceIDs = append(instanceIDs, id)
 	}
+	return instanceIDs
+}
+
+// NodeInstances returns the EC2 instances backing a nodegroup's nodes.
+func NodeInstances(kubeConfig, region, nodeGroupName string) []ec2types.Instance {
+	instanceIDs := NodeInstanceIDs(kubeConfig, nodeGroupName)
+	Expect(instanceIDs).NotTo(BeEmpty(), fmt.Sprintf("nodegroup %q should have joined nodes", nodeGroupName))
+	ec2API := awsec2.NewFromConfig(matchers.NewConfig(region))
+	output, err := ec2API.DescribeInstances(context.Background(), &awsec2.DescribeInstancesInput{
+		InstanceIds: instanceIDs,
+	})
+	Expect(err).NotTo(HaveOccurred())
+	var instances []ec2types.Instance
+	for _, reservation := range output.Reservations {
+		instances = append(instances, reservation.Instances...)
+	}
+	Expect(instances).To(HaveLen(len(instanceIDs)))
+	return instances
+}
+
+// PrimaryNetworkInterface returns an instance's primary network interface, the one at device
+// index 0 on network card 0. That is the interface the VPC CNI reads connection tracking
+// settings from before replicating them onto the interfaces it creates for pods.
+func PrimaryNetworkInterface(instance ec2types.Instance) *ec2types.InstanceNetworkInterface {
+	for i, networkInterface := range instance.NetworkInterfaces {
+		attachment := networkInterface.Attachment
+		if attachment == nil {
+			continue
+		}
+		if aws.ToInt32(attachment.DeviceIndex) == 0 && aws.ToInt32(attachment.NetworkCardIndex) == 0 {
+			return &instance.NetworkInterfaces[i]
+		}
+	}
+	return nil
+}
+
+func AssertNodeVolumes(kubeConfig, region, nodeGroupName, volumeName string) {
+	instanceIDs := NodeInstanceIDs(kubeConfig, nodeGroupName)
 	cfg := matchers.NewConfig(region)
 	ec2 := awsec2.NewFromConfig(cfg)
 	instances, err := ec2.DescribeInstances(context.Background(), &awsec2.DescribeInstancesInput{
