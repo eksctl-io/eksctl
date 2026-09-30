@@ -152,7 +152,14 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 			},
 		},
 	}
-	cfg.AvailabilityZones = []string{"us-west-2b", "us-west-2c"}
+	// us-west-2d is included so capacity-constrained instance types (notably the GPU nodegroup
+	// below) have a third AZ to land in; pinning only two AZs made the suite fail whenever either
+	// was short on g6 capacity.
+	//
+	// us-west-2a is deliberately excluded: the "creating nodegroups within a new subnet" test
+	// creates a subnet there precisely because it is not one of the cluster's AZs. Adding it here
+	// would invalidate that test's premise.
+	cfg.AvailabilityZones = []string{"us-west-2b", "us-west-2c", "us-west-2d"}
 	cfg.Metadata.Tags = map[string]string{
 		"alpha.eksctl.io/description": "eksctl integration test",
 	}
@@ -915,7 +922,10 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				"--nodes", "1",
 				"--instance-types", "g6.xlarge,g6.2xlarge",
 				"--node-private-networking",
-				"--node-zones", "us-west-2b,us-west-2c",
+				// Spread across every AZ the cluster has. GPU capacity is the scarcest resource in
+				// this suite, and restricting the nodegroup to a subset of the cluster's AZs gains
+				// nothing while making InsufficientInstanceCapacity far more likely.
+				"--node-zones", "us-west-2b,us-west-2c,us-west-2d",
 				GPUMng,
 			)).To(RunSuccessfully())
 		})
