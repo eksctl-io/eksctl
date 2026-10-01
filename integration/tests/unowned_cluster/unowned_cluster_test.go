@@ -215,6 +215,10 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 	})
 
 	It("supports cluster upgrades", func() {
+		// Preceding specs mutate the cluster, and EKS rejects UpdateClusterVersion with
+		// ResourceInUseException while any of that work is still in flight.
+		clusterutils.WaitForClusterToSettle(context.Background(), ctl.EKS(), params.ClusterName)
+
 		By("upgrading the cluster")
 		cmd := params.EksctlUpgradeCmd.
 			WithArgs(
@@ -258,6 +262,10 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 	})
 
 	It("supports fargate", func() {
+		// CreateFargateProfile is likewise rejected with ResourceInUseException while an earlier
+		// cluster update is still running.
+		clusterutils.WaitForClusterToSettle(context.Background(), ctl.EKS(), params.ClusterName)
+
 		By("creating a fargate profile")
 		cmd := params.EksctlCreateCmd.
 			WithArgs(
