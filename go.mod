@@ -46,7 +46,7 @@ require (
 	github.com/kris-nova/lolgopher v0.0.0-20210112022122-73f0047e8b65
 	github.com/kubicorn/kubicorn v0.0.0-20191114212505-a2c64ce430b9
 	github.com/lithammer/dedent v1.1.0
-	github.com/mark3labs/mcp-go v0.58.0
+	github.com/mark3labs/mcp-go v1.1.1
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.12.2
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/ginkgo/v2 v2.32.1
