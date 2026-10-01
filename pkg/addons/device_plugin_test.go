@@ -250,4 +250,45 @@ var _ = Describe("NvidiaDevicePlugin", func() {
 			})
 		})
 	})
+
+	Describe("SetNodeSelector", func() {
+		var (
+			plugin *addons.NvidiaDevicePlugin
+			spec   *corev1.PodTemplateSpec
+			config *api.ClusterConfig
+		)
+
+		BeforeEach(func() {
+			spec = &corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{},
+			}
+			config = &api.ClusterConfig{}
+			plugin = addons.NewNvidiaDevicePlugin(nil, "us-west-2", false, config).(*addons.NvidiaDevicePlugin)
+		})
+
+		It("should set nvidia.com/gpu.present nodeSelector", func() {
+			err := plugin.SetNodeSelector(spec)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(spec.Spec.NodeSelector).To(HaveKeyWithValue("nvidia.com/gpu.present", "true"))
+		})
+
+		It("should not overwrite existing nodeSelector keys", func() {
+			spec.Spec.NodeSelector = map[string]string{
+				"existing-key": "existing-value",
+			}
+			err := plugin.SetNodeSelector(spec)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(spec.Spec.NodeSelector).To(HaveKeyWithValue("existing-key", "existing-value"))
+			Expect(spec.Spec.NodeSelector).To(HaveKeyWithValue("nvidia.com/gpu.present", "true"))
+		})
+
+		It("should overwrite the nodeSelector value if already set", func() {
+			spec.Spec.NodeSelector = map[string]string{
+				"nvidia.com/gpu.present": "false",
+			}
+			err := plugin.SetNodeSelector(spec)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(spec.Spec.NodeSelector).To(HaveKeyWithValue("nvidia.com/gpu.present", "true"))
+		})
+	})
 })
