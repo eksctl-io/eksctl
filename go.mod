@@ -36,7 +36,7 @@ require (
 	github.com/evanphx/json-patch/v5 v5.9.11
 	github.com/fatih/color v1.19.0
 	github.com/github-release/github-release v0.11.0
-	github.com/gobwas/glob v0.2.3
+	github.com/gobwas/glob v1.0.0
 	github.com/gofrs/flock v0.13.1
 	github.com/golangci/golangci-lint/v2 v2.6.1
 	github.com/google/uuid v1.6.0
