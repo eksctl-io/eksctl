@@ -81,22 +81,21 @@ The `eksctl` executable is placed in `$HOME/bin`, which is in `$PATH` from Git B
 ### Verifying the release signature
 
 A checksum tells you the archive you downloaded matches `eksctl_checksums.txt`, but not that
-the checksum file itself came from the eksctl release pipeline. From v0.220.0 onwards each
-release also publishes a [Sigstore](https://www.sigstore.dev/) signature over the checksum
-file — `eksctl_checksums.txt.sig` and `eksctl_checksums.txt.pem` — so the whole chain can be
-verified back to the GitHub Actions workflow that built it.
+the checksum file itself came from the eksctl release pipeline. From v0.231.0 onwards each
+release also publishes a [Sigstore](https://www.sigstore.dev/) bundle over the checksum
+file — `eksctl_checksums.txt.sigstore.json`, holding the certificate, the signature and the
+transparency-log inclusion proof — so the whole chain can be verified back to the GitHub
+Actions workflow that built it.
 
 Verify with [cosign](https://docs.sigstore.dev/cosign/system_config/installation/):
 
 ```sh
 BASE="https://github.com/eksctl-io/eksctl/releases/latest/download"
 curl -sLO "$BASE/eksctl_checksums.txt"
-curl -sLO "$BASE/eksctl_checksums.txt.sig"
-curl -sLO "$BASE/eksctl_checksums.txt.pem"
+curl -sLO "$BASE/eksctl_checksums.txt.sigstore.json"
 
 cosign verify-blob eksctl_checksums.txt \
-  --signature eksctl_checksums.txt.sig \
-  --certificate eksctl_checksums.txt.pem \
+  --bundle eksctl_checksums.txt.sigstore.json \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
   --certificate-identity-regexp '^https://github.com/eksctl-io/eksctl/\.github/workflows/publish-release\.yaml@refs/tags/'
 ```
