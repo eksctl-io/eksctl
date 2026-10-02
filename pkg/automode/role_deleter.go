@@ -25,6 +25,9 @@ type RoleDeleter struct {
 
 // DeleteIfRequired deletes the node role used by Auto Mode if it exists.
 func (d *RoleDeleter) DeleteIfRequired(ctx context.Context) error {
+	if d.Cluster == nil {
+		return nil
+	}
 	if cc := d.Cluster.ComputeConfig; cc == nil || !*cc.Enabled {
 		return nil
 	}

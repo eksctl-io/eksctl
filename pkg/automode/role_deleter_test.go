@@ -40,6 +40,7 @@ var _ = DescribeTable("Role Creator", func(t roleDeleterTest) {
 	}
 	stackDeleter.AssertExpectations(GinkgoT())
 },
+	Entry("cluster does not exist", roleDeleterTest{}),
 	Entry("Auto Mode is disabled", roleDeleterTest{
 		cluster: &ekstypes.Cluster{
 			ComputeConfig: &ekstypes.ComputeConfigResponse{
