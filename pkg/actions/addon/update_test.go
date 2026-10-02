@@ -77,7 +77,8 @@ var _ = Describe("Update", func() {
 						},
 						{
 							// not sure if all versions come with v prefix or not, so test a mix.
-							AddonVersion: aws.String("v1.7.7-eksbuild.2"),
+							AddonVersion:           aws.String("v1.7.7-eksbuild.2"),
+							RequiresIamPermissions: true,
 						},
 						{
 							AddonVersion: aws.String("v1.7.6"),
@@ -194,6 +195,51 @@ var _ = Describe("Update", func() {
 					Expect(*updateAddonInput.AddonName).To(Equal("my-addon"))
 					Expect(*updateAddonInput.AddonVersion).To(Equal("v1.7.7-eksbuild.2"))
 					Expect(*updateAddonInput.ServiceAccountRoleArn).To(Equal("original-arn"))
+				})
+			})
+
+			When("the version is set to latest with useDefaultPodIdentityAssociations", func() {
+				It("resolves the latest version before describing recommended pod identity policies", func() {
+					var describeAddonConfigInput *awseks.DescribeAddonConfigurationInput
+					mockProvider.MockEKS().On("DescribeAddonConfiguration", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+						Expect(args).To(HaveLen(2))
+						Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonConfigurationInput{}))
+						describeAddonConfigInput = args[1].(*awseks.DescribeAddonConfigurationInput)
+					}).Return(&awseks.DescribeAddonConfigurationOutput{
+						PodIdentityConfiguration: []ekstypes.AddonPodIdentityConfiguration{
+							{
+								ServiceAccount:             aws.String("my-app"),
+								RecommendedManagedPolicies: []string{"arn-1"},
+							},
+						},
+					}, nil)
+
+					podIdentityIAMUpdater.On("UpdateRole", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+						Return([]ekstypes.AddonPodIdentityAssociations{
+							{
+								RoleArn:        aws.String("role-arn"),
+								ServiceAccount: aws.String("my-app"),
+							},
+						}, nil)
+
+					err := addonManager.Update(context.Background(), &api.Addon{
+						Name:                              "my-addon",
+						Version:                           "latest",
+						UseDefaultPodIdentityAssociations: true,
+					}, &podIdentityIAMUpdater, 0)
+
+					Expect(err).NotTo(HaveOccurred())
+					Expect(describeAddonConfigInput).NotTo(BeNil())
+					// The resolved version must be used, not the "latest" keyword,
+					// otherwise the EKS API rejects the request (issue #7841).
+					Expect(*describeAddonConfigInput.AddonVersion).To(Equal("v1.7.7-eksbuild.2"))
+					Expect(*updateAddonInput.AddonVersion).To(Equal("v1.7.7-eksbuild.2"))
+					Expect(updateAddonInput.PodIdentityAssociations).To(Equal([]ekstypes.AddonPodIdentityAssociations{
+						{
+							RoleArn:        aws.String("role-arn"),
+							ServiceAccount: aws.String("my-app"),
+						},
+					}))
 				})
 			})
 

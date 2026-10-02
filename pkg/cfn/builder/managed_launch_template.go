@@ -75,7 +75,7 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData(ctx context.Context
 
 	if api.IsEnabled(mng.EFAEnabled) {
 		// we don't want to touch the network interfaces at all if we have a
-		// managed nodegroup, unless EFA is enabled
+		// managed nodegroup, unless EFA is enabled or connection tracking is configured
 		config := efa.SecurityGroupConfig{
 			ClusterVersion: m.clusterConfig.Metadata.Version,
 			ClusterName:    m.clusterConfig.Metadata.Name,
@@ -91,7 +91,7 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData(ctx context.Context
 			securityGroupIDs = append(securityGroupIDs, efaSG)
 		}
 
-		if err := buildNetworkInterfaces(ctx, launchTemplateData, mng.InstanceTypeList(), true, securityGroupIDs, m.ec2API); err != nil {
+		if err := buildNetworkInterfaces(ctx, launchTemplateData, mng.InstanceTypeList(), true, securityGroupIDs, mng.ConnectionTracking, m.ec2API); err != nil {
 			return nil, fmt.Errorf("couldn't build network interfaces for launch template data: %w", err)
 		}
 		// A reservation should already be created with a placement group
@@ -103,6 +103,14 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData(ctx context.Context
 			launchTemplateData.Placement = &gfnec2.LaunchTemplate_Placement{
 				GroupName: groupName,
 			}
+		}
+	} else if mng.ConnectionTracking != nil {
+		// Connection tracking timeouts can only be set on a network interface, so a nodegroup
+		// that configures them gets a single network interface, which carries the security
+		// groups instead of the instance-level SecurityGroupIds. As with EFA, AssociatePublicIpAddress
+		// is left unset, so the subnet's auto-assign public IPv4 setting still applies.
+		if err := buildNetworkInterfaces(ctx, launchTemplateData, mng.InstanceTypeList(), false, securityGroupIDs, mng.ConnectionTracking, m.ec2API); err != nil {
+			return nil, fmt.Errorf("couldn't build network interfaces for launch template data: %w", err)
 		}
 	} else {
 		launchTemplateData.SecurityGroupIds = gfnt.NewSlice(securityGroupIDs...)

@@ -54,3 +54,28 @@ coredns-7bcbfc4774-hftng   1/1     Running   0          1m
 kube-proxy-djkp7           1/1     Running   0          3m
 kube-proxy-mpdsp           1/1     Running   0          3m
 ```
+
+## What "latest" means for each command
+
+It is a common source of confusion to compare the version applied by these commands against
+`eksctl utils describe-addon-versions`. That command lists **EKS Managed Add-on versions**
+(which follow their own release cadence and versioning, e.g. `v1.18.2-eksbuild.1`), whereas these
+commands update **self-managed** default add-ons that run directly in the cluster. The two are not
+the same and should not be expected to match.
+
+- `eksctl utils update-kube-proxy` resolves the newest `kube-proxy` version for your cluster's
+  control-plane version from the EKS API and applies it.
+- `eksctl utils update-aws-node` and `eksctl utils update-coredns` apply the manifest **bundled
+  with the eksctl release you are running** (a "known good" version curated by eksctl). They do not
+  resolve the newest version from the EKS API, so the applied version can differ from the latest
+  one listed by `describe-addon-versions`.
+
+???+ tip
+    If you want the newest version shipped by EKS for `vpc-cni`, `coredns` or `kube-proxy`, install
+    them as [managed add-ons](https://eksctl.io/usage/addons/) instead, e.g. for VPC CNI run:
+
+    ```
+    eksctl create addon --name vpc-cni --cluster <clusterName>
+    ```
+
+    and keep it up to date with `eksctl update addon --name vpc-cni --cluster <clusterName> --version latest`.

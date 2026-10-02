@@ -267,11 +267,11 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, iamRoleCreator I
 			defer func() {
 				deleteAddonIAMTasks, err := NewRemover(a.stackManager).DeleteAddonIAMTasksFiltered(ctx, addon.Name, false)
 				if err != nil {
-					logger.Warning("failed to cleanup IAM role stacks: %w; please remove any remaining stacks manually", err)
+					logger.Warning("failed to cleanup IAM role stacks: %v; please remove any remaining stacks manually", err)
 					return
 				}
 				if err := runAllTasks(deleteAddonIAMTasks); err != nil {
-					logger.Warning("failed to cleanup IAM role stacks: %w; please remove any remaining stacks manually", err)
+					logger.Warning("failed to cleanup IAM role stacks: %v; please remove any remaining stacks manually", err)
 				}
 			}()
 			var addonServiceAccounts []string
@@ -490,12 +490,15 @@ func makeIPv6VPCCNIPolicyDocument(partition string) map[string]interface{} {
 					"ec2:DescribeTags",
 					"ec2:DescribeNetworkInterfaces",
 					"ec2:DescribeInstanceTypes",
-					// Required by the VPC CNI's subnet discovery, which is enabled
-					// by default. Without it ipamd fails to initialise, aws-node
-					// crash-loops and nodes never become ready. The IPv4 path gets
-					// this from the AWS-managed AmazonEKS_CNI_Policy; the IPv6
-					// path uses this inline policy, so it must be granted here.
+					// Both of these are required by the VPC CNI's subnet discovery,
+					// which is enabled by default since VPC CNI v1.22.1. Without
+					// them ipamd fails to initialise, aws-node crash-loops and nodes
+					// never become ready. The IPv4 path gets them from the
+					// AWS-managed AmazonEKS_CNI_Policy; the IPv6 path uses this
+					// inline policy, so they must be granted here. See
+					// https://github.com/aws/amazon-vpc-cni-k8s/blob/master/docs/iam-policy.md
 					"ec2:DescribeSubnets",
+					"ec2:DescribeSecurityGroups",
 				},
 				"Resource": "*",
 			},

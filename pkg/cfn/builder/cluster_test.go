@@ -22,6 +22,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder/fakes"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
+	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
 var _ = Describe("Cluster Template Builder", func() {
@@ -97,6 +98,67 @@ var _ = Describe("Cluster Template Builder", func() {
 			It("should include UpgradePolicy with SupportType in control plane resources", func() {
 				Expect(clusterTemplate.Resources["ControlPlane"].Properties.UpgradePolicy).NotTo(BeNil())
 				Expect(clusterTemplate.Resources["ControlPlane"].Properties.UpgradePolicy.SupportType).To(Equal(api.SupportTypeStandard))
+			})
+		})
+
+		Context("when VPC.ControlPlaneOnPrivateSubnets is true", func() {
+			BeforeEach(func() {
+				cfg.VPC.ControlPlaneOnPrivateSubnets = api.Enabled()
+			})
+
+			It("should add only the private subnets to the control plane's VPC config", func() {
+				subnetIDs := clusterTemplate.Resources["ControlPlane"].Properties.ResourcesVpcConfig.SubnetIDs
+				Expect(subnetIDs).To(ConsistOf(
+					map[string]interface{}{"Ref": "SubnetPrivateUSWEST2A"},
+					map[string]interface{}{"Ref": "SubnetPrivateUSWEST2B"},
+				))
+			})
+
+			Context("and ControlPlaneSubnetIDs is also set", func() {
+				BeforeEach(func() {
+					cfg.VPC.ControlPlaneSubnetIDs = []string{"subnet-1234", "subnet-5678"}
+				})
+
+				It("should give ControlPlaneSubnetIDs precedence in the template", func() {
+					subnetIDs := clusterTemplate.Resources["ControlPlane"].Properties.ResourcesVpcConfig.SubnetIDs
+					Expect(subnetIDs).To(ConsistOf("subnet-1234", "subnet-5678"))
+				})
+			})
+		})
+
+		Context("when VPC.ControlPlaneOnPrivateSubnets is not set", func() {
+			It("should add both public and private subnets to the control plane's VPC config", func() {
+				subnetIDs := clusterTemplate.Resources["ControlPlane"].Properties.ResourcesVpcConfig.SubnetIDs
+				Expect(subnetIDs).To(ConsistOf(
+					map[string]interface{}{"Ref": "SubnetPublicUSWEST2A"},
+					map[string]interface{}{"Ref": "SubnetPublicUSWEST2B"},
+					map[string]interface{}{"Ref": "SubnetPrivateUSWEST2A"},
+					map[string]interface{}{"Ref": "SubnetPrivateUSWEST2B"},
+				))
+			})
+		})
+
+		Context("when subnets are derived from availabilityZones by vpc.SetSubnets", func() {
+			BeforeEach(func() {
+				// This is the primary path: the user supplies only availabilityZones and
+				// eksctl creates the VPC and subnets.
+				cfg.VPC = api.NewClusterVPC(false)
+				cfg.VPC.ClusterEndpoints = api.ClusterEndpointAccessDefaults()
+				cfg.VPC.ControlPlaneOnPrivateSubnets = api.Enabled()
+				Expect(vpc.SetSubnets(cfg.VPC, cfg.AvailabilityZones, nil)).To(Succeed())
+			})
+
+			It("should add only the generated private subnets to the control plane's VPC config", func() {
+				Expect(addErr).NotTo(HaveOccurred())
+				subnetIDs := clusterTemplate.Resources["ControlPlane"].Properties.ResourcesVpcConfig.SubnetIDs
+				Expect(subnetIDs).To(ConsistOf(
+					map[string]interface{}{"Ref": "SubnetPrivateUSWEST2A"},
+					map[string]interface{}{"Ref": "SubnetPrivateUSWEST2B"},
+				))
+
+				By("still creating the public subnets for NAT and load balancers")
+				Expect(clusterTemplate.Resources).To(HaveKey("SubnetPublicUSWEST2A"))
+				Expect(clusterTemplate.Resources).To(HaveKey("SubnetPublicUSWEST2B"))
 			})
 		})
 

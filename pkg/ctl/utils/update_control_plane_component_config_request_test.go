@@ -250,6 +250,42 @@ var _ = Describe("control plane component config update requests", func() {
 					},
 				},
 			}),
+			Entry("empty pod GC config is not sent", entry{
+				config: &api.KubeControllerManagerConfig{
+					PodGCControllerConfig: &api.PodGCControllerConfig{},
+				},
+				expected: nil,
+			}),
+			Entry("terminated pod GC threshold set", entry{
+				config: &api.KubeControllerManagerConfig{
+					PodGCControllerConfig: &api.PodGCControllerConfig{
+						TerminatedPodGCThreshold: aws.Int(12000),
+					},
+				},
+				expected: &ekstypes.KubeControllerManagerConfigRequest{
+					PodGcControllerConfig: &ekstypes.PodGcControllerConfigRequest{
+						TerminatedPodGcThreshold: aws.Int32(12000),
+					},
+				},
+			}),
+			Entry("both sync period and terminated pod GC threshold set", entry{
+				config: &api.KubeControllerManagerConfig{
+					HorizontalPodAutoscalerControllerConfig: &api.HorizontalPodAutoscalerControllerConfig{
+						HorizontalPodAutoscalerSyncPeriod: aws.String("15s"),
+					},
+					PodGCControllerConfig: &api.PodGCControllerConfig{
+						TerminatedPodGCThreshold: aws.Int(12000),
+					},
+				},
+				expected: &ekstypes.KubeControllerManagerConfigRequest{
+					HorizontalPodAutoscalerControllerConfig: &ekstypes.HorizontalPodAutoscalerControllerConfigRequest{
+						HorizontalPodAutoscalerSyncPeriod: aws.String("15s"),
+					},
+					PodGcControllerConfig: &ekstypes.PodGcControllerConfigRequest{
+						TerminatedPodGcThreshold: aws.Int32(12000),
+					},
+				},
+			}),
 		)
 	})
 })

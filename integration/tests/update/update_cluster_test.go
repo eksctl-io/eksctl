@@ -170,6 +170,11 @@ var _ = Describe("(Integration) Upgrading cluster", func() {
 		})
 
 		It("should upgrade the control plane to the next version", func() {
+			// The cluster was created moments ago and EKS may still be running post-create work
+			// (default addon installs), during which UpdateClusterVersion is rejected with
+			// ResourceInUseException. ACTIVE is not a sufficient signal here.
+			clusterutils.WaitForClusterToSettle(context.Background(), clusterProvider.AWSProvider.EKS(), params.ClusterName)
+
 			cmd := params.EksctlUpgradeCmd.
 				WithArgs(
 					"cluster",

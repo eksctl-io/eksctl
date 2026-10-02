@@ -13,6 +13,11 @@ type Cluster_KubeControllerManagerConfig struct {
 	// See: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-properties-eks-cluster-kubecontrollermanagerconfig.html#cfn-eks-cluster-kubecontrollermanagerconfig-horizontalpodautoscalercontrollerconfig
 	HorizontalPodAutoscalerControllerConfig *Cluster_HorizontalPodAutoscalerControllerConfig `json:"HorizontalPodAutoscalerControllerConfig,omitempty"`
 
+	// PodGcControllerConfig AWS CloudFormation Property
+	// Required: false
+	// See: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-properties-eks-cluster-kubecontrollermanagerconfig.html#cfn-eks-cluster-kubecontrollermanagerconfig-podgccontrollerconfig
+	PodGcControllerConfig *Cluster_PodGcControllerConfig `json:"PodGcControllerConfig,omitempty"`
+
 	// AWSCloudFormationDeletionPolicy represents a CloudFormation DeletionPolicy
 	AWSCloudFormationDeletionPolicy policies.DeletionPolicy `json:"-"`
 

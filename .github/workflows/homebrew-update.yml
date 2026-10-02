@@ -9,13 +9,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Create update issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ github.event.release.tag_name }}
+          RELEASE_URL: ${{ github.event.release.html_url }}
         run: |
-          curl -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/aws/homebrew-tap/issues \
-            -d '{
-              "title": "Update eksctl to ${{ github.event.release.tag_name }}",
-              "body": "New eksctl release ${{ github.event.release.tag_name }} is available.\n\nRelease URL: ${{ github.event.release.html_url }}",
-              "labels": ["eksctl-update"]
-            }'
+          jq -n \
+            --arg tag "$TAG_NAME" \
+            --arg url "$RELEASE_URL" \
+            '{
+              title: "Update eksctl to \($tag)",
+              body: "New eksctl release \($tag) is available.\n\nRelease URL: \($url)",
+              labels: ["eksctl-update"]
+            }' \
+          | curl -sSf -X POST \
+              -H "Authorization: token $GH_TOKEN" \
+              -H "Accept: application/vnd.github.v3+json" \
+              https://api.github.com/repos/aws/homebrew-tap/issues \
+              -d @-

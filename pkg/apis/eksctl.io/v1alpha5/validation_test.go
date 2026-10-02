@@ -1534,6 +1534,142 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 		})
 
+		Context("controlPlaneOnPrivateSubnets", func() {
+			privateSubnets := func(azs ...string) api.AZSubnetMapping {
+				m := api.NewAZSubnetMapping()
+				for i, az := range azs {
+					m.Set(fmt.Sprintf("subnet-alias-%d", i), api.AZSubnetSpec{
+						ID: fmt.Sprintf("subnet-%d", i),
+						AZ: az,
+					})
+				}
+				return m
+			}
+
+			When("it is enabled and eksctl creates the VPC with two distinct availability zones", func() {
+				It("does not reject the config, since subnets are derived from availabilityZones later", func() {
+					cfg.VPC.Subnets = nil
+					cfg.AvailabilityZones = []string{"us-west-2a", "us-west-2b"}
+					cfg.VPC.ControlPlaneOnPrivateSubnets = api.Enabled()
+					err = cfg.ValidateVPCConfig()
+					Expect(err).NotTo(HaveOccurred())
+				})
+			})
+
+			When("it is enabled and eksctl creates the VPC with a duplicated availability zone", func() {
+				It("returns an error, since the duplicate collapses into a single private subnet", func() {
+					cfg.VPC.Subnets = nil
+					cfg.AvailabilityZones = []string{"us-west-2a", "us-west-2a"}
+					cfg.VPC.ControlPlaneOnPrivateSubnets = api.Enabled()
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(MatchError("vpc.controlPlaneOnPrivateSubnets requires at least 2 distinct availability zones, got 1 ([us-west-2a us-west-2a])"))
+				})
+			})
+
+			When("it is enabled and eksctl creates the VPC without availability zones set", func() {
+				It("does not reject the config, since eksctl selects distinct zones itself later", func() {
+					cfg.VPC.Subnets = nil
+					cfg.AvailabilityZones = nil
+					cfg.VPC.ControlPlaneOnPrivateSubnets = api.Enabled()
+					err = cfg.ValidateVPCConfig()
+					Expect(err).NotTo(HaveOccurred())
+				})
+			})
+
+			When("it is enabled with two private subnets across two AZs", func() {
+				It("does not return an error", func() {
+					cfg.VPC.Subnets = &api.ClusterSubnets{
+						Private: privateSubnets("us-west-2a", "us-west-2b"),
+					}
+					cfg.VPC.ControlPlaneOnPrivateSubnets = api.Enabled()
+					err = cfg.ValidateVPCConfig()
+					Expect(err).NotTo(HaveOccurred())
+				})
+			})
+
+			When("it is enabled together with controlPlaneSubnetIDs", func() {
+				It("returns an error", func() {
+					cfg.VPC.ControlPlaneOnPrivateSubnets = api.Enabled()
+					cfg.VPC.ControlPlaneSubnetIDs = []string{"subnet-1234", "subnet-5678"}
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(MatchError("only one of vpc.controlPlaneSubnetIDs and vpc.controlPlaneOnPrivateSubnets can be specified"))
+				})
+			})
+
+			When("it is enabled but the VPC has no private subnets", func() {
+				It("returns an error instead of silently using public subnets", func() {
+					cfg.VPC.Subnets = &api.ClusterSubnets{
+						Public: privateSubnets("us-west-2a", "us-west-2b"),
+					}
+					cfg.VPC.ControlPlaneOnPrivateSubnets = api.Enabled()
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(MatchError("vpc.controlPlaneOnPrivateSubnets requires at least 2 private subnets, got 0"))
+				})
+			})
+
+			When("it is enabled with only one private subnet", func() {
+				It("returns an error", func() {
+					cfg.VPC.Subnets = &api.ClusterSubnets{
+						Private: privateSubnets("us-west-2a"),
+					}
+					cfg.VPC.ControlPlaneOnPrivateSubnets = api.Enabled()
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(MatchError("vpc.controlPlaneOnPrivateSubnets requires at least 2 private subnets, got 1"))
+				})
+			})
+
+			When("it is enabled with two private subnets in the same AZ", func() {
+				It("returns an error, since EKS requires two availability zones", func() {
+					cfg.VPC.Subnets = &api.ClusterSubnets{
+						Private: privateSubnets("us-west-2a", "us-west-2a"),
+					}
+					cfg.VPC.ControlPlaneOnPrivateSubnets = api.Enabled()
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(MatchError("vpc.controlPlaneOnPrivateSubnets requires private subnets in at least 2 availability zones, got 1 ([us-west-2a])"))
+				})
+			})
+
+			When("private subnets are given only by ID", func() {
+				It("allows the config through, since their zones are resolved from EC2 later", func() {
+					subnets := api.NewAZSubnetMapping()
+					subnets.Set("alias-a", api.AZSubnetSpec{ID: "subnet-aaa"})
+					subnets.Set("alias-b", api.AZSubnetSpec{ID: "subnet-bbb"})
+					cfg.VPC.ID = "vpc-123"
+					cfg.VPC.Subnets = &api.ClusterSubnets{Private: subnets}
+					cfg.VPC.ControlPlaneOnPrivateSubnets = api.Enabled()
+					err = cfg.ValidateVPCConfig()
+					Expect(err).NotTo(HaveOccurred())
+				})
+			})
+
+			When("one private subnet is keyed by AZ and another repeats that AZ explicitly", func() {
+				It("returns an error", func() {
+					subnets := api.NewAZSubnetMapping()
+					subnets.Set("us-west-2a", api.AZSubnetSpec{ID: "subnet-aaa"})
+					subnets.Set("alias-b", api.AZSubnetSpec{ID: "subnet-bbb", AZ: "us-west-2a"})
+					cfg.VPC.ID = "vpc-123"
+					cfg.VPC.Subnets = &api.ClusterSubnets{Private: subnets}
+					cfg.VPC.ControlPlaneOnPrivateSubnets = api.Enabled()
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(MatchError("vpc.controlPlaneOnPrivateSubnets requires private subnets in at least 2 availability zones, got 1 ([us-west-2a])"))
+				})
+			})
+
+			When("it is enabled on Outposts", func() {
+				It("does not enforce the multi-AZ requirement", func() {
+					cfg.VPC.Subnets = &api.ClusterSubnets{
+						Private: privateSubnets("us-west-2a"),
+					}
+					cfg.VPC.ControlPlaneOnPrivateSubnets = api.Enabled()
+					cfg.Outpost = &api.Outpost{
+						ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+					}
+					err = cfg.ValidateVPCConfig()
+					Expect(err).NotTo(HaveOccurred())
+				})
+			})
+		})
+
 		Context("ipv6 CIDRs", func() {
 			When("IPv6Cidr or IPv6CidrPool is provided and ipv6 is not set", func() {
 				It("returns an error", func() {
@@ -2729,6 +2865,92 @@ var _ = Describe("ClusterConfig validation", func() {
 					}
 					Expect(api.ValidateNodeGroup(0, ng, cfg)).To(MatchError(ContainSubstring("only one of CapacityReservationID or CapacityReservationResourceGroupARN may be specified at a time")))
 				})
+			})
+		})
+	})
+
+	Describe("Connection Tracking validation", func() {
+		var (
+			cfg *api.ClusterConfig
+			ng  *api.NodeGroup
+		)
+
+		BeforeEach(func() {
+			cfg = api.NewClusterConfig()
+			ng = cfg.NewNodeGroup()
+			ng.Name = "ng"
+		})
+
+		When("ConnectionTracking is not set", func() {
+			It("does not fail", func() {
+				Expect(api.ValidateNodeGroup(0, ng, cfg)).To(Succeed())
+			})
+		})
+
+		When("all timeouts are within range", func() {
+			It("does not fail", func() {
+				ng.ConnectionTracking = &api.ConnectionTracking{
+					TCPEstablishedTimeout: aws.Int(api.MaxTCPEstablishedTimeout),
+					UDPStreamTimeout:      aws.Int(api.MaxUDPStreamTimeout),
+					UDPTimeout:            aws.Int(api.MinUDPTimeout),
+				}
+				Expect(api.ValidateNodeGroup(0, ng, cfg)).To(Succeed())
+			})
+		})
+
+		When("only one timeout is set", func() {
+			It("does not fail", func() {
+				ng.ConnectionTracking = &api.ConnectionTracking{
+					TCPEstablishedTimeout: aws.Int(3600),
+				}
+				Expect(api.ValidateNodeGroup(0, ng, cfg)).To(Succeed())
+			})
+		})
+
+		When("no timeouts are set", func() {
+			It("returns an error", func() {
+				ng.ConnectionTracking = &api.ConnectionTracking{}
+				Expect(api.ValidateNodeGroup(0, ng, cfg)).To(MatchError(ContainSubstring("at least one of nodeGroups[0].connectionTracking.tcpEstablishedTimeout, nodeGroups[0].connectionTracking.udpStreamTimeout or nodeGroups[0].connectionTracking.udpTimeout must be set")))
+			})
+		})
+
+		DescribeTable("out of range timeouts", func(connectionTracking api.ConnectionTracking, expectedErr string) {
+			ng.ConnectionTracking = &connectionTracking
+			Expect(api.ValidateNodeGroup(0, ng, cfg)).To(MatchError(ContainSubstring(expectedErr)))
+		},
+			Entry("tcpEstablishedTimeout below the minimum",
+				api.ConnectionTracking{TCPEstablishedTimeout: aws.Int(api.MinTCPEstablishedTimeout - 1)},
+				"value for nodeGroups[0].connectionTracking.tcpEstablishedTimeout must be within range 60-432000",
+			),
+			Entry("tcpEstablishedTimeout above the maximum",
+				api.ConnectionTracking{TCPEstablishedTimeout: aws.Int(api.MaxTCPEstablishedTimeout + 1)},
+				"value for nodeGroups[0].connectionTracking.tcpEstablishedTimeout must be within range 60-432000",
+			),
+			Entry("udpStreamTimeout below the minimum",
+				api.ConnectionTracking{UDPStreamTimeout: aws.Int(api.MinUDPStreamTimeout - 1)},
+				"value for nodeGroups[0].connectionTracking.udpStreamTimeout must be within range 60-180",
+			),
+			Entry("udpStreamTimeout above the maximum",
+				api.ConnectionTracking{UDPStreamTimeout: aws.Int(api.MaxUDPStreamTimeout + 1)},
+				"value for nodeGroups[0].connectionTracking.udpStreamTimeout must be within range 60-180",
+			),
+			Entry("udpTimeout below the minimum",
+				api.ConnectionTracking{UDPTimeout: aws.Int(api.MinUDPTimeout - 1)},
+				"value for nodeGroups[0].connectionTracking.udpTimeout must be within range 30-60",
+			),
+			Entry("udpTimeout above the maximum",
+				api.ConnectionTracking{UDPTimeout: aws.Int(api.MaxUDPTimeout + 1)},
+				"value for nodeGroups[0].connectionTracking.udpTimeout must be within range 30-60",
+			),
+		)
+
+		When("a managed nodegroup supplies its own launch template", func() {
+			It("returns an error", func() {
+				mng := api.NewManagedNodeGroup()
+				mng.Name = "mng"
+				mng.LaunchTemplate = &api.LaunchTemplate{ID: "lt-1234"}
+				mng.ConnectionTracking = &api.ConnectionTracking{TCPEstablishedTimeout: aws.Int(3600)}
+				Expect(api.ValidateManagedNodeGroup(0, mng)).To(MatchError(ContainSubstring("connectionTracking")))
 			})
 		})
 	})

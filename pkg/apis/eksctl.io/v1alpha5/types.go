@@ -927,6 +927,12 @@ func (c *ClusterConfig) IsControlPlaneOnOutposts() bool {
 	return c.Outpost != nil && c.Outpost.ControlPlaneOutpostARN != ""
 }
 
+// IsControlPlaneOnPrivateSubnets returns true if the control plane's cross-account ENIs
+// should be restricted to private subnets only.
+func (c *ClusterConfig) IsControlPlaneOnPrivateSubnets() bool {
+	return c.VPC != nil && IsEnabled(c.VPC.ControlPlaneOnPrivateSubnets)
+}
+
 // GetOutpost returns the Outpost info.
 func (c *ClusterConfig) GetOutpost() *Outpost {
 	return c.Outpost
@@ -1216,6 +1222,10 @@ type KubeControllerManagerConfig struct {
 	// controller configuration.
 	// +optional
 	HorizontalPodAutoscalerControllerConfig *HorizontalPodAutoscalerControllerConfig `json:"horizontalPodAutoscalerControllerConfig,omitempty"`
+
+	// PodGCControllerConfig specifies the pod garbage collector controller configuration.
+	// +optional
+	PodGCControllerConfig *PodGCControllerConfig `json:"podGCControllerConfig,omitempty"`
 }
 
 // HorizontalPodAutoscalerControllerConfig holds the horizontal pod autoscaler controller configuration.
@@ -1224,6 +1234,14 @@ type HorizontalPodAutoscalerControllerConfig struct {
 	// horizontal pod autoscaler, as a duration string (for example, "15s").
 	// +optional
 	HorizontalPodAutoscalerSyncPeriod *string `json:"horizontalPodAutoscalerSyncPeriod,omitempty"`
+}
+
+// PodGCControllerConfig holds the pod garbage collector controller configuration.
+type PodGCControllerConfig struct {
+	// TerminatedPodGCThreshold specifies the number of terminated pods that can exist
+	// before the pod garbage collector starts deleting terminated pods.
+	// +optional
+	TerminatedPodGCThreshold *int `json:"terminatedPodGCThreshold,omitempty"`
 }
 
 // OutpostInfo describes the Outpost info.
@@ -2027,6 +2045,35 @@ type NodeGroupBase struct {
 	// OutpostARN specifies the Outpost ARN in which the nodegroup should be created.
 	// +optional
 	OutpostARN string `json:"outpostARN,omitempty"`
+
+	// ConnectionTracking specifies the idle connection tracking timeouts for the
+	// network interfaces of nodes in this group.
+	// +optional
+	ConnectionTracking *ConnectionTracking `json:"connectionTracking,omitempty"`
+}
+
+// ConnectionTracking specifies the idle connection tracking timeouts applied to the
+// network interfaces of a nodegroup's nodes. Timeouts left unset keep the EC2 default
+// for the instance type. Only Nitro-based instance types support configurable timeouts.
+// See [relevant AWS
+// docs](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-connection-tracking.html#connection-tracking-timeouts)
+type ConnectionTracking struct {
+	// TCPEstablishedTimeout is the timeout, in seconds, for idle TCP connections in an
+	// established state. Must be between 60 and 432000 (5 days).
+	// +optional
+	TCPEstablishedTimeout *int `json:"tcpEstablishedTimeout,omitempty"`
+
+	// UDPStreamTimeout is the timeout, in seconds, for idle UDP flows classified as
+	// streams, which have seen more than one request-response transaction.
+	// Must be between 60 and 180 (3 minutes).
+	// +optional
+	UDPStreamTimeout *int `json:"udpStreamTimeout,omitempty"`
+
+	// UDPTimeout is the timeout, in seconds, for idle UDP flows that have seen traffic
+	// only in a single direction or a single request-response transaction.
+	// Must be between 30 and 60.
+	// +optional
+	UDPTimeout *int `json:"udpTimeout,omitempty"`
 }
 
 // CapacityReservation defines a nodegroup's Capacity Reservation targeting option

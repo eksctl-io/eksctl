@@ -30,6 +30,7 @@ import (
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
+	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
 	"github.com/weaveworks/eksctl/integration/utilities/kube"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/testutils"
@@ -84,6 +85,10 @@ var _ = BeforeSuite(func() {
 var _ = Describe("(Integration) [Identity Provider]", func() {
 
 	It("should associate, get and disassociate identity provider", func() {
+		// The cluster was created in BeforeSuite and EKS may still be running post-create work,
+		// during which AssociateIdentityProviderConfig is rejected with ResourceInUseException.
+		clusterutils.WaitForClusterToSettle(context.Background(), eks.NewFromConfig(NewConfig(params.Region)), params.ClusterName)
+
 		By("associating a new identity provider")
 		identityProviderClusterConfig := makeIdentityProviderClusterConfig(oidcConfig, params.ClusterName, params.Region)
 

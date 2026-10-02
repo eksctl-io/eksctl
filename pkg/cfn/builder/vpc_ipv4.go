@@ -49,20 +49,33 @@ type SubnetDetails struct {
 	PrivateLocalZone []SubnetResource
 	PublicLocalZone  []SubnetResource
 
-	controlPlaneOnOutposts bool
-	autoMode               bool
+	controlPlaneOnOutposts       bool
+	controlPlaneOnPrivateSubnets bool
+	autoMode                     bool
+}
+
+// newSubnetDetails returns a SubnetDetails with the control plane placement flags derived
+// from clusterConfig. All construction sites must go through this to stay in sync as flags
+// are added.
+//
+// autoMode is passed in rather than derived, because it only restricts the control plane to
+// private subnets for VPCs that eksctl creates; the pre-existing VPC path has never applied
+// it. Use vpc.controlPlaneOnPrivateSubnets to restrict a pre-existing VPC.
+func newSubnetDetails(clusterConfig *api.ClusterConfig, autoMode bool) *SubnetDetails {
+	return &SubnetDetails{
+		controlPlaneOnOutposts:       clusterConfig.IsControlPlaneOnOutposts(),
+		controlPlaneOnPrivateSubnets: clusterConfig.IsControlPlaneOnPrivateSubnets(),
+		autoMode:                     autoMode,
+	}
 }
 
 // NewIPv4VPCResourceSet creates and returns a new VPCResourceSet
 func NewIPv4VPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig, ec2API awsapi.EC2, extendForOutposts bool) *IPv4VPCResourceSet {
 	return &IPv4VPCResourceSet{
-		rs:            rs,
-		clusterConfig: clusterConfig,
-		ec2API:        ec2API,
-		subnetDetails: &SubnetDetails{
-			controlPlaneOnOutposts: clusterConfig.IsControlPlaneOnOutposts(),
-			autoMode:               clusterConfig.IsAutoModeEnabled(),
-		},
+		rs:                rs,
+		clusterConfig:     clusterConfig,
+		ec2API:            ec2API,
+		subnetDetails:     newSubnetDetails(clusterConfig, clusterConfig.IsAutoModeEnabled()),
 		azToRTMap:         make(map[string]*gfnt.Value),
 		extendForOutposts: extendForOutposts,
 	}
@@ -157,7 +170,12 @@ func (s *SubnetDetails) ControlPlaneSubnetRefs() []*gfnt.Value {
 	if s.controlPlaneOnOutposts && len(privateSubnetRefs) > 0 {
 		return privateSubnetRefs
 	}
-	if s.autoMode {
+	// Auto Mode and controlPlaneOnPrivateSubnets are independent settings that happen to
+	// require the same outcome; either one on its own restricts the control plane to
+	// private subnets. No length guard here: the subnets are validated by
+	// ValidateVPCConfig, and an empty set must surface as an error from the EKS API
+	// rather than silently falling back to public subnets.
+	if s.autoMode || s.controlPlaneOnPrivateSubnets {
 		return privateSubnetRefs
 	}
 	return append(s.PublicSubnetRefs(), privateSubnetRefs...)

@@ -34,7 +34,7 @@ PLATFORM=$(uname -s)_$ARCH
 curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$PLATFORM.tar.gz"
 
 # (Optional) Verify checksum
-curl -sL "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_checksums.txt" | grep $PLATFORM | sha256sum --check
+curl -sL "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_checksums.txt" | grep "eksctl_$PLATFORM.tar.gz$" | sha256sum --check
 
 tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp && rm eksctl_$PLATFORM.tar.gz
 
@@ -69,7 +69,7 @@ PLATFORM=windows_$ARCH
 curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$PLATFORM.zip"
 
 # (Optional) Verify checksum
-curl -sL "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_checksums.txt" | grep $PLATFORM | sha256sum --check
+curl -sL "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_checksums.txt" | grep -i "eksctl_$PLATFORM.zip$" | sha256sum --check
 
 unzip eksctl_$PLATFORM.zip -d $HOME/bin
 
@@ -77,6 +77,36 @@ rm eksctl_$PLATFORM.zip
 ```
 
 The `eksctl` executable is placed in `$HOME/bin`, which is in `$PATH` from Git Bash.
+
+### Verifying the release signature
+
+A checksum tells you the archive you downloaded matches `eksctl_checksums.txt`, but not that
+the checksum file itself came from the eksctl release pipeline. From v0.231.0 onwards each
+release also publishes a [Sigstore](https://www.sigstore.dev/) bundle over the checksum
+file — `eksctl_checksums.txt.sigstore.json`, holding the certificate, the signature and the
+transparency-log inclusion proof — so the whole chain can be verified back to the GitHub
+Actions workflow that built it.
+
+Verify with [cosign](https://docs.sigstore.dev/cosign/system_config/installation/):
+
+```sh
+BASE="https://github.com/eksctl-io/eksctl/releases/latest/download"
+curl -sLO "$BASE/eksctl_checksums.txt"
+curl -sLO "$BASE/eksctl_checksums.txt.sigstore.json"
+
+cosign verify-blob eksctl_checksums.txt \
+  --bundle eksctl_checksums.txt.sigstore.json \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  --certificate-identity-regexp '^https://github.com/eksctl-io/eksctl/\.github/workflows/publish-release\.yaml@refs/tags/'
+```
+
+The two `--certificate-*` flags are the part that matters: they assert the signature was
+produced by that workflow in that repository, not merely by somebody with a Sigstore
+identity. Once `cosign` reports `Verified OK`, check your archive against the now-trusted
+checksum file as shown above.
+
+Each archive additionally ships a CycloneDX SBOM at `<archive>.sbom.json`, listing the Go
+modules compiled into that binary.
 
 ### Docker
 

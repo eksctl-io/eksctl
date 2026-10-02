@@ -605,6 +605,23 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 	})
 
 	It("should describe addons when multiple types are supplied", func() {
+		// Skipped: the EKS DescribeAddonVersions API currently rejects any request supplying two
+		// or more distinct values for a list-typed query parameter (types, owners, publishers)
+		// with "BadRequestException: A request parameter was supplied with conflicting values in
+		// more than one location (path, query string, or body)".
+		//
+		// This is not an eksctl defect. A single value is accepted, as is the same value repeated,
+		// and the request eksctl sends is unchanged -- repeated query parameters are the only
+		// encoding the API model defines for a list member. It reproduces with the plain AWS CLI:
+		//
+		//   aws eks describe-addon-versions --kubernetes-version 1.34 --types networking storage
+		//
+		// Do not "fix" this by comma-joining the values: types=networking,storage is accepted with
+		// HTTP 200 but returns zero addons, which is silently wrong rather than merely broken.
+		//
+		// Re-enable once the API accepts multiple values again. See #8880.
+		Skip("EKS DescribeAddonVersions rejects multiple --types values; see #8880")
+
 		cmd := params.EksctlUtilsCmd.
 			WithArgs(
 				"describe-addon-versions",

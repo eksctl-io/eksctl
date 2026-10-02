@@ -242,10 +242,17 @@ type TagSpecification struct {
 }
 
 type NetworkInterface struct {
-	DeviceIndex              int
-	AssociatePublicIPAddress bool
-	NetworkCardIndex         int
-	InterfaceType            string
+	DeviceIndex                     int
+	AssociatePublicIPAddress        bool
+	NetworkCardIndex                int
+	InterfaceType                   string
+	ConnectionTrackingSpecification *ConnectionTrackingSpecification
+}
+
+type ConnectionTrackingSpecification struct {
+	TCPEstablishedTimeout *int `json:"TcpEstablishedTimeout"`
+	UDPStreamTimeout      *int `json:"UdpStreamTimeout"`
+	UDPTimeout            *int `json:"UdpTimeout"`
 }
 
 type Monitoring struct {

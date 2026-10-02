@@ -75,6 +75,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 		ubuntuNodegroup          = "ng-ubuntu"
 		publicNodeGroup          = "ng-public"
 		privateNodeGroup         = "ng-private"
+		connTrackingNodeGroup    = "ng-conn-tracking"
 	)
 
 	var (
@@ -194,6 +195,145 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 			Expect(cmd).To(RunSuccessfully())
 		})
 
+		It("supports a public multi-AZ nodegroup with connection tracking timeouts", func() {
+			// A non-EFA managed nodegroup that sets connectionTracking is the first managed-nodegroup
+			// path to put a NetworkInterfaces block in the launch template without also pinning the
+			// nodegroup to a single subnet, which efaEnabled does. This exercises that combination on
+			// a real cluster: a nodegroup spanning every public subnet, whose nodes must still join
+			// and still receive the subnets' auto-assigned public IPv4 addresses.
+			connectionTracking := &api.ConnectionTracking{
+				TCPEstablishedTimeout: aws.Int(432000),
+				UDPStreamTimeout:      aws.Int(180),
+				UDPTimeout:            aws.Int(60),
+			}
+			clusterConfig := makeClusterConfig()
+			clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
+				{
+					NodeGroupBase: &api.NodeGroupBase{
+						Name:               connTrackingNodeGroup,
+						InstanceType:       "t3a.xlarge",
+						ScalingConfig:      &api.ScalingConfig{DesiredCapacity: aws.Int(2)},
+						ConnectionTracking: connectionTracking,
+					},
+				},
+			}
+			By("creating it")
+			cmd := params.EksctlCreateCmd.
+				WithArgs(
+					"nodegroup",
+					"--config-file", "-",
+					"--verbose", "4",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(clusterutils.Reader(clusterConfig))
+			Expect(cmd).To(RunSuccessfully())
+			By("ensuring it is healthy")
+			checkNg(connTrackingNodeGroup)
+			ctx := context.Background()
+			clusterProvider, err := eks.New(ctx, &api.ProviderConfig{Region: params.Region}, clusterConfig)
+			Expect(err).NotTo(HaveOccurred())
+			ctl := clusterProvider.AWSProvider
+			By("checking the nodegroup spans more than one subnet")
+			nodegroupOutput, err := ctl.EKS().DescribeNodegroup(ctx, &awseks.DescribeNodegroupInput{
+				ClusterName:   &params.ClusterName,
+				NodegroupName: aws.String(connTrackingNodeGroup),
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(len(nodegroupOutput.Nodegroup.Subnets)).To(BeNumerically(">", 1),
+				"the nodegroup should span every public subnet, so the launch template's network interface is used across subnets")
+			By("checking the launch template carries the timeouts on its network interface, and no instance-level security groups")
+			Expect(nodegroupOutput.Nodegroup.LaunchTemplate).NotTo(BeNil())
+			launchTemplateOutput, err := ctl.EC2().DescribeLaunchTemplateVersions(ctx, &ec2.DescribeLaunchTemplateVersionsInput{
+				LaunchTemplateId: nodegroupOutput.Nodegroup.LaunchTemplate.Id,
+				Versions:         []string{*nodegroupOutput.Nodegroup.LaunchTemplate.Version},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(launchTemplateOutput.LaunchTemplateVersions).To(HaveLen(1))
+			launchTemplateData := launchTemplateOutput.LaunchTemplateVersions[0].LaunchTemplateData
+			Expect(launchTemplateData.SecurityGroupIds).To(BeEmpty(),
+				"security groups must be on the network interface instead, as EKS requires when a launch template specifies one")
+			Expect(launchTemplateData.NetworkInterfaces).To(HaveLen(1))
+			launchTemplateInterface := launchTemplateData.NetworkInterfaces[0]
+			Expect(launchTemplateInterface.Groups).NotTo(BeEmpty())
+			Expect(launchTemplateInterface.AssociatePublicIpAddress).To(BeNil(),
+				"leaving this unset is what keeps the subnet's auto-assign public IPv4 setting in effect")
+			Expect(launchTemplateInterface.ConnectionTrackingSpecification).To(Equal(&ec2types.ConnectionTrackingSpecification{
+				TcpEstablishedTimeout: aws.Int32(432000),
+				UdpStreamTimeout:      aws.Int32(180),
+				UdpTimeout:            aws.Int32(60),
+			}))
+			By("checking the timeouts reached the primary interface of every node, and that the nodes have public IPs")
+			Eventually(func() int {
+				return len(tests.NodeInstanceIDs(params.KubeconfigPath, connTrackingNodeGroup))
+			}, "5m", "15s").Should(Equal(2), "both nodes should register with the cluster")
+			instances := tests.NodeInstances(params.KubeconfigPath, params.Region, connTrackingNodeGroup)
+			Expect(instances).To(HaveLen(2))
+			for _, instance := range instances {
+				Expect(instance.PublicIpAddress).NotTo(BeNil(),
+					fmt.Sprintf("instance %s is in a public subnet and should have been assigned a public IPv4 address", aws.ToString(instance.InstanceId)))
+				primaryInterface := tests.PrimaryNetworkInterface(instance)
+				Expect(primaryInterface).NotTo(BeNil(),
+					fmt.Sprintf("instance %s should have an interface at device index 0 on network card 0", aws.ToString(instance.InstanceId)))
+				Expect(primaryInterface.ConnectionTrackingConfiguration).To(Equal(&ec2types.ConnectionTrackingSpecificationResponse{
+					TcpEstablishedTimeout: aws.Int32(432000),
+					UdpStreamTimeout:      aws.Int32(180),
+					UdpTimeout:            aws.Int32(60),
+				}))
+			}
+			By("reporting connectionTracking as unchanged on `eksctl update nodegroup`, since it only takes effect at creation")
+			clusterConfig.ManagedNodeGroups[0].ConnectionTracking.TCPEstablishedTimeout = aws.Int(3600)
+			clusterConfig.ManagedNodeGroups[0].UpdateConfig = &api.NodeGroupUpdateConfig{
+				MaxUnavailable: aws.Int(1),
+			}
+			cmd = params.EksctlUpdateCmd.
+				WithArgs(
+					"nodegroup",
+					"--config-file", "-",
+					"--verbose", "4",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(clusterutils.Reader(clusterConfig))
+			Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+				ContainElement(ContainSubstring(fmt.Sprintf("unchanged fields for nodegroup %s", connTrackingNodeGroup))),
+				ContainElement(ContainSubstring("ConnectionTracking")),
+			))
+			By("deleting it")
+			cmd = params.EksctlDeleteCmd.WithArgs(
+				"nodegroup",
+				"--verbose", "4",
+				"--cluster", params.ClusterName,
+				connTrackingNodeGroup,
+			)
+			Expect(cmd).To(RunSuccessfully())
+		})
+		It("rejects connection tracking on a non-Nitro instance type before creating anything", func() {
+			clusterConfig := makeClusterConfig()
+			clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
+				{
+					NodeGroupBase: &api.NodeGroupBase{
+						Name:         "ng-conn-tracking-xen",
+						InstanceType: "t2.medium",
+						ConnectionTracking: &api.ConnectionTracking{
+							TCPEstablishedTimeout: aws.Int(432000),
+						},
+					},
+				},
+			}
+			cmd := params.EksctlCreateCmd.
+				WithArgs(
+					"nodegroup",
+					"--config-file", "-",
+					"--verbose", "4",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(clusterutils.Reader(clusterConfig))
+			// Run once and assert on both the exit code and the message; each use of a runner matcher
+			// would run the command again.
+			session := cmd.Run()
+			Expect(session.ExitCode()).NotTo(Equal(0), "eksctl should refuse the nodegroup")
+			Expect(string(session.Buffer().Contents())).To(
+				ContainSubstring("connectionTracking is only supported on Nitro-based instance types; t2.medium cannot be used with it"))
+		})
 		It("supports a nodegroup with taints", func() {
 			taints := []api.NodeGroupTaint{
 				{
