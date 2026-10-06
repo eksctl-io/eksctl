@@ -88,6 +88,7 @@ func configureCreateCapabilityCmd(cmd *cmdutils.Cmd, capability *api.Capability)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
+	cmdutils.AddCloudFormationDisableTerminationProtectionFlag(cmd, &cmd.ProviderConfig)
 }
 
 func parseAttachPolicy(policyStr string, capability *api.Capability) error {

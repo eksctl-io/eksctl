@@ -34,14 +34,15 @@ type MockState struct {
 
 // MockProvider stores the mocked APIs
 type MockProvider struct {
-	waitTimeout         *time.Duration
-	region              string
-	cfnRoleARN          string
-	asg                 *mocksv2.ASG
-	eks                 *mocksv2.EKS
-	cloudtrail          *mocksv2.CloudTrail
-	cloudwatchlogs      *mocksv2.CloudWatchLogs
-	credentialsProvider *mocksv2.CredentialsProvider
+	waitTimeout                     *time.Duration
+	region                          string
+	cfnRoleARN                      string
+	cfnDisableTerminationProtection bool
+	asg                             *mocksv2.ASG
+	eks                             *mocksv2.EKS
+	cloudtrail                      *mocksv2.CloudTrail
+	cloudwatchlogs                  *mocksv2.CloudWatchLogs
+	credentialsProvider             *mocksv2.CredentialsProvider
 
 	cfn          *mocksv2.CloudFormation
 	sts          *mocksv2.STS
@@ -127,6 +128,16 @@ func (m MockProvider) CloudFormationRoleARN() string { return m.cfnRoleARN }
 // CloudFormationDisableRollback returns whether stacks should not rollback on failure
 func (m MockProvider) CloudFormationDisableRollback() bool {
 	return false
+}
+
+// CloudFormationDisableTerminationProtection returns whether stacks should be created without termination protection
+func (m MockProvider) CloudFormationDisableTerminationProtection() bool {
+	return m.cfnDisableTerminationProtection
+}
+
+// SetCloudFormationDisableTerminationProtection sets whether stacks should be created without termination protection
+func (m *MockProvider) SetCloudFormationDisableTerminationProtection(disable bool) {
+	m.cfnDisableTerminationProtection = disable
 }
 
 // ASG returns a representation of the ASG API

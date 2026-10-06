@@ -89,4 +89,5 @@ func configureCreateAccessEntryCmd(cmd *cmdutils.Cmd, accessEntry *api.AccessEnt
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
+	cmdutils.AddCloudFormationDisableTerminationProtectionFlag(cmd, &cmd.ProviderConfig)
 }

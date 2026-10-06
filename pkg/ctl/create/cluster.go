@@ -138,6 +138,7 @@ func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.C
 	cmdutils.AddInstanceSelectorOptions(cmd.FlagSetGroup, ng)
 
 	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, true)
+	cmdutils.AddCloudFormationDisableTerminationProtectionFlag(cmd, &cmd.ProviderConfig)
 
 	cmd.FlagSetGroup.InFlagSet("Output kubeconfig", func(fs *pflag.FlagSet) {
 		cmdutils.AddCommonFlagsForKubeconfig(fs, &params.KubeconfigPath, &params.AuthenticatorRoleARN, &params.SetContext, &params.AutoKubeconfigPath, exampleClusterName)

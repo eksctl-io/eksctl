@@ -34,6 +34,17 @@ var _ = Describe("delete", func() {
 			Expect(err.Error()).To(ContainSubstring("usage"))
 		})
 	})
+
+	DescribeTable("does not register --cfn-disable-termination-protection",
+		func(resource string) {
+			subCmd, _, err := Command(cmdutils.NewGrouping()).Find([]string{resource})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(subCmd.Flags().Lookup("cfn-disable-termination-protection")).To(BeNil())
+		},
+		Entry("cluster", "cluster"),
+		Entry("nodegroup", "nodegroup"),
+		Entry("iamserviceaccount", "iamserviceaccount"),
+	)
 })
 
 func newDefaultCmd(args ...string) *mockVerbCmd {

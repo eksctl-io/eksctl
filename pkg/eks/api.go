@@ -84,6 +84,11 @@ func (p ProviderServices) CloudFormationDisableRollback() bool {
 	return p.spec.CloudFormationDisableRollback
 }
 
+// CloudFormationDisableTerminationProtection returns whether stacks should be created without termination protection
+func (p ProviderServices) CloudFormationDisableTerminationProtection() bool {
+	return p.spec.CloudFormationDisableTerminationProtection
+}
+
 // ASG returns a representation of the AutoScaling API
 func (p ProviderServices) ASG() awsapi.ASG { return p.asg }
 

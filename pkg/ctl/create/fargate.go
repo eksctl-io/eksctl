@@ -57,5 +57,6 @@ func configureCreateFargateProfileCmd(cmd *cmdutils.Cmd) *fargate.CreateOptions 
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
+	cmdutils.AddCloudFormationDisableTerminationProtectionFlag(cmd, &cmd.ProviderConfig)
 	return &options
 }

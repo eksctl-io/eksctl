@@ -77,13 +77,14 @@ type StackCollection struct {
 	cloudTrailAPI     awsapi.CloudTrail
 	asgAPI            awsapi.ASG
 
-	spec            *api.ClusterConfig
-	disableRollback bool
-	roleARN         string
-	region          string
-	waitTimeout     time.Duration
-	sharedTags      []types.Tag
-	stsAPI          awsapi.STS
+	spec                         *api.ClusterConfig
+	disableRollback              bool
+	disableTerminationProtection bool
+	roleARN                      string
+	region                       string
+	waitTimeout                  time.Duration
+	sharedTags                   []types.Tag
+	stsAPI                       awsapi.STS
 }
 
 func newTag(key, value string) types.Tag {
@@ -101,19 +102,20 @@ func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) S
 		tags = append(tags, newTag(key, value))
 	}
 	return &StackCollection{
-		spec:              spec,
-		sharedTags:        tags,
-		cloudformationAPI: provider.CloudFormation(),
-		ec2API:            provider.EC2(),
-		eksAPI:            provider.EKS(),
-		iamAPI:            provider.IAM(),
-		cloudTrailAPI:     provider.CloudTrail(),
-		asgAPI:            provider.ASG(),
-		disableRollback:   provider.CloudFormationDisableRollback(),
-		roleARN:           provider.CloudFormationRoleARN(),
-		region:            provider.Region(),
-		waitTimeout:       provider.WaitTimeout(),
-		stsAPI:            provider.STS(),
+		spec:                         spec,
+		sharedTags:                   tags,
+		cloudformationAPI:            provider.CloudFormation(),
+		ec2API:                       provider.EC2(),
+		eksAPI:                       provider.EKS(),
+		iamAPI:                       provider.IAM(),
+		cloudTrailAPI:                provider.CloudTrail(),
+		asgAPI:                       provider.ASG(),
+		disableRollback:              provider.CloudFormationDisableRollback(),
+		disableTerminationProtection: provider.CloudFormationDisableTerminationProtection(),
+		roleARN:                      provider.CloudFormationRoleARN(),
+		region:                       provider.Region(),
+		waitTimeout:                  provider.WaitTimeout(),
+		stsAPI:                       provider.STS(),
 	}
 }
 
@@ -122,7 +124,7 @@ func (c *StackCollection) DoCreateStackRequest(ctx context.Context, i *Stack, te
 	input := &cloudformation.CreateStackInput{
 		StackName:                   i.StackName,
 		DisableRollback:             aws.Bool(c.disableRollback),
-		EnableTerminationProtection: aws.Bool(true),
+		EnableTerminationProtection: aws.Bool(!c.disableTerminationProtection),
 	}
 	input.Tags = append(input.Tags, c.sharedTags...)
 	for k, v := range tags {

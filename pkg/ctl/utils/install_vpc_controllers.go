@@ -35,6 +35,7 @@ func installWindowsVPCController(cmd *cmdutils.Cmd) {
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
+	cmdutils.AddCloudFormationDisableTerminationProtectionFlag(cmd, &cmd.ProviderConfig)
 }
 
 func doInstallWindowsVPCController(cmd *cmdutils.Cmd) error {

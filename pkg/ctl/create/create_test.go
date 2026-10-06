@@ -35,6 +35,22 @@ var _ = Describe("create", func() {
 			Expect(err.Error()).To(ContainSubstring("usage"))
 		})
 	})
+
+	DescribeTable("registers --cfn-disable-termination-protection on commands that create stacks",
+		func(resource string) {
+			subCmd, _, err := Command(cmdutils.NewGrouping()).Find([]string{resource})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(subCmd.Flags().Lookup("cfn-disable-termination-protection")).NotTo(BeNil())
+		},
+		Entry("cluster", "cluster"),
+		Entry("nodegroup", "nodegroup"),
+		Entry("iamserviceaccount", "iamserviceaccount"),
+		Entry("addon", "addon"),
+		Entry("podidentityassociation", "podidentityassociation"),
+		Entry("accessentry", "accessentry"),
+		Entry("capability", "capability"),
+		Entry("fargateprofile", "fargateprofile"),
+	)
 })
 
 type invalidParamsCase struct {
