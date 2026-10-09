@@ -61,6 +61,7 @@ var (
 
 	commonCreateFlagsIncompatibleWithDryRun = []string{
 		"cfn-disable-rollback",
+		"cfn-disable-termination-protection",
 		"cfn-role-arn",
 		"install-neuron-plugin",
 		"install-nvidia-plugin",

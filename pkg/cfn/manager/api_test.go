@@ -129,6 +129,28 @@ var _ = Describe("StackCollection", func() {
 		})
 	})
 
+	Context("DoCreateStackRequest", func() {
+		createStack := func(p *mockprovider.MockProvider) *cfn.CreateStackInput {
+			p.MockCloudFormation().On("CreateStack", mock.Anything, mock.Anything).Return(&cfn.CreateStackOutput{StackId: aws.String("stack-id")}, nil)
+			sm := NewStackCollection(p, api.NewClusterConfig())
+			err := sm.DoCreateStackRequest(context.Background(), &Stack{StackName: aws.String("eksctl-stack")}, TemplateBody(""), nil, nil, false, false)
+			Expect(err).NotTo(HaveOccurred())
+			return p.MockCloudFormation().Calls[0].Arguments.Get(1).(*cfn.CreateStackInput)
+		}
+
+		It("enables termination protection by default", func() {
+			input := createStack(mockprovider.NewMockProvider())
+			Expect(input.EnableTerminationProtection).To(Equal(aws.Bool(true)))
+		})
+
+		It("disables termination protection when requested", func() {
+			p := mockprovider.NewMockProvider()
+			p.SetCloudFormationDisableTerminationProtection(true)
+			input := createStack(p)
+			Expect(input.EnableTerminationProtection).To(Equal(aws.Bool(false)))
+		})
+	})
+
 	Context("UpdateStack", func() {
 		It("succeeds if no changes required", func() {
 			// Order of AWS SDK invocation

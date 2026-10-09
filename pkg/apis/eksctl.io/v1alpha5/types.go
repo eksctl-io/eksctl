@@ -958,6 +958,7 @@ type ClusterProvider interface {
 	CloudFormation() awsapi.CloudFormation
 	CloudFormationRoleARN() string
 	CloudFormationDisableRollback() bool
+	CloudFormationDisableTerminationProtection() bool
 	ASG() awsapi.ASG
 	EKS() awsapi.EKS
 	SSM() awsapi.SSM
@@ -989,8 +990,9 @@ type STSPresigner interface {
 
 // ProviderConfig holds global parameters for all interactions with AWS APIs
 type ProviderConfig struct {
-	CloudFormationRoleARN         string
-	CloudFormationDisableRollback bool
+	CloudFormationRoleARN                      string
+	CloudFormationDisableRollback              bool
+	CloudFormationDisableTerminationProtection bool
 
 	Region      string
 	Profile     Profile

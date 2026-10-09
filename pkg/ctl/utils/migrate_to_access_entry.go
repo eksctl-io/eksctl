@@ -28,6 +28,7 @@ func migrateAccessEntryCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddTimeoutFlag(fs, &options.Timeout)
 		cmdutils.AddApproveFlag(fs, cmd)
 	})
+	cmdutils.AddCloudFormationDisableTerminationProtectionFlag(cmd, &cmd.ProviderConfig)
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)

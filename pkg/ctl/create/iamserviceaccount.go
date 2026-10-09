@@ -67,6 +67,7 @@ func createIAMServiceAccountCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, true)
+	cmdutils.AddCloudFormationDisableTerminationProtectionFlag(cmd, &cmd.ProviderConfig)
 }
 
 func doCreateIAMServiceAccount(cmd *cmdutils.Cmd, overrideExistingServiceAccounts, roleOnly bool) error {

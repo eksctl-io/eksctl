@@ -126,6 +126,14 @@ func AddCommonFlagsForAWS(cmd *Cmd, p *api.ProviderConfig, addCfnOptions bool) {
 	})
 }
 
+// AddCloudFormationDisableTerminationProtectionFlag adds the --cfn-disable-termination-protection flag.
+// It should only be added to commands that create CloudFormation stacks.
+func AddCloudFormationDisableTerminationProtectionFlag(cmd *Cmd, p *api.ProviderConfig) {
+	cmd.FlagSetGroup.InFlagSet("AWS client", func(fs *pflag.FlagSet) {
+		fs.BoolVar(&p.CloudFormationDisableTerminationProtection, "cfn-disable-termination-protection", false, "create CloudFormation stacks without termination protection, so deleting them does not require cloudformation:UpdateTerminationProtection")
+	})
+}
+
 // AddTimeoutFlagWithValue configures the timeout flag with the provided value.
 func AddTimeoutFlagWithValue(fs *pflag.FlagSet, p *time.Duration, value time.Duration) {
 	fs.DurationVar(p, "timeout", value, "maximum waiting time for any long-running operation")

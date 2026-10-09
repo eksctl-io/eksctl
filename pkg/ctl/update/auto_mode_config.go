@@ -48,6 +48,7 @@ func updateAutoModeConfigCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddTimeoutFlagWithValue(fs, &cmd.ProviderConfig.WaitTimeout, 40*time.Minute)
 	})
 	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
+	cmdutils.AddCloudFormationDisableTerminationProtectionFlag(cmd, &cmd.ProviderConfig)
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		return updateAutoMode(cmd, options)
