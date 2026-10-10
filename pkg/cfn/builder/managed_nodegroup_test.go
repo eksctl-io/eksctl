@@ -190,7 +190,7 @@ func TestManagedNodeRole(t *testing.T) {
 			expectedNodeRoleARN: gfnt.NewString("arn::DUMMY::DUMMYROLE"), // using the provided role
 		},
 		{
-			description: "InstanceRoleARN is provided and normalized",
+			description: "InstanceRoleARN is provided with path and preserved",
 			nodeGroup: &api.ManagedNodeGroup{
 				NodeGroupBase: &api.NodeGroupBase{
 					IAM: &api.NodeGroupIAM{
@@ -199,7 +199,7 @@ func TestManagedNodeRole(t *testing.T) {
 				},
 			},
 			expectedNewRole:     false,
-			expectedNodeRoleARN: gfnt.NewString("arn:aws:iam::1234567890:role/custom-eks-role"),
+			expectedNodeRoleARN: gfnt.NewString("arn:aws:iam::1234567890:role/foo/bar/baz/custom-eks-role"),
 		},
 	}
 
