@@ -122,3 +122,90 @@ var _ = Describe("upgrade cluster", func() {
 		}),
 	)
 })
+
+var _ = Describe("resolve cluster version", func() {
+	type resolveCase struct {
+		eksDefaultVersion      string
+		givenVersion           string
+		expectedDefaultVersion string
+		expectedVersion        string
+		expectedErrorText      string
+	}
+
+	DescribeTable("resolves the specified version",
+		func(c resolveCase) {
+			var clusterVersions []ekstypes.ClusterVersionInformation
+			for _, v := range []string{"1.33", "1.34", "1.35", "1.36", "1.37"} {
+				clusterVersions = append(clusterVersions, ekstypes.ClusterVersionInformation{
+					ClusterVersion: utils.StringPtr(v),
+					DefaultVersion: v == c.eksDefaultVersion,
+				})
+			}
+			mockProvider := mockprovider.NewMockProvider()
+			mockProvider.MockEKS().On("DescribeClusterVersions", mock.Anything, &awseks.DescribeClusterVersionsInput{}).
+				Return(&awseks.DescribeClusterVersionsOutput{
+					ClusterVersions: clusterVersions,
+				}, nil)
+
+			cvm, err := eks.NewClusterVersionsManager(mockProvider.EKS())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(cvm.DefaultVersion()).To(Equal(c.expectedDefaultVersion))
+
+			version, err := cvm.ResolveClusterVersion(c.givenVersion)
+
+			if c.expectedErrorText != "" {
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring(c.expectedErrorText))
+			} else {
+				Expect(err).NotTo(HaveOccurred())
+				Expect(version).To(Equal(c.expectedVersion))
+			}
+		},
+
+		Entry("uses the EKS default version when the version is not specified", resolveCase{
+			eksDefaultVersion:      "1.36",
+			givenVersion:           "",
+			expectedDefaultVersion: "1.36",
+			expectedVersion:        "1.36",
+		}),
+
+		Entry("uses the EKS default version when the version is auto", resolveCase{
+			eksDefaultVersion:      "1.36",
+			givenVersion:           "auto",
+			expectedDefaultVersion: "1.36",
+			expectedVersion:        "1.36",
+		}),
+
+		Entry("uses the latest version when the version is latest", resolveCase{
+			eksDefaultVersion:      "1.36",
+			givenVersion:           "latest",
+			expectedDefaultVersion: "1.36",
+			expectedVersion:        "1.37",
+		}),
+
+		Entry("uses the specified version when it is supported", resolveCase{
+			eksDefaultVersion:      "1.36",
+			givenVersion:           "1.33",
+			expectedDefaultVersion: "1.36",
+			expectedVersion:        "1.33",
+		}),
+
+		Entry("fails when the version is not specified and EKS does not flag a default", resolveCase{
+			eksDefaultVersion: "",
+			givenVersion:      "",
+			expectedErrorText: "EKS did not report a default Kubernetes version",
+		}),
+
+		Entry("fails when the version is auto and EKS does not flag a default", resolveCase{
+			eksDefaultVersion: "",
+			givenVersion:      "auto",
+			expectedErrorText: "EKS did not report a default Kubernetes version",
+		}),
+
+		Entry("uses the specified version when EKS does not flag a default", resolveCase{
+			eksDefaultVersion: "",
+			givenVersion:      "1.35",
+			expectedVersion:   "1.35",
+		}),
+	)
+})

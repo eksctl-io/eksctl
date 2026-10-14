@@ -66,7 +66,7 @@ var _ = Describe("Enable GitOps", func() {
 		clusterConfig = &api.ClusterConfig{
 			TypeMeta: api.ClusterConfigTypeMeta(),
 			Metadata: &api.ClusterMeta{
-				Version: api.DefaultVersion,
+				Version: params.Version,
 				Name:    params.ClusterName,
 				Region:  params.Region,
 			},

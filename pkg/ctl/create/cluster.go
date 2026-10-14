@@ -101,7 +101,7 @@ func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.C
 		fs.BoolVar(cfg.IAM.WithOIDC, "with-oidc", false, "Enable the IAM OIDC provider")
 		fs.StringSliceVar(&params.AvailabilityZones, "zones", nil, "(auto-select if unspecified)")
 		fs.StringVarP(&cfg.UpgradePolicy.SupportType, "support-type", "", "", "Set cluster's upgradePolicy supportType")
-		cmdutils.AddVersionFlag(fs, cfg.Metadata, "")
+		cmdutils.AddVersionFlag(fs, cfg.Metadata, `defaults to the EKS default version; use "latest" for the newest supported version`)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 		fs.BoolVarP(&params.InstallWindowsVPCController, "install-vpc-controllers", "", false, "Install VPC controller that's required for Windows workloads")
@@ -152,6 +152,10 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	var err error
 	cfg := cmd.ClusterConfig
 	meta := cmd.ClusterConfig.Metadata
+
+	if meta.Version == "" {
+		return errors.New("EKS did not report a default Kubernetes version; set --version or metadata.version")
+	}
 
 	if meta.Name != "" && api.IsInvalidNameArg(meta.Name) {
 		return api.ErrInvalidName(meta.Name)

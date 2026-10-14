@@ -14,8 +14,6 @@ import (
 
 func updateClusterCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
-	// Reset version before loading
-	cfg.Metadata.Version = ""
 	cmd.ClusterConfig = cfg
 
 	cmd.SetDescription("cluster", "DEPRECATED: use 'upgrade cluster' instead. Upgrade control plane to the next version. ",

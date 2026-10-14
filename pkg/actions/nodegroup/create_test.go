@@ -748,7 +748,7 @@ func newClusterConfig() *api.ClusterConfig {
 		TypeMeta: api.ClusterConfigTypeMeta(),
 		Metadata: &api.ClusterMeta{
 			Name:    "my-cluster",
-			Version: api.DefaultVersion,
+			Version: api.Version1_34,
 		},
 		Status: &api.ClusterStatus{
 			Endpoint:                 "https://localhost/",

@@ -78,7 +78,7 @@ var _ = Describe("NodeGroupService", func() {
 		Entry("[Outposts] nodeGroup.instanceType should be set to the smallest available instance type", normalizeEntry{
 			clusterConfig: &api.ClusterConfig{
 				Metadata: &api.ClusterMeta{
-					Version: api.DefaultVersion,
+					Version: api.Version1_34,
 				},
 				Outpost: &api.Outpost{
 					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
@@ -122,7 +122,7 @@ var _ = Describe("NodeGroupService", func() {
 		Entry("[Outposts] unavailable instance type should return an error", normalizeEntry{
 			clusterConfig: &api.ClusterConfig{
 				Metadata: &api.ClusterMeta{
-					Version: api.DefaultVersion,
+					Version: api.Version1_34,
 				},
 				Outpost: &api.Outpost{
 					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
@@ -148,7 +148,7 @@ var _ = Describe("NodeGroupService", func() {
 		Entry("[Outposts] available instance type should not return an error", normalizeEntry{
 			clusterConfig: &api.ClusterConfig{
 				Metadata: &api.ClusterMeta{
-					Version: api.DefaultVersion,
+					Version: api.Version1_34,
 				},
 				Outpost: &api.Outpost{
 					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
@@ -183,7 +183,7 @@ var _ = Describe("NodeGroupService", func() {
 		Entry("instance type should be set to the default instance type", normalizeEntry{
 			clusterConfig: &api.ClusterConfig{
 				Metadata: &api.ClusterMeta{
-					Version: api.DefaultVersion,
+					Version: api.Version1_34,
 				},
 				NodeGroups: []*api.NodeGroup{
 					{
@@ -214,7 +214,7 @@ var _ = Describe("NodeGroupService", func() {
 		Entry(`instance type should be set to "mixed" when using mixed instance types`, normalizeEntry{
 			clusterConfig: &api.ClusterConfig{
 				Metadata: &api.ClusterMeta{
-					Version: api.DefaultVersion,
+					Version: api.Version1_34,
 				},
 				NodeGroups: []*api.NodeGroup{
 					{
@@ -237,7 +237,7 @@ var _ = Describe("NodeGroupService", func() {
 		Entry("instance type should be left unset when instanceSelector or launchTemplate is set", normalizeEntry{
 			clusterConfig: &api.ClusterConfig{
 				Metadata: &api.ClusterMeta{
-					Version: api.DefaultVersion,
+					Version: api.Version1_34,
 				},
 				ManagedNodeGroups: []*api.ManagedNodeGroup{
 					{

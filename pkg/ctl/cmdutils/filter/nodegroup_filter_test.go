@@ -270,6 +270,7 @@ func newClusterConfig() *api.ClusterConfig {
 
 	cfg.Metadata.Name = "test-3x3-ngs"
 	cfg.Metadata.Region = "eu-central-1"
+	cfg.Metadata.Version = api.Version1_34
 
 	return cfg
 }
@@ -657,7 +658,7 @@ var expected = fmt.Sprintf(`
 		  }
 		]
   }
-`, api.DefaultVersion)
+`, api.Version1_34)
 
 type mockStackLister struct {
 	nodesResult []manager.NodeGroupStack

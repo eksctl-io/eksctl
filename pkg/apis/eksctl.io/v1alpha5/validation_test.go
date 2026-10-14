@@ -881,6 +881,7 @@ var _ = Describe("ClusterConfig validation", func() {
 
 	DescribeTable("AWS Local Zones", func(e localZonesEntry) {
 		clusterConfig := api.NewClusterConfig()
+		clusterConfig.Metadata.Version = api.Version1_34
 		e.updateClusterConfig(clusterConfig)
 		clusterConfig.LocalZones = []string{"us-west-2-lax-1a", "us-west-2-lax-1b"}
 
@@ -1013,6 +1014,7 @@ var _ = Describe("ClusterConfig validation", func() {
 	}
 	DescribeTable("RemoteNetworkConfig", func(e remoteNetworkConfigEntry) {
 		cfg := api.NewClusterConfig()
+		cfg.Metadata.Version = api.Version1_34
 		api.SetClusterConfigDefaults(cfg)
 		api.SetClusterEndpointAccessDefaults(cfg.VPC)
 		gatewayID := api.VPCGateway("tgw-1234")
@@ -1131,6 +1133,7 @@ var _ = Describe("ClusterConfig validation", func() {
 
 		BeforeEach(func() {
 			cfg = api.NewClusterConfig()
+			cfg.Metadata.Version = api.Version1_34
 			vpc = api.NewClusterVPC(false)
 			cfg.VPC = vpc
 		})

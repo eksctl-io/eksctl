@@ -218,6 +218,26 @@ var _ = Describe("create cluster", func() {
 		)
 	})
 
+	DescribeTable("version flag",
+		func(expectedVersion string, args ...string) {
+			commandArgs := append([]string{"cluster"}, args...)
+			cmd := newMockEmptyCmd(commandArgs...)
+			count := 0
+			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
+				createClusterCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params *cmdutils.CreateClusterCmdParams) error {
+					Expect(cmd.ClusterConfig.Metadata.Version).To(Equal(expectedVersion))
+					count++
+					return nil
+				})
+			})
+			_, err := cmd.execute()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(count).To(Equal(1))
+		},
+		Entry("without version flag", ""),
+		Entry("with version flag", "1.33", "--version", "1.33"),
+	)
+
 	type createClusterEntry struct {
 		updateClusterConfig         func(*api.ClusterConfig)
 		updateClusterParams         func(*cmdutils.CreateClusterCmdParams)
@@ -265,6 +285,7 @@ var _ = Describe("create cluster", func() {
 
 		clusterConfig := api.NewClusterConfig()
 		clusterConfig.Metadata.Name = clusterName
+		clusterConfig.Metadata.Version = api.Version1_34
 		clusterConfig.AddonsConfig.DisableDefaultAddons = true
 		clusterConfig.VPC.ClusterEndpoints = api.ClusterEndpointAccessDefaults()
 		clusterConfig.AccessConfig.AuthenticationMode = ekstypes.AuthenticationModeApiAndConfigMap
@@ -310,6 +331,13 @@ var _ = Describe("create cluster", func() {
 			Expect(fakeInstallerTaskCreator.CreateCallCount()).To(Equal(1))
 		}
 	},
+
+		Entry("fails when the cluster version is not set", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.Metadata.Version = ""
+			},
+			expectedErr: "EKS did not report a default Kubernetes version",
+		}),
 
 		Entry("[Cluster with NodeGroups] fails to install device plugins", createClusterEntry{
 			updateClusterConfig: func(c *api.ClusterConfig) {

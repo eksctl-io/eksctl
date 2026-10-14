@@ -177,6 +177,7 @@ var _ = Describe("create nodegroup", func() {
 	type checkNodeGroupVersionInput struct {
 		ctl             *eks.ClusterProvider
 		meta            *api.ClusterMeta
+		defaultVersion  string
 		expectedVersion string
 		expectedErr     string
 	}
@@ -198,6 +199,7 @@ var _ = Describe("create nodegroup", func() {
 				return []string{"1.29", "1.30", "1.31"}
 			}
 			cvm.LatestVersionReturns("1.31")
+			cvm.DefaultVersionReturns(input.defaultVersion)
 			err := checkNodeGroupVersion(cvm, input.ctl.ControlPlaneVersion(), input.meta)
 			if input.expectedErr != "" {
 				Expect(err).To(MatchError(ContainSubstring(input.expectedErr)))
@@ -224,6 +226,21 @@ var _ = Describe("create nodegroup", func() {
 				Version: "latest",
 			},
 			expectedVersion: api.Version1_31,
+		}),
+		Entry("version is set to default", checkNodeGroupVersionInput{
+			ctl: providerVersion1_23,
+			meta: &api.ClusterMeta{
+				Version: "default",
+			},
+			defaultVersion:  api.Version1_30,
+			expectedVersion: api.Version1_30,
+		}),
+		Entry("version is set to default and EKS does not report a default", checkNodeGroupVersionInput{
+			ctl: providerVersion1_23,
+			meta: &api.ClusterMeta{
+				Version: "default",
+			},
+			expectedErr: "EKS did not report a default Kubernetes version",
 		}),
 		Entry("fails to retrieve control plane version", checkNodeGroupVersionInput{
 			ctl: &eks.ClusterProvider{

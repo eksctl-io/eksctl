@@ -92,7 +92,7 @@ var _ = Describe("Create", func() {
 								RequiresIamPermissions: true,
 								Compatibilities: []ekstypes.Compatibility{
 									{
-										ClusterVersion: aws.String(api.DefaultVersion),
+										ClusterVersion: aws.String(api.Version1_34),
 										DefaultVersion: true,
 									},
 								},

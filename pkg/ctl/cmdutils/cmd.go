@@ -44,11 +44,9 @@ func (c *Cmd) NewCtl() (*eks.ClusterProvider, error) {
 		return nil, err
 	}
 
-	version, err := cvm.ResolveClusterVersion(c.ClusterConfig.Metadata.Version)
-	if err != nil {
-		return nil, fmt.Errorf("resolving cluster version: %w", err)
+	if err := resolveClusterVersion(cvm, c.ClusterConfig.Metadata); err != nil {
+		return nil, err
 	}
-	c.ClusterConfig.Metadata.Version = version
 
 	if err := c.InitializeClusterConfig(); err != nil {
 		return nil, err
@@ -59,6 +57,18 @@ func (c *Cmd) NewCtl() (*eks.ClusterProvider, error) {
 	}
 
 	return ctl, nil
+}
+
+func resolveClusterVersion(cvm eks.ClusterVersionsManagerInterface, meta *api.ClusterMeta) error {
+	if meta.Version == "" && cvm.DefaultVersion() == "" {
+		return nil
+	}
+	version, err := cvm.ResolveClusterVersion(meta.Version)
+	if err != nil {
+		return fmt.Errorf("resolving cluster version: %w", err)
+	}
+	meta.Version = version
+	return nil
 }
 
 // InitializeClusterConfig validates and initializes the ClusterConfig.

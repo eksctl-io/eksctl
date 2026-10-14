@@ -54,9 +54,6 @@ const (
 	AmazonLinux2EOLVersion       = Version1_33
 	// EFABuiltInSupportVersion defines the minimum Kubernetes version that supports built-in EFA
 	EFABuiltInSupportVersion = Version1_33
-	//TODO: Remove this and replace with output from DescribeClusterVersions endpoint
-	// DefaultVersion (default)
-	DefaultVersion = Version1_34
 )
 
 const (
@@ -1307,10 +1304,8 @@ func ClusterConfigTypeMeta() metav1.TypeMeta {
 func NewClusterConfig() *ClusterConfig {
 	cfg := &ClusterConfig{
 		TypeMeta: ClusterConfigTypeMeta(),
-		Metadata: &ClusterMeta{
-			Version: DefaultVersion,
-		},
-		IAM: NewClusterIAM(),
+		Metadata: &ClusterMeta{},
+		IAM:      NewClusterIAM(),
 		KubernetesNetworkConfig: &KubernetesNetworkConfig{
 			IPFamily: DefaultIPFamily,
 		},

@@ -75,7 +75,7 @@ var _ = BeforeSuite(func() {
 	rawClient = getRawClient(context.Background(), params.ClusterName)
 	serverVersion, err := rawClient.ServerVersion()
 	Expect(err).NotTo(HaveOccurred())
-	Expect(serverVersion).To(HavePrefix(api.DefaultVersion))
+	Expect(serverVersion).To(HavePrefix(params.Version))
 
 })
 
@@ -555,7 +555,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 		cmd := params.EksctlUtilsCmd.
 			WithArgs(
 				"describe-addon-versions",
-				"--kubernetes-version", api.DefaultVersion,
+				"--kubernetes-version", params.Version,
 			)
 		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
 			ContainElement(ContainSubstring("vpc-cni")),
@@ -569,7 +569,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 		By(fmt.Sprintf("listing available addon versions for %s", addonWithSchema))
 		output, err := eksAPI.DescribeAddonVersions(context.Background(), &awseks.DescribeAddonVersionsInput{
 			AddonName:         aws.String(addonWithSchema),
-			KubernetesVersion: aws.String(api.DefaultVersion),
+			KubernetesVersion: aws.String(params.Version),
 		})
 		Expect(err).NotTo(HaveOccurred(), "error describing addon versions")
 		By(fmt.Sprintf("fetching the configuration schema for %s", addonWithSchema))
@@ -592,7 +592,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 		cmd := params.EksctlUtilsCmd.
 			WithArgs(
 				"describe-addon-versions",
-				"--kubernetes-version", api.DefaultVersion,
+				"--kubernetes-version", params.Version,
 				"--types", "networking",
 				"--owners", "aws",
 				"--publishers", "eks",
@@ -625,7 +625,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 		cmd := params.EksctlUtilsCmd.
 			WithArgs(
 				"describe-addon-versions",
-				"--kubernetes-version", api.DefaultVersion,
+				"--kubernetes-version", params.Version,
 				"--types", "networking, storage",
 			)
 		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
@@ -990,7 +990,7 @@ func getRawClient(ctx context.Context, clusterName string) *kubewrapper.RawClien
 func getInitialClusterConfig() *api.ClusterConfig {
 	clusterConfig := api.NewClusterConfig()
 	clusterConfig.Metadata.Name = params.ClusterName
-	clusterConfig.Metadata.Version = api.DefaultVersion
+	clusterConfig.Metadata.Version = params.Version
 	clusterConfig.Metadata.Region = params.Region
 	clusterConfig.IAM.WithOIDC = api.Enabled()
 	clusterConfig.Addons = []*api.Addon{

@@ -74,6 +74,7 @@ func doMigrateToPodIdentity(cmd *cmdutils.Cmd, options podidentityassociation.Po
 		return err
 	}
 
+	cfg.Metadata.Version = ctl.ControlPlaneVersion()
 	addonManager, err := addon.New(cfg, ctl.AWSProvider.EKS(), nil, false, nil, nil)
 	if err != nil {
 		return fmt.Errorf("initializing addon creator %w", err)

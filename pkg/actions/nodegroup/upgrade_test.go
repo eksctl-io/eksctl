@@ -130,7 +130,7 @@ var _ = Describe("Upgrade", func() {
 					}}, nil)
 				})
 				It("returns an error if kubernetes version is specified", func() {
-					options.KubernetesVersion = api.DefaultVersion
+					options.KubernetesVersion = api.Version1_34
 					err := m.Upgrade(context.Background(), options)
 					Expect(err).To(MatchError(ContainSubstring("cannot specify kubernetes-version or release-version when using a custom AMI")))
 				})

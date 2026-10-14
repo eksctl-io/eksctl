@@ -827,7 +827,7 @@ var _ = Describe("VPC", func() {
 			cfg: &api.ClusterConfig{
 				TypeMeta: api.ClusterConfigTypeMeta(),
 				Metadata: &api.ClusterMeta{
-					Version: api.DefaultVersion,
+					Version: api.Version1_34,
 				},
 				IAM: &api.ClusterIAM{},
 				VPC: &api.ClusterVPC{
@@ -855,7 +855,7 @@ var _ = Describe("VPC", func() {
 			cfg: &api.ClusterConfig{
 				TypeMeta: api.ClusterConfigTypeMeta(),
 				Metadata: &api.ClusterMeta{
-					Version: api.DefaultVersion,
+					Version: api.Version1_34,
 				},
 				IAM: &api.ClusterIAM{},
 				VPC: &api.ClusterVPC{
@@ -977,7 +977,7 @@ var _ = Describe("VPC", func() {
 			cfg: &api.ClusterConfig{
 				TypeMeta: api.ClusterConfigTypeMeta(),
 				Metadata: &api.ClusterMeta{
-					Version: api.DefaultVersion,
+					Version: api.Version1_34,
 				},
 				IAM: &api.ClusterIAM{},
 				VPC: &api.ClusterVPC{
