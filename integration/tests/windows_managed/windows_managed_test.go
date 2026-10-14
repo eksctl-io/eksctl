@@ -43,7 +43,7 @@ func TestWindowsManaged(t *testing.T) {
 func makeClusterConfig() *api.ClusterConfig {
 	clusterConfig := api.NewClusterConfig()
 	clusterConfig.Metadata.Name = params.ClusterName
-	clusterConfig.Metadata.Version = api.DefaultVersion
+	clusterConfig.Metadata.Version = params.Version
 	clusterConfig.Metadata.Region = params.Region
 	return clusterConfig
 }

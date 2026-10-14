@@ -149,6 +149,9 @@ func checkNodeGroupVersion(cvm eks.ClusterVersionsManagerInterface, controlPlane
 		meta.Version = "auto"
 	case "default":
 		meta.Version = cvm.DefaultVersion()
+		if meta.Version == "" {
+			return fmt.Errorf("EKS did not report a default Kubernetes version; set --version or metadata.version")
+		}
 		logger.Info("will use default version (%s) for new nodegroup(s)", meta.Version)
 	case "latest":
 		meta.Version = cvm.LatestVersion()

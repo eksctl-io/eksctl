@@ -210,7 +210,7 @@ func NewParamsWithGivenClusterName(clusterNamePrefix string, givenName string) *
 
 	flag.StringVar(&params.EksctlPath, "eksctl.path", "../../../eksctl", "Path to eksctl")
 	flag.StringVar(&params.Region, "eksctl.region", api.DefaultRegion, "Region to use for the tests")
-	flag.StringVar(&params.Version, "eksctl.version", api.DefaultVersion, "Version of Kubernetes to test")
+	flag.StringVar(&params.Version, "eksctl.version", "", "Version of Kubernetes to test (default: the EKS default version)")
 	flag.StringVar(&params.TestDirectory, "eksctl.test.dir", defaultTestDirectory, "Test directory. Defaulted to: "+defaultTestDirectory)
 	// Flags to help with the development of the integration tests
 	flag.StringVar(&params.ClusterName, "eksctl.cluster", "", "Cluster name (default: generate one)")
@@ -223,6 +223,9 @@ func NewParamsWithGivenClusterName(clusterNamePrefix string, givenName string) *
 	// go1.13+ testing flags regression fix: https://github.com/golang/go/issues/31859
 	flag.Parse()
 
+	if params.Version == "" {
+		params.attemptSettingDefaultVersion()
+	}
 	params.attemptSettingUserID()
 	if params.ClusterName == "" {
 		params.ClusterName = params.newClusterName(clusterNamePrefix, givenName)
@@ -255,6 +258,26 @@ func (p *Params) LogStacksEventsOnFailureForCluster(clusterName string) bool {
 			)).To(RunSuccessfully())
 		}
 	})
+}
+
+func (p *Params) attemptSettingDefaultVersion() {
+	msg := "Warning: failed to resolve the EKS default Kubernetes version, proceeding without it. Error: %v"
+	clusterProvider, err := eks.New(context.TODO(), &api.ProviderConfig{Region: p.Region}, nil)
+	if err != nil {
+		fmt.Fprintf(GinkgoWriter, msg, err)
+		return
+	}
+	cvm, err := eks.NewClusterVersionsManager(clusterProvider.AWSProvider.EKS())
+	if err != nil {
+		fmt.Fprintf(GinkgoWriter, msg, err)
+		return
+	}
+	version, err := cvm.ResolveClusterVersion("")
+	if err != nil {
+		fmt.Fprintf(GinkgoWriter, msg, err)
+		return
+	}
+	p.Version = version
 }
 
 // attemptSettingUserID will attempt to fetch the first 4 characters of the userID running the

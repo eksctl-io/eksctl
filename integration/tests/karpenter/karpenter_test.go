@@ -81,7 +81,7 @@ var _ = Describe("(Integration) Karpenter", func() {
 				Metadata: &api.ClusterMeta{
 					Name:    clusterName,
 					Region:  params.Region,
-					Version: api.DefaultVersion,
+					Version: params.Version,
 					Tags: map[string]string{
 						"karpenter.sh/discovery": clusterName,
 					},

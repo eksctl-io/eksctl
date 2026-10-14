@@ -46,7 +46,7 @@ func TestDryRun(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
-const eksVersion = api.DefaultVersion
+const eksVersion = api.Version1_34
 
 const defaultClusterConfig = `
 apiVersion: eksctl.io/v1alpha5

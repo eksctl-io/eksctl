@@ -14,7 +14,7 @@ var _ = Describe("Instance Selector Validation", func() {
 	DescribeTable("Supported and unsupported field combinations", func(n *instanceSelectorCase) {
 		cfg := NewClusterConfig()
 
-		err := SetNodeGroupDefaults(n.ng, &ClusterMeta{Name: "cluster", Version: DefaultVersion}, cfg.IsControlPlaneOnOutposts())
+		err := SetNodeGroupDefaults(n.ng, &ClusterMeta{Name: "cluster", Version: Version1_34}, cfg.IsControlPlaneOnOutposts())
 		Expect(err).NotTo(HaveOccurred())
 
 		err = ValidateNodeGroup(0, n.ng, cfg)

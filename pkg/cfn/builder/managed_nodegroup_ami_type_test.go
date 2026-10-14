@@ -33,7 +33,7 @@ var _ = DescribeTable("Managed Nodegroup AMI type", func(e amiTypeEntry) {
 	if e.clusterVersion != "" {
 		clusterConfig.Metadata.Version = e.clusterVersion
 	} else {
-		clusterConfig.Metadata.Version = api.DefaultVersion
+		clusterConfig.Metadata.Version = api.Version1_34
 	}
 	err := api.SetManagedNodeGroupDefaults(e.nodeGroup, clusterConfig.Metadata, false)
 	Expect(err).NotTo(HaveOccurred())

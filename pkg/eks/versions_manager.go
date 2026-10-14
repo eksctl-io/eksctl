@@ -11,7 +11,6 @@ import (
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/kris-nova/logger"
 
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
@@ -100,8 +99,7 @@ func (cvm *ClusterVersionsManager) IsDeprecatedVersion(version string) bool {
 }
 
 func (cvm *ClusterVersionsManager) DefaultVersion() string {
-	//TODO: replace with output from DescribeClusterVersions endpoint
-	return api.DefaultVersion
+	return cvm.defaultVersion
 }
 
 func (cvm *ClusterVersionsManager) LatestVersion() string {
@@ -121,6 +119,9 @@ func (cvm *ClusterVersionsManager) ValidateVersion(version string) error {
 func (cvm *ClusterVersionsManager) ResolveClusterVersion(version string) (string, error) {
 	switch version {
 	case "auto", "":
+		if cvm.DefaultVersion() == "" {
+			return "", fmt.Errorf("EKS did not report a default Kubernetes version; set --version or metadata.version")
+		}
 		return cvm.DefaultVersion(), nil
 	case "latest":
 		return cvm.LatestVersion(), nil
