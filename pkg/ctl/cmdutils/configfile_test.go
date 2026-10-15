@@ -140,7 +140,7 @@ var _ = Describe("cmdutils configfile", func() {
 					l.flagsIncompatibleWithConfigFile.Delete("name")
 
 					err := l.Load()
-					Expect(err).To(MatchError(ContainSubstring("error unmarshaling JSON: while decoding JSON: json: unknown field \"containerRuntime\"")))
+					Expect(err).To(MatchError(ContainSubstring("strict decoding error: unknown field \"managedNodeGroups[0].containerRuntime\"")))
 				})
 			})
 		})
