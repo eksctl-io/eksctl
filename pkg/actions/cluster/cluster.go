@@ -37,8 +37,10 @@ func New(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider) 
 	}
 
 	autoModeDeleter := &automode.RoleDeleter{
-		Cluster:      ctl.Status.ClusterInfo.Cluster,
 		StackDeleter: stackManager,
+	}
+	if ctl.Status.ClusterInfo != nil {
+		autoModeDeleter.Cluster = ctl.Status.ClusterInfo.Cluster
 	}
 	if clusterStack != nil {
 		logger.Debug("cluster %q was created by eksctl", cfg.Metadata.Name)

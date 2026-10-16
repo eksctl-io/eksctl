@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
@@ -300,6 +301,44 @@ var _ = Describe("Delete", func() {
 				Expect(ranDeleteClusterTasks).To(BeFalse())
 				mockedDrainer.AssertNumberOfCalls(GinkgoT(), "Drain", 1)
 			})
+		})
+	})
+
+	Context("when the cluster no longer exists", func() {
+		It("deletes the remaining stacks without querying Kubernetes", func() {
+			ctl.Status.ClusterInfo = nil
+			clusterStack := &manager.Stack{
+				StackName:   aws.String("eksctl-my-cluster-cluster"),
+				StackStatus: cfntypes.StackStatusDeleteFailed,
+			}
+			fakeStackManager.DeleteTasksForDeprecatedStacksReturns(&tasks.TaskTree{}, nil)
+			p.MockEC2().On("DescribeKeyPairs", mock.Anything, mock.Anything).Return(&ec2.DescribeKeyPairsOutput{}, nil)
+			fakeStackManager.NewTasksToDeleteClusterWithNodeGroupsReturns(&tasks.TaskTree{
+				Tasks: []tasks.Task{&tasks.GenericTask{Doer: func() error {
+					ranDeleteClusterTasks = true
+					return nil
+				}}},
+			}, nil)
+
+			c := cluster.NewOwnedCluster(cfg, ctl, clusterStack, fakeStackManager, autoModeDeleter)
+			c.SetNewClientSet(func() (kubernetes.Interface, error) {
+				Fail("should not create a Kubernetes client for a missing cluster")
+				return nil, nil
+			})
+			c.SetNewNodeGroupDrainer(func(kubernetes.Interface) cluster.NodeGroupDrainer {
+				Fail("should not drain nodegroups for a missing cluster")
+				return nil
+			})
+
+			Expect(c.Delete(context.Background(), time.Microsecond, 0, false, true, false, 1)).To(Succeed())
+			Expect(fakeStackManager.NewTasksToDeleteClusterWithNodeGroupsCallCount()).To(Equal(1))
+			_, stack, _, clusterOperable, _, _, _, _, clusterState, _, _, force, _ := fakeStackManager.NewTasksToDeleteClusterWithNodeGroupsArgsForCall(0)
+			Expect(stack).To(BeIdenticalTo(clusterStack))
+			Expect(clusterOperable).To(BeFalse())
+			Expect(clusterState).To(BeNil())
+			Expect(force).To(BeTrue())
+			Expect(ranDeleteClusterTasks).To(BeTrue())
+			autoModeDeleter.AssertExpectations(GinkgoT())
 		})
 	})
 
