@@ -73,7 +73,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources(ctx context.Context) error
 		}
 		nodeRole = gfnt.MakeFnGetAttString(cfnIAMInstanceRoleName, "Arn")
 	} else {
-		nodeRole = gfnt.NewString(NormalizeARN(m.nodeGroup.IAM.InstanceRoleARN))
+		nodeRole = gfnt.NewString(m.nodeGroup.IAM.InstanceRoleARN)
 	}
 
 	subnets, err := AssignSubnets(ctx, m.nodeGroup, m.clusterConfig, m.ec2API)
