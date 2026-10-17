@@ -290,7 +290,12 @@ func ValidateExistingNodeGroupsForCompatibility(ctx context.Context, cfg *api.Cl
 
 	logger.Info("checking security group configuration for all nodegroups")
 	var incompatibleNodeGroups []string
+	var notOperationalNodeGroups []string
 	for ng, info := range infoByNodeGroup {
+		if manager.StackStatusIsNotOperational(info.Stack) {
+			notOperationalNodeGroups = append(notOperationalNodeGroups, ng)
+			continue
+		}
 		if stackManager.StackStatusIsNotTransitional(info.Stack) {
 			isCompatible, err := isNodeGroupCompatible(ng, info)
 			if err != nil {
@@ -305,8 +310,15 @@ func ValidateExistingNodeGroupsForCompatibility(ctx context.Context, cfg *api.Cl
 		}
 	}
 
+	if len(notOperationalNodeGroups) > 0 {
+		logger.Critical("found nodegroup(s) (%s) whose CloudFormation stack is in a failed or rolled-back state (e.g. ROLLBACK_COMPLETE) and cannot be used",
+			strings.Join(notOperationalNodeGroups, ", "))
+		logger.Critical("these nodegroups were never created successfully; delete and recreate them, e.g. 'eksctl delete nodegroup --cluster %s --name <%s>'",
+			cfg.Metadata.Name, notOperationalNodeGroups[0])
+	}
+
 	if len(incompatibleNodeGroups) == 0 {
-		logger.Info("all nodegroups have up-to-date cloudformation templates")
+		logger.Info("all nodegroups have compatible shared security group configuration")
 		return nil
 	}
 
