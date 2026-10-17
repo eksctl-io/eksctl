@@ -1,6 +1,8 @@
 package builder
 
 import (
+	"fmt"
+
 	gfneks "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/eks"
 	gfnt "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/types"
 
@@ -100,6 +102,13 @@ func convertConfiguration(config *api.CapabilityConfiguration) (*gfneks.Capabili
 		}
 	}
 
+	if config.ArgoCD.AWSIDC == nil {
+		// A typo in the config file (e.g. `awsIDC` instead of `awsIdc`) leaves
+		// AWSIDC nil because YAML is decoded case-sensitively via the JSON
+		// serializer; dereferencing it would panic instead of failing cleanly.
+		// See https://github.com/eksctl-io/eksctl/issues/8701.
+		return nil, fmt.Errorf("awsIdc configuration is required for ARGOCD capability")
+	}
 	req.ArgoCd.AWSIDC = &gfneks.ArgoCDAWSIDC{
 		IDCInstanceARN: gfnt.NewString(config.ArgoCD.AWSIDC.IDCInstanceARN),
 	}
