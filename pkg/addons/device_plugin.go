@@ -6,6 +6,7 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/kris-nova/logger"
@@ -81,6 +82,7 @@ type DevicePlugin interface {
 	Manifest() []byte
 	SetImage(t *corev1.PodTemplateSpec) error
 	SetTolerations(t *corev1.PodTemplateSpec) error
+	SetNodeAffinity(t *corev1.PodTemplateSpec) error
 	Deploy() error
 }
 
@@ -107,6 +109,9 @@ func applyDevicePlugin(dp DevicePlugin) error {
 			}
 			if err := dp.SetTolerations(&daemonSet.Spec.Template); err != nil {
 				return fmt.Errorf("adding tolerations to device plugin daemonset: %w", err)
+			}
+			if err := dp.SetNodeAffinity(&daemonSet.Spec.Template); err != nil {
+				return fmt.Errorf("adding node affinity to device plugin daemonset: %w", err)
 			}
 			msg, err := rawResource.CreateOrReplace(dp.PlanMode())
 			if err != nil {
@@ -160,6 +165,10 @@ func (n *NeuronDevicePlugin) SetImage(t *corev1.PodTemplateSpec) error {
 }
 
 func (n *NeuronDevicePlugin) SetTolerations(t *corev1.PodTemplateSpec) error {
+	return nil
+}
+
+func (n *NeuronDevicePlugin) SetNodeAffinity(t *corev1.PodTemplateSpec) error {
 	return nil
 }
 
@@ -254,6 +263,95 @@ func (n *NvidiaDevicePlugin) SetTolerations(spec *corev1.PodTemplateSpec) error 
 	return nil
 }
 
+// SetNodeAffinity sets a required node affinity on the DaemonSet pod template so
+// that the device plugin is only scheduled on the NVIDIA GPU instance types
+// defined in the cluster configuration. Without it the DaemonSet would schedule a
+// replica on every node in the cluster, including CPU-only nodes where it has no
+// GPU to manage and can end up crash-looping and draining node resources (see
+// https://github.com/eksctl-io/eksctl/issues/8858).
+func (n *NvidiaDevicePlugin) SetNodeAffinity(spec *corev1.PodTemplateSpec) error {
+	instanceTypes := n.nvidiaInstanceTypes()
+	if len(instanceTypes) == 0 {
+		return nil
+	}
+
+	if spec.Spec.Affinity == nil {
+		spec.Spec.Affinity = &corev1.Affinity{}
+	}
+	if spec.Spec.Affinity.NodeAffinity == nil {
+		spec.Spec.Affinity.NodeAffinity = &corev1.NodeAffinity{}
+	}
+	nodeSelector := spec.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution
+	if nodeSelector == nil {
+		nodeSelector = &corev1.NodeSelector{}
+		spec.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution = nodeSelector
+	}
+
+	nodeSelector.NodeSelectorTerms = append(nodeSelector.NodeSelectorTerms, corev1.NodeSelectorTerm{
+		MatchExpressions: []corev1.NodeSelectorRequirement{
+			{
+				Key:      corev1.LabelInstanceTypeStable,
+				Operator: corev1.NodeSelectorOpIn,
+				Values:   instanceTypes,
+			},
+			{
+				Key:      "eks.amazonaws.com/compute-type",
+				Operator: corev1.NodeSelectorOpNotIn,
+				Values:   []string{"fargate", "hybrid", "auto"},
+			},
+		},
+	})
+	return nil
+}
+
+// nvidiaInstanceTypes returns the instance types in the cluster configuration that
+// run NVIDIA GPUs on a supported AMI family (AmazonLinux2/AmazonLinux2023), i.e.
+// the nodes the Nvidia device plugin needs to run on.
+func (n *NvidiaDevicePlugin) nvidiaInstanceTypes() []string {
+	isSupportedFamily := func(family string) bool {
+		return family == api.NodeImageFamilyAmazonLinux2 || family == api.NodeImageFamilyAmazonLinux2023
+	}
+
+	instanceTypes := make(map[string]struct{})
+	addType := func(instanceType string) {
+		// Only NVIDIA instance types actually expose GPUs; nodes of other types
+		// in a mixed nodegroup must not run the device plugin.
+		if instance.IsNvidiaInstanceType(instanceType) {
+			instanceTypes[instanceType] = struct{}{}
+		}
+	}
+	for _, ng := range n.spec.NodeGroups {
+		if !api.HasInstanceType(ng, instance.IsNvidiaInstanceType) || !isSupportedFamily(ng.GetAMIFamily()) {
+			continue
+		}
+		addType(ng.InstanceType)
+		if ng.InstancesDistribution != nil {
+			for _, it := range ng.InstancesDistribution.InstanceTypes {
+				addType(it)
+			}
+		}
+	}
+	for _, ng := range n.spec.ManagedNodeGroups {
+		if !api.HasInstanceTypeManaged(ng, instance.IsNvidiaInstanceType) || !isSupportedFamily(ng.GetAMIFamily()) {
+			continue
+		}
+		addType(ng.InstanceType)
+		for _, it := range ng.InstanceTypes {
+			addType(it)
+		}
+	}
+
+	if len(instanceTypes) == 0 {
+		return nil
+	}
+	result := make([]string, 0, len(instanceTypes))
+	for it := range instanceTypes {
+		result = append(result, it)
+	}
+	sort.Strings(result)
+	return result
+}
+
 // A EFADevicePlugin deploys the EFA Device Plugin to a cluster
 type EFADevicePlugin struct {
 	rawClient kubernetes.RawClientInterface
@@ -279,6 +377,10 @@ func (n *EFADevicePlugin) SetImage(t *corev1.PodTemplateSpec) error {
 }
 
 func (n *EFADevicePlugin) SetTolerations(spec *corev1.PodTemplateSpec) error {
+	return nil
+}
+
+func (n *EFADevicePlugin) SetNodeAffinity(spec *corev1.PodTemplateSpec) error {
 	return nil
 }
 
