@@ -81,6 +81,7 @@ type DevicePlugin interface {
 	Manifest() []byte
 	SetImage(t *corev1.PodTemplateSpec) error
 	SetTolerations(t *corev1.PodTemplateSpec) error
+	SetNodeSelector(t *corev1.PodTemplateSpec) error
 	Deploy() error
 }
 
@@ -107,6 +108,9 @@ func applyDevicePlugin(dp DevicePlugin) error {
 			}
 			if err := dp.SetTolerations(&daemonSet.Spec.Template); err != nil {
 				return fmt.Errorf("adding tolerations to device plugin daemonset: %w", err)
+			}
+			if err := dp.SetNodeSelector(&daemonSet.Spec.Template); err != nil {
+				return fmt.Errorf("adding nodeSelector to device plugin daemonset: %w", err)
 			}
 			msg, err := rawResource.CreateOrReplace(dp.PlanMode())
 			if err != nil {
@@ -160,6 +164,10 @@ func (n *NeuronDevicePlugin) SetImage(t *corev1.PodTemplateSpec) error {
 }
 
 func (n *NeuronDevicePlugin) SetTolerations(t *corev1.PodTemplateSpec) error {
+	return nil
+}
+
+func (n *NeuronDevicePlugin) SetNodeSelector(t *corev1.PodTemplateSpec) error {
 	return nil
 }
 
@@ -254,6 +262,15 @@ func (n *NvidiaDevicePlugin) SetTolerations(spec *corev1.PodTemplateSpec) error 
 	return nil
 }
 
+// SetNodeSelector sets a nodeSelector to ensure the DaemonSet only runs on nodes with NVIDIA GPUs.
+func (n *NvidiaDevicePlugin) SetNodeSelector(spec *corev1.PodTemplateSpec) error {
+	if spec.Spec.NodeSelector == nil {
+		spec.Spec.NodeSelector = make(map[string]string)
+	}
+	spec.Spec.NodeSelector["nvidia.com/gpu.present"] = "true"
+	return nil
+}
+
 // A EFADevicePlugin deploys the EFA Device Plugin to a cluster
 type EFADevicePlugin struct {
 	rawClient kubernetes.RawClientInterface
@@ -279,6 +296,10 @@ func (n *EFADevicePlugin) SetImage(t *corev1.PodTemplateSpec) error {
 }
 
 func (n *EFADevicePlugin) SetTolerations(spec *corev1.PodTemplateSpec) error {
+	return nil
+}
+
+func (n *EFADevicePlugin) SetNodeSelector(spec *corev1.PodTemplateSpec) error {
 	return nil
 }
 
