@@ -79,7 +79,7 @@ func (u *Updater) Update(ctx context.Context, clusterConfig *api.ClusterConfig, 
 		} else {
 			logger.Info("enabling Auto Mode")
 		}
-		if err := u.enableAutoMode(ctx, amc, currentCluster.ComputeConfig, clusterConfig.Metadata.Name); err != nil {
+		if err := u.enableAutoMode(ctx, amc, currentCluster.ComputeConfig, clusterConfig.Metadata.Name, clusterConfig.ElasticLoadBalancingEnabled()); err != nil {
 			return fmt.Errorf("enabling Auto Mode: %w", err)
 		}
 		if amc.HasNodePools() {
@@ -100,7 +100,7 @@ func (u *Updater) Update(ctx context.Context, clusterConfig *api.ClusterConfig, 
 	return nil
 }
 
-func (u *Updater) enableAutoMode(ctx context.Context, autoModeConfig *api.AutoModeConfig, currentClusterCompute *ekstypes.ComputeConfigResponse, clusterName string) error {
+func (u *Updater) enableAutoMode(ctx context.Context, autoModeConfig *api.AutoModeConfig, currentClusterCompute *ekstypes.ComputeConfigResponse, clusterName string, elasticLoadBalancingEnabled bool) error {
 	if err := u.preflightCheck(ctx); err != nil {
 		return err
 	}
@@ -130,7 +130,7 @@ func (u *Updater) enableAutoMode(ctx context.Context, autoModeConfig *api.AutoMo
 		ComputeConfig: computeConfigReq,
 		KubernetesNetworkConfig: &ekstypes.KubernetesNetworkConfigRequest{
 			ElasticLoadBalancing: &ekstypes.ElasticLoadBalancing{
-				Enabled: aws.Bool(true),
+				Enabled: aws.Bool(elasticLoadBalancingEnabled),
 			},
 		},
 		StorageConfig: &ekstypes.StorageConfigRequest{

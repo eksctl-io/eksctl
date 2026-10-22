@@ -774,6 +774,9 @@ func (c *ClusterConfig) validateKubernetesNetworkConfig() error {
 	if c.KubernetesNetworkConfig == nil {
 		return nil
 	}
+	if err := ValidateElasticLoadBalancing(c); err != nil {
+		return err
+	}
 	if c.KubernetesNetworkConfig.ServiceIPv4CIDR != "" {
 		if c.IPv6Enabled() {
 			return errors.New("service IPv4 CIDR is not supported with IPv6")
@@ -828,6 +831,26 @@ func (c *ClusterConfig) validateKubernetesNetworkConfig() error {
 	}
 
 	return nil
+}
+
+// ValidateElasticLoadBalancing validates the load balancing capability config.
+func ValidateElasticLoadBalancing(clusterConfig *ClusterConfig) error {
+	knc := clusterConfig.KubernetesNetworkConfig
+	if knc == nil || knc.ElasticLoadBalancing == nil {
+		return nil
+	}
+	gatewayAPI := knc.ElasticLoadBalancing.GatewayAPI
+	if gatewayAPI == nil {
+		return nil
+	}
+	if !clusterConfig.ElasticLoadBalancingEnabled() {
+		return errors.New("cannot set kubernetesNetworkConfig.elasticLoadBalancing.gatewayApi when the load balancing capability is disabled")
+	}
+	if gatewayAPI.CRDs == nil || gatewayAPI.CRDs.Managed == nil {
+		return errors.New("kubernetesNetworkConfig.elasticLoadBalancing.gatewayApi.crds.managed must be set to either true or false")
+	}
+	// TODO: drop this once aws-sdk-go-v2 exposes ElasticLoadBalancing.GatewayApi and the field can be sent to the EKS API.
+	return errors.New("kubernetesNetworkConfig.elasticLoadBalancing.gatewayApi is not supported by the AWS SDK version eksctl is built against")
 }
 
 // NoAccess returns true if neither public are private cluster endpoint access is enabled and false otherwise
