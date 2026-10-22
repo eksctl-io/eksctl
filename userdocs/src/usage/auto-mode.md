@@ -114,6 +114,73 @@ autoModeConfig:
 $ eksctl update auto-mode-config -f cluster.yaml
 ```
 
+## Configuring the load balancing capability
+
+The load balancing capability follows `autoModeConfig.enabled` by default. To configure it explicitly, set
+`kubernetesNetworkConfig.elasticLoadBalancing`. The shape of the field is
+
+```yaml
+kubernetesNetworkConfig:
+    elasticLoadBalancing:
+        # defaults to autoModeConfig.enabled, and must match it
+        enabled: boolean
+        # optional; enables the Gateway API
+        gatewayApi:
+            crds:
+                # true: AWS manages the Gateway API CRDs; false: you manage them
+                managed: boolean
+```
+
+`elasticLoadBalancing.enabled` is enabled and disabled together with Auto Mode, using `eksctl update auto-mode-config`.
+To update the rest of the capability's config on an existing cluster, run
+
+```shell
+$ eksctl utils update-kubernetes-network-config -f cluster.yaml
+```
+
+### Enabling the Gateway API
+
+EKS Auto Mode supports the Kubernetes Gateway API through the load balancing capability. Setting
+`elasticLoadBalancing.gatewayApi` enables it, and `gatewayApi.crds.managed` decides who owns the lifecycle of the
+Gateway API CRDs:
+
+- `managed: true` lets AWS install and upgrade the Gateway API CRDs. If the cluster already has Gateway API CRDs, they
+  must be at v1, otherwise EKS rejects the update and makes no change.
+- `managed: false` keeps the Gateway API CRDs under your ownership; install and upgrade them yourself. Choose this if
+  you already run the Gateway API on your cluster or another controller manages the CRDs.
+
+`elasticLoadBalancing.enabled` must be `true` to set `gatewayApi`. For example:
+
+```yaml
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: auto-mode-cluster
+  region: us-west-2
+
+kubernetesNetworkConfig:
+  elasticLoadBalancing:
+    enabled: true
+    gatewayApi:
+      crds:
+        managed: true
+```
+
+```shell
+$ eksctl utils update-kubernetes-network-config -f cluster.yaml
+```
+
+If `gatewayApi` is omitted, the cluster's current Gateway API setting is left unchanged. Changing
+`managed` from `true` to `false` hands ownership of the CRDs back to you and leaves the installed CRDs in place.
+
+`gatewayApi` can also be set when creating a cluster by adding the same `kubernetesNetworkConfig` block to the config
+file passed to `eksctl create cluster -f`.
+
+Once the Gateway API is enabled, create a `GatewayClass` that uses the `eks.amazonaws.com/gateway-alb` (L7) or
+`eks.amazonaws.com/gateway-nlb` (L4) controller. For more information, see
+[Configure the Kubernetes Gateway API in EKS Auto Mode](https://docs.aws.amazon.com/eks/latest/userguide/auto-configure-gateway-api.html).
+
 ## Further information
 
 - [EKS Auto Mode][eks-user-guide]
