@@ -406,7 +406,7 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 
 		cluster.KubernetesNetworkConfig = &gfneks.Cluster_KubernetesNetworkConfig{
 			ElasticLoadBalancing: &gfneks.Cluster_ElasticLoadBalancing{
-				Enabled: gfnt.NewBoolean(true),
+				Enabled: gfnt.NewBoolean(c.spec.ElasticLoadBalancingEnabled()),
 			},
 		}
 		cluster.StorageConfig = &gfneks.Cluster_StorageConfig{
@@ -457,6 +457,12 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 			ipFamily = api.IPV4Family
 		}
 		kubernetesNetworkConfig.IpFamily = gfnt.NewString(strings.ToLower(ipFamily))
+		// the Auto Mode block above already set this when Auto Mode is enabled
+		if knc.ElasticLoadBalancing != nil && kubernetesNetworkConfig.ElasticLoadBalancing == nil {
+			kubernetesNetworkConfig.ElasticLoadBalancing = &gfneks.Cluster_ElasticLoadBalancing{
+				Enabled: gfnt.NewBoolean(c.spec.ElasticLoadBalancingEnabled()),
+			}
+		}
 	}
 	cluster.KubernetesNetworkConfig = kubernetesNetworkConfig
 	if c.spec.ZonalShiftConfig != nil && api.IsEnabled(c.spec.ZonalShiftConfig.Enabled) {

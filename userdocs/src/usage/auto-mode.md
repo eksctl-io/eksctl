@@ -114,6 +114,39 @@ autoModeConfig:
 $ eksctl update auto-mode-config -f cluster.yaml
 ```
 
+## Configuring the load balancing capability
+
+The load balancing capability follows `autoModeConfig.enabled` by default. To configure it explicitly, set
+`kubernetesNetworkConfig.elasticLoadBalancing`. The shape of the field is
+
+```yaml
+kubernetesNetworkConfig:
+    elasticLoadBalancing:
+        # defaults to autoModeConfig.enabled
+        enabled: boolean
+        # optional
+        gatewayApi:
+            crds:
+                # lets EKS install and upgrade the Gateway API CRDs
+                managed: boolean
+```
+
+To update the capability on an existing cluster, run
+
+```shell
+$ eksctl utils update-kubernetes-network-config -f cluster.yaml
+```
+
+or, without a config file,
+
+```shell
+$ eksctl utils update-kubernetes-network-config --cluster auto-mode-cluster --enable-elastic-load-balancing
+```
+
+!!! note
+    `gatewayApi` cannot be sent to the EKS API yet, as the AWS SDK that eksctl is built against does not expose it.
+    Setting it is rejected during validation.
+
 ## Further information
 
 - [EKS Auto Mode][eks-user-guide]
