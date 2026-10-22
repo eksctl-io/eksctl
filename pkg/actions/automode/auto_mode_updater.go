@@ -54,6 +54,9 @@ type Updater struct {
 	PodsGetter         corev1client.PodsGetter
 	EKSUpdater         EKSUpdater
 	Drainer            NodeGroupDrainer
+	// ElasticLoadBalancing is the requested load balancing capability config sent when enabling Auto Mode.
+	// It must be captured before the cluster state is refreshed, and defaults to enabled when unset.
+	ElasticLoadBalancing *ekstypes.ElasticLoadBalancing
 }
 
 // Update updates the cluster to match the autoModeConfig settings supplied in clusterConfig.
@@ -73,7 +76,21 @@ func (u *Updater) Update(ctx context.Context, clusterConfig *api.ClusterConfig, 
 				return slices.Contains(currentCluster.ComputeConfig.NodePools, np)
 			}))
 			if nodePoolsMatch {
-				logger.Info("Auto Mode is already enabled and up-to-date")
+				elb := u.elasticLoadBalancing()
+				if knc := currentCluster.KubernetesNetworkConfig; u.ElasticLoadBalancing == nil || (knc != nil && api.ElasticLoadBalancingUpToDate(knc.ElasticLoadBalancing, elb)) {
+					logger.Info("Auto Mode is already enabled and up-to-date")
+					return nil
+				}
+				logger.Info("updating the load balancing capability")
+				if err := u.updateClusterConfig(ctx, &eks.UpdateClusterConfigInput{
+					Name: aws.String(clusterConfig.Metadata.Name),
+					KubernetesNetworkConfig: &ekstypes.KubernetesNetworkConfigRequest{
+						ElasticLoadBalancing: elb,
+					},
+				}); err != nil {
+					return fmt.Errorf("updating the load balancing capability: %w", err)
+				}
+				logger.Info("the load balancing capability was updated successfully (%s)", api.DescribeElasticLoadBalancing(elb))
 				return nil
 			}
 		} else {
@@ -129,9 +146,7 @@ func (u *Updater) enableAutoMode(ctx context.Context, autoModeConfig *api.AutoMo
 		Name:          aws.String(clusterName),
 		ComputeConfig: computeConfigReq,
 		KubernetesNetworkConfig: &ekstypes.KubernetesNetworkConfigRequest{
-			ElasticLoadBalancing: &ekstypes.ElasticLoadBalancing{
-				Enabled: aws.Bool(true),
-			},
+			ElasticLoadBalancing: u.elasticLoadBalancing(),
 		},
 		StorageConfig: &ekstypes.StorageConfigRequest{
 			BlockStorage: &ekstypes.BlockStorage{
@@ -186,7 +201,7 @@ func (u *Updater) disableAutoMode(ctx context.Context, clusterName string) error
 }
 
 func (u *Updater) updateClusterConfig(ctx context.Context, input *eks.UpdateClusterConfigInput) error {
-	logger.Info("updating compute config")
+	logger.Info("updating cluster config")
 	update, err := u.EKSUpdater.UpdateClusterConfig(ctx, input)
 	if err != nil {
 		return err
@@ -222,4 +237,11 @@ func (u *Updater) preflightCheck(ctx context.Context) error {
 		}
 	}
 	return nil
+}
+
+func (u *Updater) elasticLoadBalancing() *ekstypes.ElasticLoadBalancing {
+	if u.ElasticLoadBalancing != nil {
+		return u.ElasticLoadBalancing
+	}
+	return &ekstypes.ElasticLoadBalancing{Enabled: aws.Bool(true)}
 }

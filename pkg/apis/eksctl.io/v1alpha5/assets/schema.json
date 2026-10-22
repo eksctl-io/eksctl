@@ -1330,6 +1330,27 @@
       "description": "holds control plane scaling configuration.",
       "x-intellij-html-description": "holds control plane scaling configuration."
     },
+    "ElasticLoadBalancing": {
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "enables or disables the load balancing capability",
+          "x-intellij-html-description": "enables or disables the load balancing capability"
+        },
+        "gatewayApi": {
+          "$ref": "#/definitions/GatewayAPI",
+          "description": "holds the Gateway API config for the load balancing capability",
+          "x-intellij-html-description": "holds the Gateway API config for the load balancing capability"
+        }
+      },
+      "preferredOrder": [
+        "enabled",
+        "gatewayApi"
+      ],
+      "additionalProperties": false,
+      "description": "holds the config for the load balancing capability",
+      "x-intellij-html-description": "holds the config for the load balancing capability"
+    },
     "FargateProfile": {
       "required": [
         "name"
@@ -1445,6 +1466,36 @@
       "description": "a map of string for passing arbitrary flags to Flux bootstrap",
       "x-intellij-html-description": "a map of string for passing arbitrary flags to Flux bootstrap",
       "default": "{}"
+    },
+    "GatewayAPI": {
+      "properties": {
+        "crds": {
+          "$ref": "#/definitions/GatewayAPICRDs",
+          "description": "holds the config for the Gateway API CRDs",
+          "x-intellij-html-description": "holds the config for the Gateway API CRDs"
+        }
+      },
+      "preferredOrder": [
+        "crds"
+      ],
+      "additionalProperties": false,
+      "description": "holds the Gateway API config for the load balancing capability",
+      "x-intellij-html-description": "holds the Gateway API config for the load balancing capability"
+    },
+    "GatewayAPICRDs": {
+      "properties": {
+        "managed": {
+          "type": "boolean",
+          "description": "lets EKS install and upgrade the Gateway API CRDs",
+          "x-intellij-html-description": "lets EKS install and upgrade the Gateway API CRDs"
+        }
+      },
+      "preferredOrder": [
+        "managed"
+      ],
+      "additionalProperties": false,
+      "description": "holds the config for the Gateway API CRDs",
+      "x-intellij-html-description": "holds the config for the Gateway API CRDs"
     },
     "GitOps": {
       "properties": {
@@ -1715,6 +1766,11 @@
     },
     "KubernetesNetworkConfig": {
       "properties": {
+        "elasticLoadBalancing": {
+          "$ref": "#/definitions/ElasticLoadBalancing",
+          "description": "holds the config for the load balancing capability",
+          "x-intellij-html-description": "holds the config for the load balancing capability"
+        },
         "ipFamily": {
           "type": "string",
           "description": "Valid variants are: `\"IPv4\"` defines an IP family of v4 to be used when creating a new VPC and cluster., `\"IPv6\"` defines an IP family of v6 to be used when creating a new VPC and cluster..",
@@ -1738,7 +1794,8 @@
       "preferredOrder": [
         "ipFamily",
         "serviceIPv4CIDR",
-        "serviceIPv6CIDR"
+        "serviceIPv6CIDR",
+        "elasticLoadBalancing"
       ],
       "additionalProperties": false,
       "description": "contains cluster networking options",

@@ -30,6 +30,12 @@ func NewAutoModeLoader(cmd *Cmd) ClusterConfigLoader {
 		if err := api.ValidateAutoModeConfig(cmd.ClusterConfig); err != nil {
 			return err
 		}
+		if err := api.ValidateElasticLoadBalancing(cmd.ClusterConfig); err != nil {
+			return err
+		}
+		if err := api.ValidateElasticLoadBalancingMatchesAutoMode(cmd.ClusterConfig); err != nil {
+			return err
+		}
 		const (
 			drainParallel   = "drain-parallel"
 			drainNodeGroups = "drain-all-nodegroups"
