@@ -28,7 +28,7 @@ jobs:
       # Drafts your next Release notes as Pull Requests are merged into "main"
       - name: Draft release notes
         id: draft
-        uses: release-drafter/release-drafter@34d80673e067bdc0c24568d3af899c216adcfaa9 #v7.7.0
+        uses: release-drafter/release-drafter@978bb0b30c5ee8cdd332ced253758157150d43f0 #v7.10.0
         # (Optional) specify config name to use, relative to .github/. Default: release-drafter.yml
         # with:
         #   config-name: my-config.yml
@@ -57,7 +57,7 @@ jobs:
             printf '[1]: https://github.com/eksctl-io/eksctl/blob/main/.github/workflows/release-drafter.yaml\n'
           } > "${RUNNER_TEMP}/notes/pull-request-body.md"
       - name: Upload rendered notes
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a #v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 #v7.0.2
         with:
           name: release-notes
           path: ${{ runner.temp }}/notes/
@@ -81,7 +81,7 @@ jobs:
           # so there is no need to leave a credential behind in the git config.
           persist-credentials: false
       - name: Download rendered notes
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c #v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 #v8.0.2
         with:
           name: release-notes
           path: ${{ runner.temp }}/notes
