@@ -281,6 +281,10 @@ func setupCognitoProvider(clusterName, region string) (*OIDCConfig, error) {
 
 func createCognitoUserPoolClient(c *cognitoidentityprovider.Client, clusterName string) (*userPoolClient, error) {
 	pool, err := c.CreateUserPool(context.Background(), &cognitoidentityprovider.CreateUserPoolInput{
+		// Disable self-registration; the test only creates users via AdminCreateUser.
+		AdminCreateUserConfig: &types.AdminCreateUserConfigType{
+			AllowAdminCreateUserOnly: true,
+		},
 		Policies: &types.UserPoolPolicyType{
 			PasswordPolicy: &types.PasswordPolicyType{
 				MinimumLength:    aws.Int32(10),
