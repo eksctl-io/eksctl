@@ -11,7 +11,7 @@ rules:
     verbs: ["get", "list", "watch", "describe", "create", "edit", "delete", "deletecollection", "annotate", "patch", "label"]
   - apiGroups: [""]
     resources: ["secrets"]
-    verbs: ["create", "patch", "delete", "watch"]
+    verbs: ["get", "list", "create", "patch", "delete", "watch"]
   - apiGroups: ["apps"]
     resources: ["statefulsets", "deployments"]
     verbs: ["get", "list", "watch", "describe", "create", "edit", "delete", "annotate", "patch", "label"]
