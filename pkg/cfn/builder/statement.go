@@ -448,12 +448,19 @@ func efsCSIControllerStatements() []cft.MapOfInterfaces {
 			"Action": []string{
 				"elasticfilesystem:DescribeAccessPoints",
 				"elasticfilesystem:DescribeFileSystems",
+				"elasticfilesystem:DescribeMountTargets",
+				"ec2:DescribeAvailabilityZones",
+				"s3files:ListAccessPoints",
+				"s3files:ListFileSystems",
 			},
 		},
 		{
 			"Effect":   effectAllow,
 			"Resource": resourceAll,
-			"Action":   []string{"elasticfilesystem:CreateAccessPoint"},
+			"Action": []string{
+				"elasticfilesystem:CreateAccessPoint",
+				"s3files:CreateAccessPoint",
+			},
 			"Condition": map[string]interface{}{
 				"StringLike": map[string]string{
 					"aws:RequestTag/efs.csi.aws.com/cluster": "true",
@@ -463,7 +470,10 @@ func efsCSIControllerStatements() []cft.MapOfInterfaces {
 		{
 			"Effect":   effectAllow,
 			"Resource": resourceAll,
-			"Action":   []string{"elasticfilesystem:TagResource"},
+			"Action": []string{
+				"elasticfilesystem:TagResource",
+				"s3files:TagResource",
+			},
 			"Condition": map[string]interface{}{
 				"StringLike": map[string]string{
 					"aws:RequestTag/efs.csi.aws.com/cluster": "true",
@@ -473,7 +483,10 @@ func efsCSIControllerStatements() []cft.MapOfInterfaces {
 		{
 			"Effect":   effectAllow,
 			"Resource": resourceAll,
-			"Action":   []string{"elasticfilesystem:DeleteAccessPoint"},
+			"Action": []string{
+				"elasticfilesystem:DeleteAccessPoint",
+				"s3files:DeleteAccessPoint",
+			},
 			"Condition": map[string]interface{}{
 				"StringLike": map[string]string{
 					"aws:ResourceTag/efs.csi.aws.com/cluster": "true",
