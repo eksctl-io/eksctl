@@ -21,9 +21,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/kris-nova/logger"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 	k8sclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
-	"sigs.k8s.io/yaml"
 
 	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -217,18 +217,12 @@ func newAWSProvider(spec *api.ProviderConfig, configurationLoader AWSConfigurati
 	return provider, nil
 }
 
+// The default deserializer silently drops unknown and mis-cased keys.
+var strictDeserializer = serializer.NewCodecFactory(scheme.Scheme, serializer.EnableStrict).UniversalDeserializer()
+
 // ParseConfig parses data into a ClusterConfig
 func ParseConfig(data []byte) (*api.ClusterConfig, error) {
-	// strict mode is not available in runtime.Decode, so we use the parser
-	// directly; we don't store the resulting object, this is just the means
-	// of detecting any unknown keys
-	// NOTE: we must use sigs.k8s.io/yaml, as it behaves differently from
-	// github.com/ghodss/yaml, which didn't handle nested structs well
-	if err := yaml.UnmarshalStrict(data, &api.ClusterConfig{}); err != nil {
-		return nil, err
-	}
-
-	obj, err := runtime.Decode(scheme.Codecs.UniversalDeserializer(), data)
+	obj, err := runtime.Decode(strictDeserializer, data)
 	if err != nil {
 		return nil, err
 	}
