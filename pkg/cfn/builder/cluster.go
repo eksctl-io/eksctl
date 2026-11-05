@@ -123,6 +123,22 @@ func (c *ClusterResourceSet) AddAllResources(ctx context.Context) error {
 	return nil
 }
 
+func (c *ClusterResourceSet) newElasticLoadBalancing() *gfneks.Cluster_ElasticLoadBalancing {
+	elb := &gfneks.Cluster_ElasticLoadBalancing{
+		Enabled: gfnt.NewBoolean(c.spec.ElasticLoadBalancingEnabled()),
+	}
+	if knc := c.spec.KubernetesNetworkConfig; knc != nil && knc.ElasticLoadBalancing != nil {
+		if gatewayAPI := knc.ElasticLoadBalancing.GatewayAPI; gatewayAPI != nil && gatewayAPI.CRDs != nil && gatewayAPI.CRDs.Managed != nil {
+			elb.GatewayApi = &gfneks.Cluster_GatewayApi{
+				Crds: &gfneks.Cluster_GatewayApiCrds{
+					Managed: gfnt.NewBoolean(*gatewayAPI.CRDs.Managed),
+				},
+			}
+		}
+	}
+	return elb
+}
+
 func (c *ClusterResourceSet) addResourcesForSecurityGroups(vpcID *gfnt.Value) (*clusterSecurityGroup, error) {
 	var refControlPlaneSG, refClusterSharedNodeSG *gfnt.Value
 
@@ -405,9 +421,7 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 		}
 
 		cluster.KubernetesNetworkConfig = &gfneks.Cluster_KubernetesNetworkConfig{
-			ElasticLoadBalancing: &gfneks.Cluster_ElasticLoadBalancing{
-				Enabled: gfnt.NewBoolean(true),
-			},
+			ElasticLoadBalancing: c.newElasticLoadBalancing(),
 		}
 		cluster.StorageConfig = &gfneks.Cluster_StorageConfig{
 			BlockStorage: &gfneks.Cluster_BlockStorage{
@@ -457,6 +471,10 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 			ipFamily = api.IPV4Family
 		}
 		kubernetesNetworkConfig.IpFamily = gfnt.NewString(strings.ToLower(ipFamily))
+		// the Auto Mode block above already set this when Auto Mode is enabled
+		if knc.ElasticLoadBalancing != nil && kubernetesNetworkConfig.ElasticLoadBalancing == nil {
+			kubernetesNetworkConfig.ElasticLoadBalancing = c.newElasticLoadBalancing()
+		}
 	}
 	cluster.KubernetesNetworkConfig = kubernetesNetworkConfig
 	if c.spec.ZonalShiftConfig != nil && api.IsEnabled(c.spec.ZonalShiftConfig.Enabled) {

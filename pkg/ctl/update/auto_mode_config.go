@@ -62,8 +62,13 @@ func updateAutoMode(cmd *cmdutils.Cmd, options autoModeOptions) error {
 	if options.drainParallel < 0 {
 		return fmt.Errorf("invalid value %v for --drain-parallel", options.drainParallel)
 	}
+	if err := api.ValidateElasticLoadBalancingMatchesAutoMode(cmd.ClusterConfig); err != nil {
+		return err
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), cmd.ProviderConfig.WaitTimeout)
 	defer cancel()
+	// capture the requested state first, as NewProviderForExistingCluster overwrites kubernetesNetworkConfig
+	elb := cmd.ClusterConfig.ElasticLoadBalancingRequest()
 	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
@@ -94,7 +99,8 @@ func updateAutoMode(cmd *cmdutils.Cmd, options autoModeOptions) error {
 			ClusterRoleName: clusterRoleName,
 			Region:          cmd.ClusterConfig.Metadata.Region,
 		},
-		PodsGetter: clientSet.CoreV1(),
+		PodsGetter:           clientSet.CoreV1(),
+		ElasticLoadBalancing: elb,
 	}
 	if options.drainNodeGroups {
 		autoModeUpdater.Drainer = &nodeGroupDrainer{

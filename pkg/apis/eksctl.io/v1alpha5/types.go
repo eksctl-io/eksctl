@@ -752,10 +752,37 @@ type KubernetesNetworkConfig struct {
 	ServiceIPv4CIDR string `json:"serviceIPv4CIDR,omitempty"`
 	// ServiceIPv6CIDR is the IPv6 CIDR range from where `ClusterIP`s are assigned
 	ServiceIPv6CIDR string `json:"serviceIPv6CIDR,omitempty"`
+	// ElasticLoadBalancing holds the config for the load balancing capability
+	// +optional
+	ElasticLoadBalancing *ElasticLoadBalancing `json:"elasticLoadBalancing,omitempty"`
 }
 
 func (k *KubernetesNetworkConfig) IPv6Enabled() bool {
 	return strings.EqualFold(k.IPFamily, IPV6Family)
+}
+
+// ElasticLoadBalancing holds the config for the load balancing capability
+type ElasticLoadBalancing struct {
+	// Enabled enables or disables the load balancing capability
+	// +optional
+	Enabled *bool `json:"enabled,omitempty"`
+	// GatewayAPI holds the Gateway API config for the load balancing capability
+	// +optional
+	GatewayAPI *GatewayAPI `json:"gatewayApi,omitempty"`
+}
+
+// GatewayAPI holds the Gateway API config for the load balancing capability
+type GatewayAPI struct {
+	// CRDs holds the config for the Gateway API CRDs
+	// +optional
+	CRDs *GatewayAPICRDs `json:"crds,omitempty"`
+}
+
+// GatewayAPICRDs holds the config for the Gateway API CRDs
+type GatewayAPICRDs struct {
+	// Managed lets EKS install and upgrade the Gateway API CRDs
+	// +optional
+	Managed *bool `json:"managed,omitempty"`
 }
 
 // VPCGatewayID the ID of the gateway that facilitates external connectivity
@@ -948,6 +975,63 @@ func (c *ClusterConfig) FindNodeGroupOutpostARN() (outpostARN string, found bool
 // IsAutoModeEnabled reports whether Auto Mode is enabled.
 func (c *ClusterConfig) IsAutoModeEnabled() bool {
 	return c.AutoModeConfig != nil && IsEnabled(c.AutoModeConfig.Enabled)
+}
+
+// ElasticLoadBalancingEnabled reports whether the load balancing capability is enabled, defaulting to Auto Mode.
+func (c *ClusterConfig) ElasticLoadBalancingEnabled() bool {
+	if knc := c.KubernetesNetworkConfig; knc != nil && knc.ElasticLoadBalancing != nil && knc.ElasticLoadBalancing.Enabled != nil {
+		return *knc.ElasticLoadBalancing.Enabled
+	}
+	return c.IsAutoModeEnabled()
+}
+
+// ElasticLoadBalancingRequest returns the EKS API representation of the load balancing capability config.
+func (c *ClusterConfig) ElasticLoadBalancingRequest() *ekstypes.ElasticLoadBalancing {
+	elb := &ekstypes.ElasticLoadBalancing{
+		Enabled: aws.Bool(c.ElasticLoadBalancingEnabled()),
+	}
+	if knc := c.KubernetesNetworkConfig; knc != nil && knc.ElasticLoadBalancing != nil {
+		if gatewayAPI := knc.ElasticLoadBalancing.GatewayAPI; gatewayAPI != nil && gatewayAPI.CRDs != nil {
+			elb.GatewayApi = &ekstypes.GatewayApiConfiguration{
+				Crds: &ekstypes.CrdManagementConfiguration{
+					Managed: gatewayAPI.CRDs.Managed,
+				},
+			}
+		}
+	}
+	return elb
+}
+
+// ElasticLoadBalancingUpToDate reports whether the current load balancing capability config already matches the request.
+// An unset GatewayApi in the request leaves the current setting unchanged, but a requested GatewayApi
+// only matches if the cluster has one, so that `managed: false` still enables it on a cluster without one.
+func ElasticLoadBalancingUpToDate(current, requested *ekstypes.ElasticLoadBalancing) bool {
+	if current == nil || aws.ToBool(current.Enabled) != aws.ToBool(requested.Enabled) {
+		return false
+	}
+	if requested.GatewayApi == nil {
+		return true
+	}
+	if current.GatewayApi == nil || current.GatewayApi.Crds == nil {
+		return false
+	}
+	return aws.ToBool(current.GatewayApi.Crds.Managed) == aws.ToBool(requested.GatewayApi.Crds.Managed)
+}
+
+// DescribeElasticLoadBalancing describes the load balancing capability config for log messages.
+func DescribeElasticLoadBalancing(elb *ekstypes.ElasticLoadBalancing) string {
+	status := "disabled"
+	if aws.ToBool(elb.Enabled) {
+		status = "enabled"
+	}
+	if elb.GatewayApi == nil || elb.GatewayApi.Crds == nil {
+		return status
+	}
+	owner := "self-managed"
+	if aws.ToBool(elb.GatewayApi.Crds.Managed) {
+		owner = "managed by EKS"
+	}
+	return fmt.Sprintf("%s, Gateway API CRDs %s", status, owner)
 }
 
 // ClusterProvider is the interface to AWS APIs
@@ -1372,6 +1456,14 @@ func (c *ClusterConfig) SetClusterState(cluster *ekstypes.Cluster) error {
 		if networkConfig.ServiceIpv6Cidr != nil {
 			knc.IPFamily = IPV6Family
 			knc.ServiceIPv6CIDR = aws.ToString(networkConfig.ServiceIpv6Cidr)
+		}
+		if elb := networkConfig.ElasticLoadBalancing; elb != nil {
+			knc.ElasticLoadBalancing = &ElasticLoadBalancing{Enabled: elb.Enabled}
+			if elb.GatewayApi != nil && elb.GatewayApi.Crds != nil {
+				knc.ElasticLoadBalancing.GatewayAPI = &GatewayAPI{
+					CRDs: &GatewayAPICRDs{Managed: elb.GatewayApi.Crds.Managed},
+				}
+			}
 		}
 		c.KubernetesNetworkConfig = knc
 		c.Status.KubernetesNetworkConfig = knc

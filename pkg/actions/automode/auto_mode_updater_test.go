@@ -21,11 +21,12 @@ import (
 )
 
 type updaterTest struct {
-	autoModeConfig *api.AutoModeConfig
-	vpc            *api.ClusterVPC
-	currentCluster *ekstypes.Cluster
-	updateMocks    func(*updaterMocks)
-	drainNodes     bool
+	autoModeConfig       *api.AutoModeConfig
+	elasticLoadBalancing *ekstypes.ElasticLoadBalancing
+	vpc                  *api.ClusterVPC
+	currentCluster       *ekstypes.Cluster
+	updateMocks          func(*updaterMocks)
+	drainNodes           bool
 
 	expectedErr string
 }
@@ -49,10 +50,11 @@ var _ = DescribeTable("Auto Mode Updater", func(t updaterTest) {
 	clusterConfig.AutoModeConfig = t.autoModeConfig
 	clusterConfig.VPC = t.vpc
 	updater := &automodeactions.Updater{
-		RoleManager:        &um.roleManager,
-		ClusterRoleManager: &um.clusterRoleManager,
-		PodsGetter:         um.clientSet.CoreV1(),
-		EKSUpdater:         &um.eksUpdater,
+		RoleManager:          &um.roleManager,
+		ClusterRoleManager:   &um.clusterRoleManager,
+		PodsGetter:           um.clientSet.CoreV1(),
+		EKSUpdater:           &um.eksUpdater,
+		ElasticLoadBalancing: t.elasticLoadBalancing,
 	}
 	if t.drainNodes {
 		updater.Drainer = &um.drainer
@@ -101,6 +103,46 @@ var _ = DescribeTable("Auto Mode Updater", func(t updaterTest) {
 			},
 		},
 	}),
+	Entry("Auto Mode up-to-date and gatewayApi matches", updaterTest{
+		autoModeConfig: &api.AutoModeConfig{
+			Enabled:   api.Enabled(),
+			NodePools: &[]string{api.AutoModeNodePoolGeneralPurpose, api.AutoModeNodePoolSystem},
+		},
+		elasticLoadBalancing: &ekstypes.ElasticLoadBalancing{Enabled: aws.Bool(true), GatewayApi: gatewayAPIConfig(true)},
+		currentCluster: &ekstypes.Cluster{
+			ComputeConfig: &ekstypes.ComputeConfigResponse{
+				Enabled:   aws.Bool(true),
+				NodePools: []string{api.AutoModeNodePoolSystem, api.AutoModeNodePoolGeneralPurpose},
+			},
+			KubernetesNetworkConfig: &ekstypes.KubernetesNetworkConfigResponse{
+				ElasticLoadBalancing: &ekstypes.ElasticLoadBalancing{Enabled: aws.Bool(true), GatewayApi: gatewayAPIConfig(true)},
+			},
+		},
+	}),
+	Entry("Auto Mode up-to-date but gatewayApi differs", updaterTest{
+		autoModeConfig: &api.AutoModeConfig{
+			Enabled:   api.Enabled(),
+			NodePools: &[]string{api.AutoModeNodePoolGeneralPurpose, api.AutoModeNodePoolSystem},
+		},
+		elasticLoadBalancing: &ekstypes.ElasticLoadBalancing{Enabled: aws.Bool(true), GatewayApi: gatewayAPIConfig(false)},
+		currentCluster: &ekstypes.Cluster{
+			ComputeConfig: &ekstypes.ComputeConfigResponse{
+				Enabled:   aws.Bool(true),
+				NodePools: []string{api.AutoModeNodePoolSystem, api.AutoModeNodePoolGeneralPurpose},
+			},
+			KubernetesNetworkConfig: &ekstypes.KubernetesNetworkConfigResponse{
+				ElasticLoadBalancing: &ekstypes.ElasticLoadBalancing{Enabled: aws.Bool(true), GatewayApi: gatewayAPIConfig(true)},
+			},
+		},
+		updateMocks: func(u *updaterMocks) {
+			mockUpdate(u, &awseks.UpdateClusterConfigInput{
+				Name: aws.String("cluster"),
+				KubernetesNetworkConfig: &ekstypes.KubernetesNetworkConfigRequest{
+					ElasticLoadBalancing: &ekstypes.ElasticLoadBalancing{Enabled: aws.Bool(true), GatewayApi: gatewayAPIConfig(false)},
+				},
+			})
+		},
+	}),
 	Entry("enabling Auto Mode with default values", updaterTest{
 		autoModeConfig: &api.AutoModeConfig{
 			Enabled:   api.Enabled(),
@@ -129,6 +171,27 @@ var _ = DescribeTable("Auto Mode Updater", func(t updaterTest) {
 		},
 		updateMocks: func(u *updaterMocks) {
 			mockEnableAutoMode(u, "arn:aws:iam::000:role/CustomNodeRole", []string{api.AutoModeNodePoolGeneralPurpose})
+		},
+	}),
+	Entry("enabling Auto Mode with elasticLoadBalancing explicitly disabled", updaterTest{
+		autoModeConfig: &api.AutoModeConfig{
+			Enabled:     api.Enabled(),
+			NodeRoleARN: api.MustParseARN("arn:aws:iam::000:role/CustomNodeRole"),
+			NodePools:   &[]string{api.AutoModeNodePoolGeneralPurpose},
+		},
+		elasticLoadBalancing: &ekstypes.ElasticLoadBalancing{Enabled: aws.Bool(false)},
+		currentCluster: &ekstypes.Cluster{
+			ComputeConfig: &ekstypes.ComputeConfigResponse{
+				Enabled: aws.Bool(false),
+			},
+		},
+		updateMocks: func(u *updaterMocks) {
+			u.clusterRoleManager.EXPECT().UpdateRoleForAutoMode(mock.Anything).Return(nil).Once()
+			mockUpdateClusterConfigWithELB(u, &ekstypes.ComputeConfigRequest{
+				Enabled:     aws.Bool(true),
+				NodePools:   []string{api.AutoModeNodePoolGeneralPurpose},
+				NodeRoleArn: aws.String("arn:aws:iam::000:role/CustomNodeRole"),
+			}, aws.Bool(false))
 		},
 	}),
 	Entry("enabling Auto Mode with a pre-existing VPC", updaterTest{
@@ -227,12 +290,16 @@ func mockEnableAutoMode(u *updaterMocks, nodeRoleARN string, nodePools []string)
 }
 
 func mockUpdateClusterConfig(u *updaterMocks, computeConfig *ekstypes.ComputeConfigRequest) {
-	u.eksUpdater.EXPECT().UpdateClusterConfig(mock.Anything, &awseks.UpdateClusterConfigInput{
+	mockUpdateClusterConfigWithELB(u, computeConfig, computeConfig.Enabled)
+}
+
+func mockUpdateClusterConfigWithELB(u *updaterMocks, computeConfig *ekstypes.ComputeConfigRequest, elbEnabled *bool) {
+	mockUpdate(u, &awseks.UpdateClusterConfigInput{
 		Name:          aws.String("cluster"),
 		ComputeConfig: computeConfig,
 		KubernetesNetworkConfig: &ekstypes.KubernetesNetworkConfigRequest{
 			ElasticLoadBalancing: &ekstypes.ElasticLoadBalancing{
-				Enabled: computeConfig.Enabled,
+				Enabled: elbEnabled,
 			},
 		},
 		StorageConfig: &ekstypes.StorageConfigRequest{
@@ -240,7 +307,17 @@ func mockUpdateClusterConfig(u *updaterMocks, computeConfig *ekstypes.ComputeCon
 				Enabled: computeConfig.Enabled,
 			},
 		},
-	}).Return(&awseks.UpdateClusterConfigOutput{
+	})
+}
+
+func gatewayAPIConfig(managed bool) *ekstypes.GatewayApiConfiguration {
+	return &ekstypes.GatewayApiConfiguration{
+		Crds: &ekstypes.CrdManagementConfiguration{Managed: aws.Bool(managed)},
+	}
+}
+
+func mockUpdate(u *updaterMocks, input *awseks.UpdateClusterConfigInput) {
+	u.eksUpdater.EXPECT().UpdateClusterConfig(mock.Anything, input).Return(&awseks.UpdateClusterConfigOutput{
 		Update: &ekstypes.Update{
 			Id: aws.String("update-123"),
 		},
