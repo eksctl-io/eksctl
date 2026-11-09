@@ -774,6 +774,12 @@ func (c *ClusterConfig) validateKubernetesNetworkConfig() error {
 	if c.KubernetesNetworkConfig == nil {
 		return nil
 	}
+	if err := ValidateElasticLoadBalancing(c); err != nil {
+		return err
+	}
+	if err := ValidateElasticLoadBalancingMatchesAutoMode(c); err != nil {
+		return err
+	}
 	if c.KubernetesNetworkConfig.ServiceIPv4CIDR != "" {
 		if c.IPv6Enabled() {
 			return errors.New("service IPv4 CIDR is not supported with IPv6")
@@ -827,6 +833,34 @@ func (c *ClusterConfig) validateKubernetesNetworkConfig() error {
 		return fmt.Errorf("invalid value %q for ipFamily; allowed are %s and %s", c.KubernetesNetworkConfig.IPFamily, IPV4Family, IPV6Family)
 	}
 
+	return nil
+}
+
+// ValidateElasticLoadBalancing validates the load balancing capability config.
+func ValidateElasticLoadBalancing(clusterConfig *ClusterConfig) error {
+	knc := clusterConfig.KubernetesNetworkConfig
+	if knc == nil || knc.ElasticLoadBalancing == nil {
+		return nil
+	}
+	gatewayAPI := knc.ElasticLoadBalancing.GatewayAPI
+	if gatewayAPI == nil {
+		return nil
+	}
+	if !clusterConfig.ElasticLoadBalancingEnabled() {
+		return errors.New("cannot set kubernetesNetworkConfig.elasticLoadBalancing.gatewayApi when the load balancing capability is disabled")
+	}
+	if gatewayAPI.CRDs == nil || gatewayAPI.CRDs.Managed == nil {
+		return errors.New("kubernetesNetworkConfig.elasticLoadBalancing.gatewayApi.crds.managed must be set to either true or false")
+	}
+	return nil
+}
+
+// ValidateElasticLoadBalancingMatchesAutoMode validates that the load balancing capability matches autoModeConfig.enabled,
+// as EKS rejects a request that enables or disables one without the other.
+func ValidateElasticLoadBalancingMatchesAutoMode(clusterConfig *ClusterConfig) error {
+	if clusterConfig.ElasticLoadBalancingEnabled() != clusterConfig.IsAutoModeEnabled() {
+		return errors.New("kubernetesNetworkConfig.elasticLoadBalancing.enabled must match autoModeConfig.enabled")
+	}
 	return nil
 }
 
