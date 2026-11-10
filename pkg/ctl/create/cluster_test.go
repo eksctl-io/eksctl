@@ -431,6 +431,9 @@ var _ = Describe("create cluster", func() {
 			updateKubeProvider: func(fk *fakes.FakeKubeProvider) {
 				node := getDefaultNode()
 				clientset := kubefake.NewSimpleClientset(node)
+				// Since client-go v0.36, the fake tracker delivers existing objects to new
+				// watchers. Use a watcher that never emits so the node never reports ready.
+				clientset.PrependWatchReactor("nodes", k8stest.DefaultWatchReactor(watch.NewFake(), nil))
 				fk.NewStdClientSetReturns(clientset, nil)
 			},
 			expectedErr: "timed out waiting for at least 1 nodes to join the cluster and become ready",
