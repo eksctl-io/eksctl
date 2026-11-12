@@ -556,6 +556,18 @@ var _ = Describe("Cluster Template Builder", func() {
 			})
 		})
 
+		Context("when Auto Mode is enabled", func() {
+			BeforeEach(func() {
+				cfg.AutoModeConfig = &api.AutoModeConfig{Enabled: api.Enabled()}
+			})
+
+			It("adds AmazonEKSBlockStoragePolicyV2 instead of AmazonEKSBlockStoragePolicy to the service role", func() {
+				policies := clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns
+				Expect(policies).To(ContainElement(makePolicyARNRef("AmazonEKSBlockStoragePolicyV2")))
+				Expect(policies).NotTo(ContainElement(makePolicyARNRef("AmazonEKSBlockStoragePolicy")))
+			})
+		})
+
 		When("SecretsEncryption is configured", func() {
 			BeforeEach(func() {
 				cfg.SecretsEncryption = &api.SecretsEncryption{
