@@ -66,7 +66,16 @@ func GetAccessEntryType(ng *NodeGroup) AccessEntryType {
 	if IsWindowsImage(ng.GetAMIFamily()) {
 		return AccessEntryTypeWindows
 	}
+	// EC2 maps nodes to system:node:{{SessionName}} (the instance ID); EC2_LINUX uses the private DNS name.
+	if UsesInstanceIDNodeName(ng.GetAMIFamily()) {
+		return AccessEntryTypeEC2
+	}
 	return AccessEntryTypeLinux
+}
+
+// UsesInstanceIDNodeName reports whether nodes of the AMI family are named by EC2 instance ID.
+func UsesInstanceIDNodeName(amiFamily string) bool {
+	return amiFamily == NodeImageFamilyAmazonLinux2027
 }
 
 type ARN arn.ARN
