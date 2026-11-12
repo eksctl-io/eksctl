@@ -1169,13 +1169,18 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 		return errors.New("when using a custom AMI, amiFamily needs to be explicitly set via config file or via --node-ami-family flag")
 	}
 
+	// No SSM parameter exists for AmazonLinux2027 yet, so an AMI ID is required.
+	if ng.AMIFamily == NodeImageFamilyAmazonLinux2027 && !IsAMI(ng.AMI) {
+		return fmt.Errorf("%[1]s.ami must be set to an AMI ID when %[1]s.amiFamily is %[2]s, as eksctl can't look up %[2]s AMIs yet", path, NodeImageFamilyAmazonLinux2027)
+	}
+
 	if ng.Bottlerocket != nil && !IsBottlerocketImage(ng.AMIFamily) {
 		return fmt.Errorf(`bottlerocket config can only be used with amiFamily "Bottlerocket" or "BottlerocketFips" but found "%s" (path=%s.bottlerocket)`,
 			ng.AMIFamily, path)
 	}
 
 	if ng.AMI != "" && ng.OverrideBootstrapCommand == nil &&
-		ng.AMIFamily != NodeImageFamilyAmazonLinux2023 &&
+		!IsNodeadmImage(ng.AMIFamily) &&
 		!IsBottlerocketImage(ng.AMIFamily) &&
 		!IsWindowsImage(ng.AMIFamily) {
 		return fmt.Errorf("%[1]s.overrideBootstrapCommand is required when using a custom AMI based on %s (%[1]s.ami)", path, ng.AMIFamily)
@@ -1243,8 +1248,8 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 	}
 
 	if ng.ContainerRuntime != nil {
-		if ng.AMIFamily == NodeImageFamilyAmazonLinux2023 && *ng.ContainerRuntime != ContainerRuntimeContainerD {
-			return fmt.Errorf("only %s is supported for container runtime on %s nodes", ContainerRuntimeContainerD, NodeImageFamilyAmazonLinux2023)
+		if IsNodeadmImage(ng.AMIFamily) && *ng.ContainerRuntime != ContainerRuntimeContainerD {
+			return fmt.Errorf("only %s is supported for container runtime on %s nodes", ContainerRuntimeContainerD, ng.AMIFamily)
 		}
 		if *ng.ContainerRuntime != ContainerRuntimeDockerD && *ng.ContainerRuntime != ContainerRuntimeContainerD && *ng.ContainerRuntime != ContainerRuntimeDockerForWindows {
 			return fmt.Errorf("only %s, %s and %s are supported for container runtime", ContainerRuntimeContainerD, ContainerRuntimeDockerD, ContainerRuntimeDockerForWindows)
@@ -1460,6 +1465,11 @@ func validateNodeGroupIAM(iam *NodeGroupIAM, value, fieldName, path string) erro
 func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 	normalizeAMIFamily(ng.BaseNodeGroup())
 	path := fmt.Sprintf("managedNodeGroups[%d]", index)
+
+	// EKS creates managed node access entries as EC2_LINUX, which doesn't match AmazonLinux2027 instance ID node names.
+	if ng.AMIFamily == NodeImageFamilyAmazonLinux2027 {
+		return fmt.Errorf("%s.amiFamily %s is not supported for managed nodegroups yet, use a self-managed nodegroup (nodeGroups) instead", path, NodeImageFamilyAmazonLinux2027)
+	}
 
 	if err := validateNodeGroupBase(ng, path, false); err != nil {
 		return err
@@ -1838,6 +1848,18 @@ func IsAmazonLinuxImage(imageFamily string) bool {
 	switch imageFamily {
 	case NodeImageFamilyAmazonLinux2023,
 		NodeImageFamilyAmazonLinux2:
+		return true
+
+	default:
+		return false
+	}
+}
+
+// IsNodeadmImage reports whether nodes of the specified AMI family are bootstrapped by nodeadm.
+func IsNodeadmImage(imageFamily string) bool {
+	switch imageFamily {
+	case NodeImageFamilyAmazonLinux2023,
+		NodeImageFamilyAmazonLinux2027:
 		return true
 
 	default:

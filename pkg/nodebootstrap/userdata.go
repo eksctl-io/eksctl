@@ -50,7 +50,8 @@ func NewBootstrapper(clusterConfig *api.ClusterConfig, ng *api.NodeGroup) (Boots
 		return NewUbuntuBootstrapper(clusterConfig, ng, clusterDNS), nil
 	case api.NodeImageFamilyBottlerocket, api.NodeImageFamilyBottlerocketFips:
 		return NewBottlerocketBootstrapper(clusterConfig, ng), nil
-	case api.NodeImageFamilyAmazonLinux2023:
+	// AmazonLinux2027 reuses the AmazonLinux2023 nodeadm user data.
+	case api.NodeImageFamilyAmazonLinux2023, api.NodeImageFamilyAmazonLinux2027:
 		return NewAL2023Bootstrapper(clusterConfig, ng, clusterDNS), nil
 	case api.NodeImageFamilyAmazonLinux2:
 		return NewAL2Bootstrapper(clusterConfig, ng, clusterDNS), nil
