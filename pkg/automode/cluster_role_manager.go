@@ -75,7 +75,7 @@ func (c *ClusterRoleManager) DeleteAutoModePolicies(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	for _, p := range builder.AutoModeIAMPolicies {
+	for _, p := range slices.Concat(builder.AutoModeIAMPolicies, builder.LegacyAutoModeIAMPolicies) {
 		if !slices.Contains(existingRolePolicies, p) {
 			continue
 		}
