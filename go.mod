@@ -37,7 +37,7 @@ require (
 	github.com/fatih/color v1.19.0
 	github.com/github-release/github-release v0.11.0
 	github.com/gobwas/glob v0.2.3
-	github.com/gofrs/flock v0.13.1
+	github.com/gofrs/flock v0.13.2
 	github.com/golangci/golangci-lint/v2 v2.15.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-version v1.9.0
@@ -61,18 +61,18 @@ require (
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.1.0
 	github.com/stretchr/testify v1.12.1
-	github.com/tidwall/gjson v1.20.1
-	github.com/tidwall/sjson v1.2.7
+	github.com/tidwall/gjson v1.20.2
+	github.com/tidwall/sjson v1.2.9
 	github.com/tj/assert v0.0.3
 	github.com/vburenin/ifacemaker v1.4.0
 	github.com/vektra/mockery/v2 v2.53.8
 	github.com/weaveworks/schemer v0.0.0-20230525114451-47139fe25848
 	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/xgfone/go-netaddr v0.6.0
-	golang.org/x/crypto v0.58.0
+	golang.org/x/crypto v0.59.0
 	golang.org/x/oauth2 v0.38.0
 	golang.org/x/sync v0.25.0
-	golang.org/x/text v0.43.0
+	golang.org/x/text v0.44.0
 	gopkg.in/yaml.v2 v2.4.0
 	helm.sh/helm/v3 v3.22.1
 	k8s.io/api v0.37.1
@@ -392,7 +392,7 @@ require (
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tetafro/godot v1.5.6 // indirect
 	github.com/tidwall/match v1.2.0 // indirect
-	github.com/tidwall/pretty v1.2.1 // indirect
+	github.com/tidwall/pretty v1.3.0 // indirect
 	github.com/timakin/bodyclose v0.0.0-20260723120731-857993a2939c // indirect
 	github.com/timonwong/loggercheck v0.13.0 // indirect
 	github.com/tomarrell/wrapcheck/v2 v2.13.0 // indirect
@@ -432,9 +432,9 @@ require (
 	golang.org/x/exp v0.0.0-20260611194520-c48552f49976 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20260811152304-ee035b5b010f // indirect
 	golang.org/x/mod v0.42.0 // indirect
-	golang.org/x/net v0.61.0 // indirect
-	golang.org/x/sys v0.49.0 // indirect
-	golang.org/x/term v0.47.0 // indirect
+	golang.org/x/net v0.62.0 // indirect
+	golang.org/x/sys v0.50.0 // indirect
+	golang.org/x/term v0.48.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
 	golang.org/x/tools v0.52.0 // indirect
 	google.golang.org/api v0.293.0 // indirect
