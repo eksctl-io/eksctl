@@ -481,6 +481,11 @@ func newIAMRoleResourceSet(name, namespace, serviceAccount, permissionsBoundary 
 	return rs
 }
 
+// SetSubjectPattern sets a StringLike pattern for the service account name in the trust policy.
+func (rs *IAMRoleResourceSet) SetSubjectPattern(pattern string) {
+	rs.subjectPattern = pattern
+}
+
 // WithIAM returns true
 func (*IAMRoleResourceSet) WithIAM() bool { return true }
 
@@ -536,7 +541,7 @@ func (rs *IAMRoleResourceSet) makeAssumeRolePolicyDocument() cft.MapOfInterfaces
 		return cft.MakeAssumeRolePolicyDocumentForPodIdentity()
 	}
 	if rs.serviceAccount != "" && rs.namespace != "" {
-		logger.Debug("service account location provided: %s/%s, adding sub condition", api.AWSNodeMeta.Namespace, api.AWSNodeMeta.Name)
+		logger.Debug("service account location provided: %s/%s, adding sub condition", rs.namespace, rs.serviceAccount)
 		if rs.subjectPattern != "" {
 			return rs.oidc.MakeAssumeRolePolicyDocumentWithServiceAccountConditionsAllowingWildcard(rs.namespace, rs.subjectPattern)
 		}

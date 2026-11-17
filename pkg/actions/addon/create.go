@@ -180,8 +180,7 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, iamRoleCreator I
 			}
 
 			logger.Info("creating role using provided policies for %q addon", addon.Name)
-			namespace, serviceAccount := a.getKnownServiceAccountLocation(addon)
-			roleARN, err := a.createRoleForIRSA(ctx, addon, namespace, serviceAccount)
+			roleARN, err := a.createRoleForIRSA(ctx, addon)
 			if err != nil {
 				return err
 			}
@@ -231,8 +230,7 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, iamRoleCreator I
 			}
 
 			logger.Info("creating role using recommended policies for %q addon", addon.Name)
-			namespace, serviceAccount := a.getKnownServiceAccountLocation(addon)
-			roleARN, err := a.createRoleForIRSA(ctx, addon, namespace, serviceAccount)
+			roleARN, err := a.createRoleForIRSA(ctx, addon)
 			if err != nil {
 				return err
 			}
@@ -395,14 +393,35 @@ func (a *Manager) patchAWSNodeDaemonSet(ctx context.Context) error {
 	return nil
 }
 
-func (a *Manager) getKnownServiceAccountLocation(addon *api.Addon) (string, string) {
+type serviceAccountLocation struct {
+	namespace      string
+	name           string
+	subjectPattern string
+}
+
+const (
+	ebsCSIControllerServiceAccount = "ebs-csi-controller-sa"
+	efsCSIControllerServiceAccount = "efs-csi-controller-sa"
+	// The EFS CSI driver uses the role from both its controller and node service accounts.
+	efsCSIServiceAccountPattern = "efs-csi-*"
+)
+
+func (a *Manager) getKnownServiceAccountLocation(addon *api.Addon) serviceAccountLocation {
+	namespace := metav1.NamespaceSystem
+	if addon.NamespaceConfig != nil && addon.NamespaceConfig.Namespace != "" {
+		namespace = addon.NamespaceConfig.Namespace
+	}
 	// API isn't case-sensitive.
 	switch addon.CanonicalName() {
 	case api.VPCCNIAddon:
-		logger.Debug("found known service account location %s/%s", api.AWSNodeMeta.Namespace, api.AWSNodeMeta.Name)
-		return api.AWSNodeMeta.Namespace, api.AWSNodeMeta.Name
+		// patchAWSNodeSA looks for aws-node in kube-system, so keep both in agreement.
+		return serviceAccountLocation{namespace: api.AWSNodeMeta.Namespace, name: api.AWSNodeMeta.Name}
+	case api.AWSEBSCSIDriverAddon:
+		return serviceAccountLocation{namespace: namespace, name: ebsCSIControllerServiceAccount}
+	case api.AWSEFSCSIDriverAddon:
+		return serviceAccountLocation{namespace: namespace, name: efsCSIControllerServiceAccount, subjectPattern: efsCSIServiceAccountPattern}
 	default:
-		return "", ""
+		return serviceAccountLocation{}
 	}
 }
 
@@ -439,8 +458,8 @@ func (a *Manager) setRecommendedPoliciesForIRSA(addon *api.Addon) bool {
 	return true
 }
 
-func (a *Manager) createRoleForIRSA(ctx context.Context, addon *api.Addon, namespace, serviceAccount string) (string, error) {
-	resourceSet, err := a.createRoleResourceSet(addon, namespace, serviceAccount)
+func (a *Manager) createRoleForIRSA(ctx context.Context, addon *api.Addon) (string, error) {
+	resourceSet, err := a.createRoleResourceSet(addon)
 	if err != nil {
 		return "", err
 	}
@@ -451,15 +470,20 @@ func (a *Manager) createRoleForIRSA(ctx context.Context, addon *api.Addon, names
 	return resourceSet.OutputRole, nil
 }
 
-func (a *Manager) createRoleResourceSet(addon *api.Addon, namespace, serviceAccount string) (*builder.IAMRoleResourceSet, error) {
+func (a *Manager) createRoleResourceSet(addon *api.Addon) (*builder.IAMRoleResourceSet, error) {
+	sa := a.getKnownServiceAccountLocation(addon)
+	if sa.name == "" {
+		logger.Warning("service account for %q addon is unknown; the IAM role trust policy will not be restricted to a service account", addon.Name)
+	}
 	var resourceSet *builder.IAMRoleResourceSet
 	if len(addon.AttachPolicyARNs) != 0 {
-		resourceSet = builder.NewIAMRoleResourceSetWithAttachPolicyARNs(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.AttachPolicyARNs, a.oidcManager)
+		resourceSet = builder.NewIAMRoleResourceSetWithAttachPolicyARNs(addon.Name, sa.namespace, sa.name, addon.PermissionsBoundary, addon.AttachPolicyARNs, a.oidcManager)
 	} else if addon.WellKnownPolicies.HasPolicy() {
-		resourceSet = builder.NewIAMRoleResourceSetWithWellKnownPolicies(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.WellKnownPolicies, a.oidcManager)
+		resourceSet = builder.NewIAMRoleResourceSetWithWellKnownPolicies(addon.Name, sa.namespace, sa.name, addon.PermissionsBoundary, addon.WellKnownPolicies, a.oidcManager)
 	} else {
-		resourceSet = builder.NewIAMRoleResourceSetWithAttachPolicy(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.AttachPolicy, a.oidcManager)
+		resourceSet = builder.NewIAMRoleResourceSetWithAttachPolicy(addon.Name, sa.namespace, sa.name, addon.PermissionsBoundary, addon.AttachPolicy, a.oidcManager)
 	}
+	resourceSet.SetSubjectPattern(sa.subjectPattern)
 	return resourceSet, resourceSet.AddAllResources()
 }
 

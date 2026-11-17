@@ -155,6 +155,24 @@ var _ = Describe("Create", func() {
 			Once()
 	}
 
+	expectSubCondition := func(templateBody []byte, operator, subject string) {
+		var template struct {
+			Resources map[string]struct {
+				Properties struct {
+					AssumeRolePolicyDocument struct {
+						Statement []struct {
+							Condition map[string]map[string]string
+						}
+					}
+				}
+			}
+		}
+		Expect(json.Unmarshal(templateBody, &template)).To(Succeed())
+		statements := template.Resources["Role1"].Properties.AssumeRolePolicyDocument.Statement
+		Expect(statements).To(HaveLen(1))
+		Expect(statements[0].Condition[operator]).To(HaveKeyWithValue(HaveSuffix(":sub"), subject))
+	}
+
 	DescribeTable("Create addon", func(e createAddonEntry) {
 		if e.addon.Name == "" {
 			e.addon.Name = "my-addon"
@@ -1129,7 +1147,7 @@ var _ = Describe("Create", func() {
 					output, err := rsr.(*builder.IAMRoleResourceSet).RenderJSON()
 					Expect(err).NotTo(HaveOccurred())
 					Expect(string(output)).To(ContainSubstring("arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"))
-					Expect(string(output)).To(ContainSubstring(":sub\":\"system:serviceaccount:kube-system:aws-node"))
+					expectSubCondition(output, "StringEquals", "system:serviceaccount:kube-system:aws-node")
 					rsr.(*builder.IAMRoleResourceSet).OutputRole = "arn:aws:iam::111122223333:role/role-name-1"
 					return nil
 				}
@@ -1179,6 +1197,7 @@ var _ = Describe("Create", func() {
 					// become ready.
 					Expect(string(output)).To(ContainSubstring("DescribeSubnets"))
 					Expect(string(output)).To(ContainSubstring("DescribeSecurityGroups"))
+					expectSubCondition(output, "StringEquals", "system:serviceaccount:kube-system:aws-node")
 					rsr.(*builder.IAMRoleResourceSet).OutputRole = "arn:aws:iam::111122223333:role/role-name-1"
 					return nil
 				}
@@ -1217,6 +1236,7 @@ var _ = Describe("Create", func() {
 					output, err := rsr.(*builder.IAMRoleResourceSet).RenderJSON()
 					Expect(err).NotTo(HaveOccurred())
 					Expect(string(output)).To(ContainSubstring("service-role/AmazonEBSCSIDriverPolicy"))
+					expectSubCondition(output, "StringEquals", "system:serviceaccount:kube-system:ebs-csi-controller-sa")
 					rsr.(*builder.IAMRoleResourceSet).OutputRole = "arn:aws:iam::111122223333:role/role-name-1"
 					return nil
 				}
@@ -1255,6 +1275,7 @@ var _ = Describe("Create", func() {
 					output, err := rsr.(*builder.IAMRoleResourceSet).RenderJSON()
 					Expect(err).NotTo(HaveOccurred())
 					Expect(string(output)).To(ContainSubstring("PolicyEFSCSIController"))
+					expectSubCondition(output, "StringLike", "system:serviceaccount:kube-system:efs-csi-*")
 					rsr.(*builder.IAMRoleResourceSet).OutputRole = "arn:aws:iam::111122223333:role/role-name-1"
 					return nil
 				}
@@ -1269,6 +1290,66 @@ var _ = Describe("Create", func() {
 			},
 			validateCustomLoggerOutput: func(output string) {
 				Expect(output).NotTo(ContainSubstring("the recommended way to provide IAM permissions"))
+			},
+		}),
+
+		Entry("[RequiresIAMPermissions] IRSA set implicitly with namespaceConfig (aws-ebs-csi-driver)", createAddonEntry{
+			addon: api.Addon{
+				Name:            api.AWSEBSCSIDriverAddon,
+				NamespaceConfig: &api.AddonNamespaceConfig{Namespace: "storage"},
+			},
+			withOIDC: true,
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(mockProvider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockDescribeAddonConfiguration(mockProvider.MockEKS(), []string{"sa1"}, nil)
+				mockCreateAddon(mockProvider.MockEKS(), nil)
+			},
+			mockCFN: func(stackManager *fakes.FakeStackManager) {
+				stackManager.CreateStackStub = func(ctx context.Context, s string, rsr builder.ResourceSetReader, m1, m2 map[string]string, c chan error) error {
+					go func() {
+						c <- nil
+					}()
+					output, err := rsr.(*builder.IAMRoleResourceSet).RenderJSON()
+					Expect(err).NotTo(HaveOccurred())
+					expectSubCondition(output, "StringEquals", "system:serviceaccount:storage:ebs-csi-controller-sa")
+					rsr.(*builder.IAMRoleResourceSet).OutputRole = "arn:aws:iam::111122223333:role/role-name-1"
+					return nil
+				}
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(*input.NamespaceConfig.Namespace).To(Equal("storage"))
+				Expect(*input.ServiceAccountRoleArn).To(Equal("arn:aws:iam::111122223333:role/role-name-1"))
+			},
+		}),
+
+		Entry("[RequiresIAMPermissions] IRSA set implicitly with namespaceConfig (aws-efs-csi-driver)", createAddonEntry{
+			addon: api.Addon{
+				Name:            api.AWSEFSCSIDriverAddon,
+				NamespaceConfig: &api.AddonNamespaceConfig{Namespace: "storage"},
+			},
+			withOIDC: true,
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(mockProvider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockDescribeAddonConfiguration(mockProvider.MockEKS(), []string{}, nil)
+				mockCreateAddon(mockProvider.MockEKS(), nil)
+			},
+			mockCFN: func(stackManager *fakes.FakeStackManager) {
+				stackManager.CreateStackStub = func(ctx context.Context, s string, rsr builder.ResourceSetReader, m1, m2 map[string]string, c chan error) error {
+					go func() {
+						c <- nil
+					}()
+					output, err := rsr.(*builder.IAMRoleResourceSet).RenderJSON()
+					Expect(err).NotTo(HaveOccurred())
+					expectSubCondition(output, "StringLike", "system:serviceaccount:storage:efs-csi-*")
+					rsr.(*builder.IAMRoleResourceSet).OutputRole = "arn:aws:iam::111122223333:role/role-name-1"
+					return nil
+				}
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(*input.NamespaceConfig.Namespace).To(Equal("storage"))
+				Expect(*input.ServiceAccountRoleArn).To(Equal("arn:aws:iam::111122223333:role/role-name-1"))
 			},
 		}),
 
