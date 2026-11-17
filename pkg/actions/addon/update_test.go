@@ -874,5 +874,51 @@ var _ = Describe("Update - Namespace Config Updates", func() {
 				Expect(*updateAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.2"))
 			})
 		})
+
+		When("updating IRSA policies with a namespace config that differs from the deployed one", func() {
+			It("scopes the trust policy to the deployed namespace", func() {
+				mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).Return(&awseks.DescribeAddonOutput{
+					Addon: &ekstypes.Addon{
+						AddonName:             aws.String(api.AWSEBSCSIDriverAddon),
+						AddonVersion:          aws.String("v1.0.0-eksbuild.2"),
+						ServiceAccountRoleArn: aws.String("original-arn"),
+						Status:                "created",
+						NamespaceConfig: &ekstypes.AddonNamespaceConfigResponse{
+							Namespace: aws.String("existing-namespace"),
+						},
+					},
+				}, nil).Once()
+
+				mockProvider.MockEKS().On("UpdateAddon", mock.Anything, mock.Anything).Return(&awseks.UpdateAddonOutput{}, nil).Once()
+
+				fakeStackManager.DescribeStackReturns(&manager.Stack{
+					StackName: aws.String("eksctl-my-cluster-addon-aws-ebs-csi-driver"),
+					Outputs: []types.Output{
+						{
+							OutputValue: aws.String("original-arn"),
+							OutputKey:   aws.String(outputs.IAMServiceAccountRoleName),
+						},
+					},
+				}, nil)
+
+				err := addonManager.Update(context.Background(), &api.Addon{
+					Name:    api.AWSEBSCSIDriverAddon,
+					Version: "v1.0.0-eksbuild.2",
+					NamespaceConfig: &api.AddonNamespaceConfig{
+						Namespace: "new-namespace",
+					},
+					WellKnownPolicies: api.WellKnownPolicies{
+						EBSCSIController: true,
+					},
+				}, &podIdentityIAMUpdater, 0)
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(fakeStackManager.UpdateStackCallCount()).To(Equal(1))
+				_, options := fakeStackManager.UpdateStackArgsForCall(0)
+				template := string(options.TemplateData.(manager.TemplateBody))
+				Expect(template).To(ContainSubstring(":sub\":\"system:serviceaccount:existing-namespace:ebs-csi-controller-sa"))
+				Expect(template).NotTo(ContainSubstring("new-namespace"))
+			})
+		})
 	})
 })

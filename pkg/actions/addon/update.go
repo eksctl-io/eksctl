@@ -144,6 +144,7 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, podIdentityIAMUp
 		if addon.ServiceAccountRoleARN != "" {
 			updateAddonInput.ServiceAccountRoleArn = &addon.ServiceAccountRoleARN
 		} else if addon.HasIRSAPoliciesSet() {
+			addon.NamespaceConfig = summary.NamespaceConfig
 			serviceAccountRoleARN, err := a.updateWithNewPolicies(ctx, addon)
 			if err != nil {
 				return err
@@ -189,13 +190,11 @@ func (a *Manager) updateWithNewPolicies(ctx context.Context, addon *api.Addon) (
 		}
 	}
 
-	namespace, serviceAccount := a.getKnownServiceAccountLocation(addon)
-
 	if stack == nil {
-		return a.createRoleForIRSA(ctx, addon, namespace, serviceAccount)
+		return a.createRoleForIRSA(ctx, addon)
 	}
 
-	createNewTemplate, err := a.createNewTemplate(addon, namespace, serviceAccount)
+	createNewTemplate, err := a.createNewTemplate(addon)
 	if err != nil {
 		return "", err
 	}
@@ -218,8 +217,8 @@ func (a *Manager) updateWithNewPolicies(ctx context.Context, addon *api.Addon) (
 	return *stack.Outputs[0].OutputValue, nil
 }
 
-func (a *Manager) createNewTemplate(addon *api.Addon, namespace, serviceAccount string) ([]byte, error) {
-	resourceSet, err := a.createRoleResourceSet(addon, namespace, serviceAccount)
+func (a *Manager) createNewTemplate(addon *api.Addon) ([]byte, error) {
+	resourceSet, err := a.createRoleResourceSet(addon)
 	if err != nil {
 		return nil, err
 	}
