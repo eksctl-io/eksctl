@@ -81,8 +81,10 @@ var _ = BeforeSuite(func() {
 	customAMIBottlerocket = *output.Parameter.Value
 
 	// retrieve Ubuntu Pro 22.04 AMI
+	// Canonical does not publish Ubuntu Pro 22.04 EKS AMIs for Kubernetes versions newer than 1.34,
+	// so pin the lookup to 1.34, which is within the supported kubelet version skew.
 	input = &awsssm.GetParameterInput{
-		Name: aws.String(fmt.Sprintf("/aws/service/canonical/ubuntu/eks-pro/22.04/%s/stable/current/amd64/hvm/ebs-gp2/ami-id", params.Version)),
+		Name: aws.String(fmt.Sprintf("/aws/service/canonical/ubuntu/eks-pro/22.04/%s/stable/current/amd64/hvm/ebs-gp2/ami-id", api.Version1_34)),
 	}
 	output, err = ssm.GetParameter(context.Background(), input)
 	Expect(err).NotTo(HaveOccurred())
