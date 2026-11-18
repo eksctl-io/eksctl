@@ -780,7 +780,13 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 			clusterConfig.AddonsConfig.AutoApplyPodIdentityAssociations = false
 			clusterConfig.Addons = []*api.Addon{
 				{Name: api.VPCCNIAddon},
-				{Name: api.AWSEBSCSIDriverAddon},
+				{
+					Name: api.AWSEBSCSIDriverAddon,
+					// The previous test deletes this addon with --preserve, leaving its resources on the cluster
+					// without an owning field manager. Overwrite so the re-create can adopt them instead of failing
+					// with a ConfigurationConflict (e.g. on the ebs-csi-node ValidatingAdmissionPolicy).
+					ResolveConflicts: ekstypes.ResolveConflictsOverwrite,
+				},
 			}
 
 			By("creating addons with IRSA")
