@@ -301,7 +301,7 @@ func setContainerRuntimeDefault(ng *NodeGroup, clusterVersion string) {
 		return
 	}
 
-	if ng.AMIFamily == NodeImageFamilyAmazonLinux2023 {
+	if IsNodeadmImage(ng.AMIFamily) {
 		ng.ContainerRuntime = aws.String(ContainerRuntimeContainerD)
 		return
 	}

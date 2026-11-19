@@ -57,6 +57,7 @@ The `--node-ami-family` can take following keywords:
 |--------------------------------|:---------------------------------------------------------------------------------------------------------------------------:|
 | AmazonLinux2                   | Indicates that the EKS AMI image based on Amazon Linux 2 should be used (default).                                          |
 | AmazonLinux2023                | Indicates that the EKS AMI image based on Amazon Linux 2023 should be used.                                                 |
+| AmazonLinux2027                | Indicates that the EKS AMI image based on Amazon Linux 2027 should be used.                                                 |
 | Ubuntu2004                     | Indicates that the EKS AMI image based on Ubuntu 20.04 LTS (Focal) should be used (supported for EKS <= 1.29).              |
 | UbuntuPro2004                  | Indicates that the EKS AMI image based on Ubuntu Pro 20.04 LTS (Focal) should be used (available for EKS >= 1.27, <= 1.29). |
 | Ubuntu2204                     | Indicates that the EKS AMI image based on Ubuntu 22.04 LTS (Jammy) should be used (available for EKS >= 1.29).              |
@@ -91,7 +92,55 @@ managedNodeGroups:
 The `--node-ami-family` flag can also be used with `eksctl create nodegroup`. `eksctl` requires AMI Family to be explicitly set via config file or via `--node-ami-family` CLI flag, whenever working with a custom AMI.
 
 ???+ note
-    At the moment, EKS managed nodegroups only support the following AMI Families when working with custom AMIs: `AmazonLinux2023`, `AmazonLinux2`, `Bottlerocket`, `Ubuntu2004`, `Ubuntu2204` and `Ubuntu2404`
+    At the moment, EKS managed nodegroups only support the following AMI Families when working with custom AMIs: `AmazonLinux2023`, `AmazonLinux2027`, `AmazonLinux2`, `Bottlerocket`, `Ubuntu2004`, `Ubuntu2204` and `Ubuntu2404`
+
+## AmazonLinux2027 custom AMI support
+
+`AmazonLinux2027` nodes are bootstrapped by nodeadm, so `overrideBootstrapCommand` is not required.
+If `ami` isn't set, `eksctl` looks up the `AmazonLinux2027` AMI from the public SSM parameters, as it does for `AmazonLinux2023`.
+`ami: auto`, GPU and Neuron instances, and Outposts aren't supported for `AmazonLinux2027` yet.
+
+By default, `AmazonLinux2027` nodes are named by EC2 instance ID (e.g. `i-0abc123def4567890`), so `eksctl` maps the instance role
+to `system:node:{{SessionName}}`, using an `EC2` access entry (instead of `EC2_LINUX`) or an `aws-auth` mapping.
+Use a dedicated instance role: if `iam.instanceRoleARN` already has an `EC2_LINUX` access entry, `eksctl` keeps it and the nodes can't join.
+
+```yaml
+nodeGroups:
+  - name: al2027
+    instanceType: m6i.large
+    amiFamily: AmazonLinux2027
+    ami: ami-0123456789abcdef0
+```
+
+To name nodes by private DNS name instead, turn off the nodeadm `InstanceIdNodeName` feature gate in `overrideBootstrapCommand`.
+`eksctl` reads this setting and uses `EC2_LINUX` and `system:node:{{EC2PrivateDNSName}}` instead.
+It also works the other way: `AmazonLinux2023` nodegroups that turn the feature gate on get `EC2` and `system:node:{{SessionName}}`.
+
+For managed nodegroups, EKS creates the node access entry as `EC2_LINUX`, so `eksctl` rejects `AmazonLinux2027` managed nodegroups
+that would use instance ID node names. Turn the feature gate off, as in the `managedNodeGroups` example below.
+
+```yaml
+nodeGroups:
+  - name: al2027-dns-names
+    amiFamily: AmazonLinux2027
+    ami: ami-0123456789abcdef0
+    overrideBootstrapCommand: |
+      apiVersion: node.eks.aws/v1alpha1
+      kind: NodeConfig
+      spec:
+        featureGates:
+          InstanceIdNodeName: false
+managedNodeGroups:
+  - name: al2027-managed
+    amiFamily: AmazonLinux2027
+    ami: ami-0123456789abcdef0
+    overrideBootstrapCommand: |
+      apiVersion: node.eks.aws/v1alpha1
+      kind: NodeConfig
+      spec:
+        featureGates:
+          InstanceIdNodeName: false
+```
 
 ## Windows custom AMI support
 Only self-managed Windows nodegroups can specify a custom AMI. `amiFamily` should be set to a valid Windows AMI family.
