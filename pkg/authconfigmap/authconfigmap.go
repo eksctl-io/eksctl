@@ -49,9 +49,9 @@ const (
 	RoleNodeGroupUsernameInstanceID = "system:node:{{SessionName}}"
 )
 
-// NodeGroupUsername returns the nodegroup role mapping username for the AMI family.
-func NodeGroupUsername(amiFamily string) string {
-	if api.UsesInstanceIDNodeName(amiFamily) {
+// NodeGroupUsername returns the role mapping username that matches how the nodegroup's nodes are named.
+func NodeGroupUsername(ng *api.NodeGroupBase) string {
+	if api.UsesInstanceIDNodeName(ng) {
 		return RoleNodeGroupUsernameInstanceID
 	}
 	return RoleNodeGroupUsername
@@ -311,7 +311,7 @@ func AddNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
 		nodeGroupRoles = append([]string{roleNodeGroupWindows}, nodeGroupRoles...)
 	}
 
-	identity, err := iam.NewIdentity(ng.IAM.InstanceRoleARN, NodeGroupUsername(ng.AMIFamily), nodeGroupRoles)
+	identity, err := iam.NewIdentity(ng.IAM.InstanceRoleARN, NodeGroupUsername(ng.NodeGroupBase), nodeGroupRoles)
 	if err != nil {
 		return err
 	}

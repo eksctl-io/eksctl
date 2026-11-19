@@ -1169,11 +1169,6 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 		return errors.New("when using a custom AMI, amiFamily needs to be explicitly set via config file or via --node-ami-family flag")
 	}
 
-	// No SSM parameter exists for AmazonLinux2027 yet, so an AMI ID is required.
-	if ng.AMIFamily == NodeImageFamilyAmazonLinux2027 && !IsAMI(ng.AMI) {
-		return fmt.Errorf("%[1]s.ami must be set to an AMI ID when %[1]s.amiFamily is %[2]s, as eksctl can't look up %[2]s AMIs yet", path, NodeImageFamilyAmazonLinux2027)
-	}
-
 	if ng.Bottlerocket != nil && !IsBottlerocketImage(ng.AMIFamily) {
 		return fmt.Errorf(`bottlerocket config can only be used with amiFamily "Bottlerocket" or "BottlerocketFips" but found "%s" (path=%s.bottlerocket)`,
 			ng.AMIFamily, path)
@@ -1466,9 +1461,10 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 	normalizeAMIFamily(ng.BaseNodeGroup())
 	path := fmt.Sprintf("managedNodeGroups[%d]", index)
 
-	// EKS creates managed node access entries as EC2_LINUX, which doesn't match AmazonLinux2027 instance ID node names.
-	if ng.AMIFamily == NodeImageFamilyAmazonLinux2027 {
-		return fmt.Errorf("%s.amiFamily %s is not supported for managed nodegroups yet, use a self-managed nodegroup (nodeGroups) instead", path, NodeImageFamilyAmazonLinux2027)
+	// EKS creates managed node access entries as EC2_LINUX, which only matches private DNS node names.
+	if ng.AMIFamily == NodeImageFamilyAmazonLinux2027 && ng.LaunchTemplate == nil && UsesInstanceIDNodeName(ng.NodeGroupBase) {
+		return fmt.Errorf("%[1]s: managed %[2]s nodes named by EC2 instance ID can't join yet, as EKS creates their access entry as EC2_LINUX; "+
+			"use a self-managed nodegroup (nodeGroups), or turn off the nodeadm InstanceIdNodeName feature gate in %[1]s.overrideBootstrapCommand", path, NodeImageFamilyAmazonLinux2027)
 	}
 
 	if err := validateNodeGroupBase(ng, path, false); err != nil {
@@ -1632,7 +1628,7 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 			return fmt.Errorf("cannot set amiFamily to %s when using a custom AMI for managed nodes, only %s are supported", ng.AMIFamily,
 				strings.Join(slices.Concat(SupportedAmazonLinuxImages, SupportedBottlerocketImages, SupportedUbuntuImages), ", "))
 		}
-		if ng.OverrideBootstrapCommand == nil && ng.AMIFamily != NodeImageFamilyAmazonLinux2023 && !IsBottlerocketImage(ng.AMIFamily) {
+		if ng.OverrideBootstrapCommand == nil && !IsNodeadmImage(ng.AMIFamily) && !IsBottlerocketImage(ng.AMIFamily) {
 			return fmt.Errorf("%[1]s.overrideBootstrapCommand is required when using a custom AMI based on %s (%[1]s.ami)", path, ng.AMIFamily)
 		}
 		notSupportedWithCustomAMIErr := func(field string) error {
@@ -1648,7 +1644,7 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 			return notSupportedWithCustomAMIErr("releaseVersion")
 		}
 
-	case ng.OverrideBootstrapCommand != nil && ng.AMIFamily != NodeImageFamilyAmazonLinux2023:
+	case ng.OverrideBootstrapCommand != nil && !IsNodeadmImage(ng.AMIFamily):
 		return fmt.Errorf("%s.overrideBootstrapCommand can only be set when a custom AMI (%s.ami) is specified", path, path)
 	}
 
@@ -1847,6 +1843,7 @@ func supportedAMIFamiliesForOS(isOSImage func(string) bool) []string {
 func IsAmazonLinuxImage(imageFamily string) bool {
 	switch imageFamily {
 	case NodeImageFamilyAmazonLinux2023,
+		NodeImageFamilyAmazonLinux2027,
 		NodeImageFamilyAmazonLinux2:
 		return true
 

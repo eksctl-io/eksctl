@@ -8,6 +8,8 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+	nodeadm "github.com/awslabs/amazon-eks-ami/nodeadm/api/v1alpha1"
+	"sigs.k8s.io/yaml"
 )
 
 // AccessEntry represents an access entry for managing access to a cluster.
@@ -67,15 +69,27 @@ func GetAccessEntryType(ng *NodeGroup) AccessEntryType {
 		return AccessEntryTypeWindows
 	}
 	// EC2 maps nodes to system:node:{{SessionName}} (the instance ID); EC2_LINUX uses the private DNS name.
-	if UsesInstanceIDNodeName(ng.GetAMIFamily()) {
+	if UsesInstanceIDNodeName(ng.NodeGroupBase) {
 		return AccessEntryTypeEC2
 	}
 	return AccessEntryTypeLinux
 }
 
-// UsesInstanceIDNodeName reports whether nodes of the AMI family are named by EC2 instance ID.
-func UsesInstanceIDNodeName(amiFamily string) bool {
-	return amiFamily == NodeImageFamilyAmazonLinux2027
+// UsesInstanceIDNodeName reports whether nodeadm names the nodegroup's nodes by EC2 instance ID.
+// This is the default for AmazonLinux2027. The InstanceIdNodeName feature gate in overrideBootstrapCommand overrides it.
+func UsesInstanceIDNodeName(ng *NodeGroupBase) bool {
+	if !IsNodeadmImage(ng.AMIFamily) {
+		return false
+	}
+	if ng.OverrideBootstrapCommand != nil {
+		var nodeConfig nodeadm.NodeConfig
+		if err := yaml.Unmarshal([]byte(*ng.OverrideBootstrapCommand), &nodeConfig); err == nil {
+			if enabled, ok := nodeConfig.Spec.FeatureGates[nodeadm.InstanceIdNodeName]; ok {
+				return enabled
+			}
+		}
+	}
+	return ng.AMIFamily == NodeImageFamilyAmazonLinux2027
 }
 
 type ARN arn.ARN

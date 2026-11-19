@@ -32,3 +32,31 @@ var _ = Describe("Unmanaged AL2027", func() {
 		Expect(actual).To(Equal(wrapMIMEParts(nodeConfig)))
 	})
 })
+
+var _ = Describe("Managed AL2027", func() {
+	It("uses the AL2023 nodeadm user data with a custom AMI", func() {
+		cfg, _ := makeDefaultClusterSettings()
+		mng := api.NewManagedNodeGroup()
+		makeDefaultNPSettings(mng)
+		mng.Taints = append(mng.Taints, api.NodeGroupTaint{
+			Key:    "special",
+			Value:  "true",
+			Effect: "NoSchedule",
+		})
+		mng.AMIFamily = api.NodeImageFamilyAmazonLinux2027
+		mng.AMI = "ami-xxxx"
+
+		bootstrapper, err := nodebootstrap.NewManagedBootstrapper(cfg, mng)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(bootstrapper).To(BeAssignableToTypeOf(&nodebootstrap.AL2023{}))
+
+		al2023BS := bootstrapper.(*nodebootstrap.AL2023)
+		al2023BS.UserDataMimeBoundary = "//"
+		userData, err := al2023BS.UserData()
+		Expect(err).NotTo(HaveOccurred())
+		decoded, err := base64.StdEncoding.DecodeString(userData)
+		Expect(err).NotTo(HaveOccurred())
+		actual := strings.ReplaceAll(string(decoded), "\r\n", "\n")
+		Expect(actual).To(Equal(wrapMIMEParts(managedNodeConfig)))
+	})
+})

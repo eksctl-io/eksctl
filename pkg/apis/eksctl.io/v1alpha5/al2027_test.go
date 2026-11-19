@@ -10,29 +10,45 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
+// instanceIDNodeNameConfig returns a nodeadm NodeConfig that sets the InstanceIdNodeName feature gate.
+func instanceIDNodeNameConfig(enabled bool) *string {
+	return aws.String(fmt.Sprintf(`apiVersion: node.eks.aws/v1alpha1
+kind: NodeConfig
+spec:
+  featureGates:
+    InstanceIdNodeName: %t
+`, enabled))
+}
+
 var _ = Describe("AmazonLinux2027", func() {
 	It("is a supported AMI family", func() {
 		Expect(api.SupportedAMIFamilies()).To(ContainElement(api.NodeImageFamilyAmazonLinux2027))
 	})
 
-	DescribeTable("AMI family helpers", func(amiFamily string, usesInstanceIDNodeName, isNodeadm bool) {
-		Expect(api.UsesInstanceIDNodeName(amiFamily)).To(Equal(usesInstanceIDNodeName))
-		Expect(api.IsNodeadmImage(amiFamily)).To(Equal(isNodeadm))
+	DescribeTable("IsNodeadmImage", func(amiFamily string, expected bool) {
+		Expect(api.IsNodeadmImage(amiFamily)).To(Equal(expected))
 	},
-		Entry(api.NodeImageFamilyAmazonLinux2027, api.NodeImageFamilyAmazonLinux2027, true, true),
-		Entry(api.NodeImageFamilyAmazonLinux2023, api.NodeImageFamilyAmazonLinux2023, false, true),
-		Entry(api.NodeImageFamilyAmazonLinux2, api.NodeImageFamilyAmazonLinux2, false, false),
-		Entry(api.NodeImageFamilyBottlerocket, api.NodeImageFamilyBottlerocket, false, false),
+		Entry(api.NodeImageFamilyAmazonLinux2027, api.NodeImageFamilyAmazonLinux2027, true),
+		Entry(api.NodeImageFamilyAmazonLinux2023, api.NodeImageFamilyAmazonLinux2023, true),
+		Entry(api.NodeImageFamilyAmazonLinux2, api.NodeImageFamilyAmazonLinux2, false),
+		Entry(api.NodeImageFamilyBottlerocket, api.NodeImageFamilyBottlerocket, false),
 	)
 
-	DescribeTable("access entry type", func(amiFamily string, expectedType api.AccessEntryType) {
+	DescribeTable("node name and access entry type", func(amiFamily string, overrideBootstrapCommand *string, usesInstanceIDNodeName bool, expectedType api.AccessEntryType) {
 		ng := api.NewNodeGroup()
 		ng.AMIFamily = amiFamily
+		ng.OverrideBootstrapCommand = overrideBootstrapCommand
+		Expect(api.UsesInstanceIDNodeName(ng.NodeGroupBase)).To(Equal(usesInstanceIDNodeName))
 		Expect(api.GetAccessEntryType(ng)).To(Equal(expectedType))
 	},
-		Entry(api.NodeImageFamilyAmazonLinux2027, api.NodeImageFamilyAmazonLinux2027, api.AccessEntryTypeEC2),
-		Entry(api.NodeImageFamilyAmazonLinux2023, api.NodeImageFamilyAmazonLinux2023, api.AccessEntryTypeLinux),
-		Entry(api.NodeImageFamilyWindowsServer2022CoreContainer, api.NodeImageFamilyWindowsServer2022CoreContainer, api.AccessEntryTypeWindows),
+		Entry("AmazonLinux2027 by default", api.NodeImageFamilyAmazonLinux2027, (*string)(nil), true, api.AccessEntryTypeEC2),
+		Entry("AmazonLinux2027 with InstanceIdNodeName off", api.NodeImageFamilyAmazonLinux2027, instanceIDNodeNameConfig(false), false, api.AccessEntryTypeLinux),
+		Entry("AmazonLinux2027 with a NodeConfig that doesn't set InstanceIdNodeName", api.NodeImageFamilyAmazonLinux2027,
+			aws.String("apiVersion: node.eks.aws/v1alpha1\nkind: NodeConfig\nspec:\n  instance:\n    localStorage:\n      strategy: RAID0\n"), true, api.AccessEntryTypeEC2),
+		Entry("AmazonLinux2023 by default", api.NodeImageFamilyAmazonLinux2023, (*string)(nil), false, api.AccessEntryTypeLinux),
+		Entry("AmazonLinux2023 with InstanceIdNodeName on", api.NodeImageFamilyAmazonLinux2023, instanceIDNodeNameConfig(true), true, api.AccessEntryTypeEC2),
+		Entry("AmazonLinux2 ignores overrideBootstrapCommand", api.NodeImageFamilyAmazonLinux2, aws.String("/etc/eks/bootstrap.sh my-cluster"), false, api.AccessEntryTypeLinux),
+		Entry("Windows", api.NodeImageFamilyWindowsServer2022CoreContainer, (*string)(nil), false, api.AccessEntryTypeWindows),
 	)
 
 	Describe("self-managed nodegroups", func() {
@@ -47,17 +63,22 @@ var _ = Describe("AmazonLinux2027", func() {
 			ng.AMIFamily = api.NodeImageFamilyAmazonLinux2027
 		})
 
-		DescribeTable("require an AMI ID", func(ami string) {
+		DescribeTable("accepts nodegroups without an AMI ID, as eksctl looks up the AMI", func(ami string) {
 			ng.AMI = ami
-			Expect(api.ValidateNodeGroup(0, ng, cfg)).To(MatchError("nodeGroups[0].ami must be set to an AMI ID when nodeGroups[0].amiFamily is AmazonLinux2027, as eksctl can't look up AmazonLinux2027 AMIs yet"))
+			Expect(api.ValidateNodeGroup(0, ng, cfg)).To(Succeed())
 		},
 			Entry("ami not set", ""),
-			Entry("ami is auto", api.NodeImageResolverAuto),
 			Entry("ami is auto-ssm", api.NodeImageResolverAutoSSM),
 		)
 
 		It("accepts an AMI ID without overrideBootstrapCommand", func() {
 			ng.AMI = "ami-0123456789abcdef0"
+			Expect(api.ValidateNodeGroup(0, ng, cfg)).To(Succeed())
+		})
+
+		It("accepts the InstanceIdNodeName feature gate in overrideBootstrapCommand", func() {
+			ng.AMI = "ami-0123456789abcdef0"
+			ng.OverrideBootstrapCommand = instanceIDNodeNameConfig(false)
 			Expect(api.ValidateNodeGroup(0, ng, cfg)).To(Succeed())
 		})
 
@@ -74,22 +95,37 @@ var _ = Describe("AmazonLinux2027", func() {
 		})
 	})
 
-	DescribeTable("managed nodegroups are not supported", func(updateMNG func(*api.ManagedNodeGroup)) {
+	DescribeTable("managed nodegroups", func(updateMNG func(*api.ManagedNodeGroup), expectedErr string) {
 		mng := api.NewManagedNodeGroup()
 		mng.AMIFamily = api.NodeImageFamilyAmazonLinux2027
+		mng.AMI = "ami-0123456789abcdef0"
 		updateMNG(mng)
-		Expect(api.ValidateManagedNodeGroup(0, mng)).To(MatchError("managedNodeGroups[0].amiFamily AmazonLinux2027 is not supported for managed nodegroups yet, use a self-managed nodegroup (nodeGroups) instead"))
+		err := api.ValidateManagedNodeGroup(0, mng)
+		if expectedErr == "" {
+			Expect(err).NotTo(HaveOccurred())
+		} else {
+			Expect(err).To(MatchError(ContainSubstring(expectedErr)))
+		}
 	},
-		Entry("without an AMI", func(*api.ManagedNodeGroup) {}),
-		Entry("with an AMI ID", func(mng *api.ManagedNodeGroup) {
-			mng.AMI = "ami-0123456789abcdef0"
-		}),
-		Entry("with a launch template", func(mng *api.ManagedNodeGroup) {
-			mng.LaunchTemplate = &api.LaunchTemplate{ID: "lt-1234"}
-		}),
-		Entry("with a lowercase AMI family", func(mng *api.ManagedNodeGroup) {
+		Entry("rejects instance ID node names by default", func(*api.ManagedNodeGroup) {}, "nodes named by EC2 instance ID can't join yet"),
+		Entry("rejects a lowercase AMI family", func(mng *api.ManagedNodeGroup) {
 			mng.AMIFamily = "amazonlinux2027"
-			mng.AMI = "ami-0123456789abcdef0"
-		}),
+		}, "nodes named by EC2 instance ID can't join yet"),
+		Entry("rejects InstanceIdNodeName turned on", func(mng *api.ManagedNodeGroup) {
+			mng.OverrideBootstrapCommand = instanceIDNodeNameConfig(true)
+		}, "nodes named by EC2 instance ID can't join yet"),
+		Entry("accepts InstanceIdNodeName turned off", func(mng *api.ManagedNodeGroup) {
+			mng.OverrideBootstrapCommand = instanceIDNodeNameConfig(false)
+		}, ""),
 	)
+
+	It("allows an AmazonLinux2027 managed nodegroup with a launch template, which sets its own node config", func() {
+		mng := api.NewManagedNodeGroup()
+		mng.AMIFamily = api.NodeImageFamilyAmazonLinux2027
+		// A launch template nodegroup must not set these fields; the template provides them.
+		mng.VolumeSize = nil
+		mng.VolumeType = nil
+		mng.LaunchTemplate = &api.LaunchTemplate{ID: "lt-1234"}
+		Expect(api.ValidateManagedNodeGroup(0, mng)).To(Succeed())
+	})
 })
