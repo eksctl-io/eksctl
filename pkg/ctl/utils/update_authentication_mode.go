@@ -13,6 +13,7 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/waiter"
 )
 
@@ -51,12 +52,23 @@ func doUpdateAuthenticationMode(cmd *cmdutils.Cmd, authenticationMode string) er
 		return err
 	}
 
+	return updateAuthenticationModeForCluster(ctx, clusterProvider, cmd.ClusterConfig)
+}
+
+func updateAuthenticationModeForCluster(ctx context.Context, clusterProvider *eks.ClusterProvider, clusterConfig *api.ClusterConfig) error {
+	authenticationMode := clusterConfig.AccessConfig.AuthenticationMode
+	clusterName := clusterConfig.Metadata.Name
+
+	if cluster := clusterProvider.GetClusterState(); cluster.AccessConfig != nil && cluster.AccessConfig.AuthenticationMode == authenticationMode {
+		logger.Info("authentication mode is already %s on cluster %s, skipping update", authenticationMode, clusterName)
+		return nil
+	}
+
 	logger.Info("setting cluster's authentication mode to %s", authenticationMode)
-	clusterName := cmd.ClusterConfig.Metadata.Name
 	output, err := clusterProvider.AWSProvider.EKS().UpdateClusterConfig(ctx, &awseks.UpdateClusterConfigInput{
 		Name: &clusterName,
 		AccessConfig: &ekstypes.UpdateAccessConfigRequest{
-			AuthenticationMode: cmd.ClusterConfig.AccessConfig.AuthenticationMode,
+			AuthenticationMode: authenticationMode,
 		},
 	})
 	if err != nil {
@@ -79,7 +91,7 @@ func doUpdateAuthenticationMode(cmd *cmdutils.Cmd, authenticationMode string) er
 		return fmt.Errorf("failed to update cluster authentication mode: %s", e.UpdateError)
 
 	case nil:
-		logger.Info("authentication mode was successfully updated to %s on cluster %s", cmd.ClusterConfig.AccessConfig.AuthenticationMode, clusterName)
+		logger.Info("authentication mode was successfully updated to %s on cluster %s", authenticationMode, clusterName)
 		return nil
 
 	default:
