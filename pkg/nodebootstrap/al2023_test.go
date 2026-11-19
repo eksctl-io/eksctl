@@ -40,7 +40,7 @@ var _ = DescribeTable("Unmanaged AL2023", func(e al2023Entry) {
 		e.overrideNodegroupSettings(ng)
 	}
 
-	al2023BS := nodebootstrap.NewAL2023Bootstrapper(cfg, ng, dns)
+	al2023BS := nodebootstrap.NewNodeadmBootstrapper(cfg, ng, dns)
 	al2023BS.UserDataMimeBoundary = "//"
 
 	userData, err := al2023BS.UserData()
@@ -89,7 +89,7 @@ var _ = DescribeTable("Managed AL2023", func(e al2023Entry) {
 		e.overrideNodegroupSettings(mng)
 	}
 
-	al2023ManagedBS := nodebootstrap.NewManagedAL2023Bootstrapper(cfg, mng, dns)
+	al2023ManagedBS := nodebootstrap.NewManagedNodeadmBootstrapper(cfg, mng, dns)
 	al2023ManagedBS.UserDataMimeBoundary = "//"
 
 	userData, err := al2023ManagedBS.UserData()
@@ -139,7 +139,7 @@ var _ = DescribeTable("AL2023 override node config", func(e al2023OverrideNodeCo
 		e.updateNodeGroup(ng)
 	}
 
-	al2023BS := nodebootstrap.NewAL2023Bootstrapper(cfg, ng, dns)
+	al2023BS := nodebootstrap.NewNodeadmBootstrapper(cfg, ng, dns)
 	al2023BS.UserDataMimeBoundary = "//"
 
 	userData, err := al2023BS.UserData()

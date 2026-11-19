@@ -17,7 +17,8 @@ import (
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/utils"
 )
 
-type AL2023 struct {
+// Nodeadm builds nodeadm user data, used by AmazonLinux2023 and AmazonLinux2027.
+type Nodeadm struct {
 	cfg        *api.ClusterConfig
 	nodePool   api.NodePool
 	clusterDNS string
@@ -29,18 +30,16 @@ type AL2023 struct {
 	UserDataMimeBoundary string
 }
 
-func NewManagedAL2023Bootstrapper(cfg *api.ClusterConfig, mng *api.ManagedNodeGroup, clusterDNS string) *AL2023 {
-	al2023 := newAL2023Bootstrapper(cfg, mng, clusterDNS)
-	return al2023
+func NewManagedNodeadmBootstrapper(cfg *api.ClusterConfig, mng *api.ManagedNodeGroup, clusterDNS string) *Nodeadm {
+	return newNodeadmBootstrapper(cfg, mng, clusterDNS)
 }
 
-func NewAL2023Bootstrapper(cfg *api.ClusterConfig, ng *api.NodeGroup, clusterDNS string) *AL2023 {
-	al2023 := newAL2023Bootstrapper(cfg, ng, clusterDNS)
-	return al2023
+func NewNodeadmBootstrapper(cfg *api.ClusterConfig, ng *api.NodeGroup, clusterDNS string) *Nodeadm {
+	return newNodeadmBootstrapper(cfg, ng, clusterDNS)
 }
 
-func newAL2023Bootstrapper(cfg *api.ClusterConfig, np api.NodePool, clusterDNS string) *AL2023 {
-	return &AL2023{
+func newNodeadmBootstrapper(cfg *api.ClusterConfig, np api.NodePool, clusterDNS string) *Nodeadm {
+	return &Nodeadm{
 		cfg:        cfg,
 		nodePool:   np,
 		clusterDNS: clusterDNS,
@@ -48,7 +47,7 @@ func newAL2023Bootstrapper(cfg *api.ClusterConfig, np api.NodePool, clusterDNS s
 	}
 }
 
-func (m *AL2023) UserData() (string, error) {
+func (m *Nodeadm) UserData() (string, error) {
 	ng := m.nodePool.BaseNodeGroup()
 
 	minimalNodeConfig, err := m.createMinimalNodeConfig()
@@ -97,7 +96,7 @@ func (m *AL2023) UserData() (string, error) {
 	return base64.StdEncoding.EncodeToString(buf.Bytes()), nil
 }
 
-func (m *AL2023) createMinimalNodeConfig() (*nodeadm.NodeConfig, error) {
+func (m *Nodeadm) createMinimalNodeConfig() (*nodeadm.NodeConfig, error) {
 	kubeletConfig := api.InlineDocument{}
 	switch nodeGroup := m.nodePool.(type) {
 	case *api.ManagedNodeGroup:

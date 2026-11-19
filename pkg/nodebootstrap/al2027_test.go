@@ -12,7 +12,7 @@ import (
 )
 
 var _ = Describe("Unmanaged AL2027", func() {
-	It("uses the AL2023 nodeadm user data", func() {
+	It("uses the same nodeadm user data as AL2023", func() {
 		cfg, _ := makeDefaultClusterSettings()
 		ng := api.NewNodeGroup()
 		makeDefaultNPSettings(ng)
@@ -20,11 +20,11 @@ var _ = Describe("Unmanaged AL2027", func() {
 
 		bootstrapper, err := nodebootstrap.NewBootstrapper(cfg, ng)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(bootstrapper).To(BeAssignableToTypeOf(&nodebootstrap.AL2023{}))
+		Expect(bootstrapper).To(BeAssignableToTypeOf(&nodebootstrap.Nodeadm{}))
 
-		al2023BS := bootstrapper.(*nodebootstrap.AL2023)
-		al2023BS.UserDataMimeBoundary = "//"
-		userData, err := al2023BS.UserData()
+		nodeadmBS := bootstrapper.(*nodebootstrap.Nodeadm)
+		nodeadmBS.UserDataMimeBoundary = "//"
+		userData, err := nodeadmBS.UserData()
 		Expect(err).NotTo(HaveOccurred())
 		decoded, err := base64.StdEncoding.DecodeString(userData)
 		Expect(err).NotTo(HaveOccurred())
@@ -34,7 +34,7 @@ var _ = Describe("Unmanaged AL2027", func() {
 })
 
 var _ = Describe("Managed AL2027", func() {
-	It("uses the AL2023 nodeadm user data with a custom AMI", func() {
+	It("uses the same nodeadm user data as AL2023 with a custom AMI", func() {
 		cfg, _ := makeDefaultClusterSettings()
 		mng := api.NewManagedNodeGroup()
 		makeDefaultNPSettings(mng)
@@ -48,11 +48,11 @@ var _ = Describe("Managed AL2027", func() {
 
 		bootstrapper, err := nodebootstrap.NewManagedBootstrapper(cfg, mng)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(bootstrapper).To(BeAssignableToTypeOf(&nodebootstrap.AL2023{}))
+		Expect(bootstrapper).To(BeAssignableToTypeOf(&nodebootstrap.Nodeadm{}))
 
-		al2023BS := bootstrapper.(*nodebootstrap.AL2023)
-		al2023BS.UserDataMimeBoundary = "//"
-		userData, err := al2023BS.UserData()
+		nodeadmBS := bootstrapper.(*nodebootstrap.Nodeadm)
+		nodeadmBS.UserDataMimeBoundary = "//"
+		userData, err := nodeadmBS.UserData()
 		Expect(err).NotTo(HaveOccurred())
 		decoded, err := base64.StdEncoding.DecodeString(userData)
 		Expect(err).NotTo(HaveOccurred())
