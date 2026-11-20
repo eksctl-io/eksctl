@@ -14,15 +14,19 @@ import (
 )
 
 const (
-	iamPolicyAmazonEKSComputePolicy       = "AmazonEKSComputePolicy"
-	iamPolicyAmazonEKSBlockStoragePolicy  = "AmazonEKSBlockStoragePolicy"
-	iamPolicyAmazonEKSLoadBalancingPolicy = "AmazonEKSLoadBalancingPolicy"
-	iamPolicyAmazonEKSNetworkingPolicy    = "AmazonEKSNetworkingPolicy"
+	iamPolicyAmazonEKSComputePolicy        = "AmazonEKSComputePolicy"
+	iamPolicyAmazonEKSBlockStoragePolicy   = "AmazonEKSBlockStoragePolicy"
+	iamPolicyAmazonEKSBlockStoragePolicyV2 = "AmazonEKSBlockStoragePolicyV2"
+	iamPolicyAmazonEKSLoadBalancingPolicy  = "AmazonEKSLoadBalancingPolicy"
+	iamPolicyAmazonEKSNetworkingPolicy     = "AmazonEKSNetworkingPolicy"
 )
 
 // AutoModeIAMPolicies is a list of policies required by EKS Auto Mode.
-var AutoModeIAMPolicies = []string{iamPolicyAmazonEKSComputePolicy, iamPolicyAmazonEKSBlockStoragePolicy,
+var AutoModeIAMPolicies = []string{iamPolicyAmazonEKSComputePolicy, iamPolicyAmazonEKSBlockStoragePolicyV2,
 	iamPolicyAmazonEKSLoadBalancingPolicy, iamPolicyAmazonEKSNetworkingPolicy}
+
+// LegacyAutoModeIAMPolicies are Auto Mode policies that older eksctl versions attached.
+var LegacyAutoModeIAMPolicies = []string{iamPolicyAmazonEKSBlockStoragePolicy}
 
 //go:embed roles/auto-mode-node-role.yaml
 var autoModeNodeRoleTemplate []byte
