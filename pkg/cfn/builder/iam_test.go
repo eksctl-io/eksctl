@@ -335,6 +335,7 @@ var _ = Describe("template builder for IAM", func() {
             ]`))
 			Expect(t).To(HaveOutputWithValue(outputs.IAMServiceAccountRoleName, `{ "Fn::GetAtt": "Role1.Arn" }`))
 			Expect(t).To(HaveResourceWithPropertyValue("PolicyAWSLoadBalancerController", "PolicyDocument", expectedAWSLoadBalancerControllerPolicyDocument))
+			Expect(t).To(HaveResourceWithPropertyValue("PolicyEFSCSIController", "PolicyDocument", expectedEFSCSIControllerPolicyDocument))
 		})
 
 		It("can parse an iamserviceaccount addon template", func() {
@@ -832,6 +833,63 @@ const expectedAWSLoadBalancerControllerPolicyDocument = `{
         "elasticloadbalancing:ModifyRule",
         "elasticloadbalancing:SetRulePriorities"
       ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ],
+  "Version": "2012-10-17"
+}`
+
+const expectedEFSCSIControllerPolicyDocument = `{
+  "Statement": [
+    {
+      "Action": [
+        "elasticfilesystem:DescribeAccessPoints",
+        "elasticfilesystem:DescribeFileSystems",
+        "elasticfilesystem:DescribeMountTargets",
+        "ec2:DescribeAvailabilityZones",
+        "s3files:ListAccessPoints",
+        "s3files:ListFileSystems"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    },
+    {
+      "Action": [
+        "elasticfilesystem:CreateAccessPoint",
+        "s3files:CreateAccessPoint"
+      ],
+      "Condition": {
+        "StringLike": {
+          "aws:RequestTag/efs.csi.aws.com/cluster": "true"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": "*"
+    },
+    {
+      "Action": [
+        "elasticfilesystem:TagResource",
+        "s3files:TagResource"
+      ],
+      "Condition": {
+        "StringLike": {
+          "aws:RequestTag/efs.csi.aws.com/cluster": "true"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": "*"
+    },
+    {
+      "Action": [
+        "elasticfilesystem:DeleteAccessPoint",
+        "s3files:DeleteAccessPoint"
+      ],
+      "Condition": {
+        "StringLike": {
+          "aws:ResourceTag/efs.csi.aws.com/cluster": "true"
+        }
+      },
       "Effect": "Allow",
       "Resource": "*"
     }
