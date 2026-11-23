@@ -116,8 +116,8 @@ To name nodes by private DNS name instead, turn off the nodeadm `InstanceIdNodeN
 `eksctl` reads this setting and uses `EC2_LINUX` and `system:node:{{EC2PrivateDNSName}}` instead.
 It also works the other way: `AmazonLinux2023` nodegroups that turn the feature gate on get `EC2` and `system:node:{{SessionName}}`.
 
-For managed nodegroups, EKS creates the node access entry as `EC2_LINUX`, so `eksctl` rejects `AmazonLinux2027` managed nodegroups
-that would use instance ID node names. Turn the feature gate off, as in the `managedNodeGroups` example below.
+For managed nodegroups, EKS creates the node access entry as `EC2_LINUX`, so nodes named by instance ID can't join until EKS creates
+an `EC2` access entry for them. Turn the feature gate off, as in the `managedNodeGroups` example below.
 
 ```yaml
 nodeGroups:

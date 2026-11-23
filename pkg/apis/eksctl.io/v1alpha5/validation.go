@@ -1461,12 +1461,6 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 	normalizeAMIFamily(ng.BaseNodeGroup())
 	path := fmt.Sprintf("managedNodeGroups[%d]", index)
 
-	// EKS creates managed node access entries as EC2_LINUX, which only matches private DNS node names.
-	if ng.AMIFamily == NodeImageFamilyAmazonLinux2027 && ng.LaunchTemplate == nil && UsesInstanceIDNodeName(ng.NodeGroupBase) {
-		return fmt.Errorf("%[1]s: managed %[2]s nodes named by EC2 instance ID can't join yet, as EKS creates their access entry as EC2_LINUX; "+
-			"use a self-managed nodegroup (nodeGroups), or turn off the nodeadm InstanceIdNodeName feature gate in %[1]s.overrideBootstrapCommand", path, NodeImageFamilyAmazonLinux2027)
-	}
-
 	if err := validateNodeGroupBase(ng, path, false); err != nil {
 		return err
 	}

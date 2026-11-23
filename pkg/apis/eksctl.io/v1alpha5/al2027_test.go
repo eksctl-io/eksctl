@@ -95,29 +95,12 @@ var _ = Describe("AmazonLinux2027", func() {
 		})
 	})
 
-	DescribeTable("managed nodegroups", func(updateMNG func(*api.ManagedNodeGroup), expectedErr string) {
+	It("accepts a managed nodegroup with an AMI ID without overrideBootstrapCommand", func() {
 		mng := api.NewManagedNodeGroup()
 		mng.AMIFamily = api.NodeImageFamilyAmazonLinux2027
 		mng.AMI = "ami-0123456789abcdef0"
-		updateMNG(mng)
-		err := api.ValidateManagedNodeGroup(0, mng)
-		if expectedErr == "" {
-			Expect(err).NotTo(HaveOccurred())
-		} else {
-			Expect(err).To(MatchError(ContainSubstring(expectedErr)))
-		}
-	},
-		Entry("rejects instance ID node names by default", func(*api.ManagedNodeGroup) {}, "nodes named by EC2 instance ID can't join yet"),
-		Entry("rejects a lowercase AMI family", func(mng *api.ManagedNodeGroup) {
-			mng.AMIFamily = "amazonlinux2027"
-		}, "nodes named by EC2 instance ID can't join yet"),
-		Entry("rejects InstanceIdNodeName turned on", func(mng *api.ManagedNodeGroup) {
-			mng.OverrideBootstrapCommand = instanceIDNodeNameConfig(true)
-		}, "nodes named by EC2 instance ID can't join yet"),
-		Entry("accepts InstanceIdNodeName turned off", func(mng *api.ManagedNodeGroup) {
-			mng.OverrideBootstrapCommand = instanceIDNodeNameConfig(false)
-		}, ""),
-	)
+		Expect(api.ValidateManagedNodeGroup(0, mng)).To(Succeed())
+	})
 
 	It("allows an AmazonLinux2027 managed nodegroup with a launch template, which sets its own node config", func() {
 		mng := api.NewManagedNodeGroup()
