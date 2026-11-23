@@ -96,40 +96,17 @@ The `--node-ami-family` flag can also be used with `eksctl create nodegroup`. `e
 
 ## AmazonLinux2027 custom AMI support
 
-`AmazonLinux2027` nodes are bootstrapped by nodeadm, so `overrideBootstrapCommand` is not required.
-If `ami` isn't set, `eksctl` looks up the `AmazonLinux2027` AMI from the public SSM parameters, as it does for `AmazonLinux2023`.
-`ami: auto`, GPU and Neuron instances, and Outposts aren't supported for `AmazonLinux2027` yet.
+`AmazonLinux2027` nodes are bootstrapped by nodeadm, like `AmazonLinux2023`, so `overrideBootstrapCommand` isn't required with a custom AMI. If `ami` isn't set, `eksctl` looks up the AMI from the public SSM parameters. `ami: auto`, GPU and Neuron instances, and Outposts aren't supported yet.
 
-By default, `AmazonLinux2027` nodes are named by EC2 instance ID (e.g. `i-0abc123def4567890`), so `eksctl` maps the instance role
-to `system:node:{{SessionName}}`, using an `EC2` access entry (instead of `EC2_LINUX`) or an `aws-auth` mapping.
-Use a dedicated instance role: if `iam.instanceRoleARN` already has an `EC2_LINUX` access entry, `eksctl` keeps it and the nodes can't join.
+By default, nodeadm names `AmazonLinux2027` nodes by EC2 instance ID, so `eksctl` creates an `EC2` access entry (or a `system:node:{{SessionName}}` `aws-auth` mapping) instead of `EC2_LINUX`. Use a dedicated instance role: a role has only one node identity, so `eksctl` returns an error if the role is already used by a nodegroup with the other node name type.
+
+To use private DNS node names instead, turn off the `InstanceIdNodeName` feature gate in `overrideBootstrapCommand`. Managed nodegroups need this for now, because EKS creates their access entry as `EC2_LINUX`.
 
 ```yaml
 nodeGroups:
   - name: al2027
-    instanceType: m6i.large
     amiFamily: AmazonLinux2027
     ami: ami-0123456789abcdef0
-```
-
-To name nodes by private DNS name instead, turn off the nodeadm `InstanceIdNodeName` feature gate in `overrideBootstrapCommand`.
-`eksctl` reads this setting and uses `EC2_LINUX` and `system:node:{{EC2PrivateDNSName}}` instead.
-It also works the other way: `AmazonLinux2023` nodegroups that turn the feature gate on get `EC2` and `system:node:{{SessionName}}`.
-
-For managed nodegroups, EKS creates the node access entry as `EC2_LINUX`, so nodes named by instance ID can't join until EKS creates
-an `EC2` access entry for them. Turn the feature gate off, as in the `managedNodeGroups` example below.
-
-```yaml
-nodeGroups:
-  - name: al2027-dns-names
-    amiFamily: AmazonLinux2027
-    ami: ami-0123456789abcdef0
-    overrideBootstrapCommand: |
-      apiVersion: node.eks.aws/v1alpha1
-      kind: NodeConfig
-      spec:
-        featureGates:
-          InstanceIdNodeName: false
 managedNodeGroups:
   - name: al2027-managed
     amiFamily: AmazonLinux2027

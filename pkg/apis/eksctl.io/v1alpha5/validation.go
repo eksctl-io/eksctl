@@ -1242,10 +1242,11 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 		return err
 	}
 
+	if ng.ContainerRuntime != nil && IsNodeadmImage(ng.AMIFamily) && *ng.ContainerRuntime != ContainerRuntimeContainerD {
+		return fmt.Errorf("only %s is supported for container runtime on %s nodes", ContainerRuntimeContainerD, ng.AMIFamily)
+	}
+
 	if ng.ContainerRuntime != nil {
-		if IsNodeadmImage(ng.AMIFamily) && *ng.ContainerRuntime != ContainerRuntimeContainerD {
-			return fmt.Errorf("only %s is supported for container runtime on %s nodes", ContainerRuntimeContainerD, ng.AMIFamily)
-		}
 		if *ng.ContainerRuntime != ContainerRuntimeDockerD && *ng.ContainerRuntime != ContainerRuntimeContainerD && *ng.ContainerRuntime != ContainerRuntimeDockerForWindows {
 			return fmt.Errorf("only %s, %s and %s are supported for container runtime", ContainerRuntimeContainerD, ContainerRuntimeDockerD, ContainerRuntimeDockerForWindows)
 		}

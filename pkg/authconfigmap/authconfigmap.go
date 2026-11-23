@@ -316,6 +316,20 @@ func AddNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
 		return err
 	}
 
+	// aws-iam-authenticator only uses the last mapping for a role, so mapping a shared role to a different
+	// node username would stop nodes of the nodegroups already using it from joining.
+	existing, err := acm.GetIdentities()
+	if err != nil {
+		return err
+	}
+	for _, e := range existing {
+		if e.ARN() == identity.ARN() && e.Username() != identity.Username() &&
+			(e.Username() == RoleNodeGroupUsername || e.Username() == RoleNodeGroupUsernameInstanceID) {
+			return fmt.Errorf("role %q is already mapped to %q in the auth ConfigMap, but nodegroup %q needs %q; use a separate instance role for this nodegroup",
+				identity.ARN(), e.Username(), ng.Name, identity.Username())
+		}
+	}
+
 	if err := acm.AddIdentity(identity); err != nil {
 		return fmt.Errorf("adding nodegroup to auth ConfigMap: %w", err)
 	}

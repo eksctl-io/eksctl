@@ -63,6 +63,15 @@ var _ = Describe("Unmanaged Nodegroup Task", func() {
 		}
 	}
 
+	mockDescribeAccessEntry := func(provider *mockprovider.MockProvider, roleName, accessEntryType string) {
+		provider.MockEKS().On("DescribeAccessEntry", mock.Anything, &eks.DescribeAccessEntryInput{
+			ClusterName:  aws.String(clusterName),
+			PrincipalArn: aws.String(roleName),
+		}).Return(&eks.DescribeAccessEntryOutput{
+			AccessEntry: &ekstypes.AccessEntry{Type: aws.String(accessEntryType)},
+		}, nil)
+	}
+
 	DescribeTable("Create", func(e ngEntry) {
 		clusterConfig := api.NewClusterConfig()
 		clusterConfig.Metadata.Name = clusterName
@@ -181,6 +190,7 @@ var _ = Describe("Unmanaged Nodegroup Task", func() {
 				provider.MockEKS().On("CreateAccessEntry", mock.Anything, makeAccessEntryInput("role-3")).Return(nil, &ekstypes.ResourceInUseException{
 					ClusterName: aws.String(clusterName),
 				}).Once()
+				mockDescribeAccessEntry(provider, "role-3", "EC2_LINUX")
 
 			},
 			expectedResourceSetOptions: []resourceSetOptions{
@@ -201,6 +211,7 @@ var _ = Describe("Unmanaged Nodegroup Task", func() {
 				provider.MockEKS().On("CreateAccessEntry", mock.Anything, makeAccessEntryInput("role-3")).Return(&eks.CreateAccessEntryOutput{}, &ekstypes.ResourceInUseException{
 					ClusterName: aws.String(clusterName),
 				}).Once()
+				mockDescribeAccessEntry(provider, "role-3", "EC2_LINUX")
 
 			},
 			expectedResourceSetOptions: []resourceSetOptions{
@@ -209,6 +220,23 @@ var _ = Describe("Unmanaged Nodegroup Task", func() {
 					disableAccessEntryResource: true,
 				},
 			},
+		}),
+
+		Entry("AmazonLinux2027 nodegroup reusing a role with an EC2_LINUX access entry", ngEntry{
+			nodeGroups: func() []*api.NodeGroup {
+				nodeGroups := newNodeGroups("role-4")
+				nodeGroups[0].AMIFamily = api.NodeImageFamilyAmazonLinux2027
+				return nodeGroups
+			}(),
+			mockCalls: func(provider *mockprovider.MockProvider, stackManager *mocks.NodeGroupStackManager) {
+				input := makeAccessEntryInput("role-4")
+				input.Type = aws.String("EC2")
+				provider.MockEKS().On("CreateAccessEntry", mock.Anything, input).Return(nil, &ekstypes.ResourceInUseException{
+					ClusterName: aws.String(clusterName),
+				}).Once()
+				mockDescribeAccessEntry(provider, "role-4", "EC2_LINUX")
+			},
+			expectedErr: `access entry for role "role-4" is EC2_LINUX, but nodegroup ng-1 needs EC2; use a separate instance role for this nodegroup`,
 		}),
 	)
 
