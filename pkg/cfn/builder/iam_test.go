@@ -591,6 +591,7 @@ const expectedAWSLoadBalancerControllerPolicyDocument = `{
         "ec2:GetCoipPoolUsage",
         "ec2:DescribeCoipPools",
         "ec2:GetSecurityGroupsForVpc",
+        "ec2:ValidateSecurityGroupQuotasForInterface",
         "ec2:DescribeIpamPools",
         "ec2:DescribeRouteTables",
         "elasticloadbalancing:DescribeLoadBalancers",
