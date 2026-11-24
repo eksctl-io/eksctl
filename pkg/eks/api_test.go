@@ -278,6 +278,19 @@ var _ = Describe("eksctl API", func() {
 			testEnsureAMI(Equal("ami-ssm"), "1.14")
 		})
 
+		It("should resolve AmazonLinux2027 AMI using SSM Parameter Store", func() {
+			ng.AMIFamily = api.NodeImageFamilyAmazonLinux2027
+			provider.MockSSM().On("GetParameter", mock.Anything, &ssm.GetParameterInput{
+				Name: aws.String("/aws/service/eks/optimized-ami/1.37/amazon-linux-2027/x86_64/standard/recommended/image_id"),
+			}).Return(&ssm.GetParameterOutput{
+				Parameter: &ssmtypes.Parameter{
+					Value: aws.String("ami-al2027"),
+				},
+			}, nil)
+
+			testEnsureAMI(Equal("ami-al2027"), "1.37")
+		})
+
 		It("should fall back to auto resolution for Ubuntu2004 on 1.14", func() {
 			ng.AMIFamily = api.NodeImageFamilyUbuntu2004
 			mockDescribeImages(provider, "ami-ubuntu", func(input *ec2.DescribeImagesInput) bool {

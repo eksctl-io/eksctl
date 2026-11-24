@@ -43,7 +43,19 @@ const (
 	// RoleNodeGroupUsername is the default username for a nodegroup
 	// role mapping.
 	RoleNodeGroupUsername = "system:node:{{EC2PrivateDNSName}}"
+
+	// RoleNodeGroupUsernameInstanceID is the username for nodes named by EC2 instance ID.
+	// {{SessionName}} is the instance ID.
+	RoleNodeGroupUsernameInstanceID = "system:node:{{SessionName}}"
 )
+
+// NodeGroupUsername returns the role mapping username that matches how the nodegroup's nodes are named.
+func NodeGroupUsername(ng *api.NodeGroupBase) string {
+	if api.UsesInstanceIDNodeName(ng) {
+		return RoleNodeGroupUsernameInstanceID
+	}
+	return RoleNodeGroupUsername
+}
 
 // RoleNodeGroupGroups are the groups to allow roles to interact
 // with the cluster, required for the instance role ARNs of nodegroups.
@@ -299,9 +311,23 @@ func AddNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
 		nodeGroupRoles = append([]string{roleNodeGroupWindows}, nodeGroupRoles...)
 	}
 
-	identity, err := iam.NewIdentity(ng.IAM.InstanceRoleARN, RoleNodeGroupUsername, nodeGroupRoles)
+	identity, err := iam.NewIdentity(ng.IAM.InstanceRoleARN, NodeGroupUsername(ng.NodeGroupBase), nodeGroupRoles)
 	if err != nil {
 		return err
+	}
+
+	// aws-iam-authenticator only uses the last mapping for a role, so mapping a shared role to a different
+	// node username would stop nodes of the nodegroups already using it from joining.
+	existing, err := acm.GetIdentities()
+	if err != nil {
+		return err
+	}
+	for _, e := range existing {
+		if e.ARN() == identity.ARN() && e.Username() != identity.Username() &&
+			(e.Username() == RoleNodeGroupUsername || e.Username() == RoleNodeGroupUsernameInstanceID) {
+			return fmt.Errorf("role %q is already mapped to %q in the auth ConfigMap, but nodegroup %q needs %q; use a separate instance role for this nodegroup",
+				identity.ARN(), e.Username(), ng.Name, identity.Username())
+		}
 	}
 
 	if err := acm.AddIdentity(identity); err != nil {

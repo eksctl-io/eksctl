@@ -208,6 +208,7 @@ const (
 	// DefaultNodeImageFamily (default)
 	DefaultNodeImageFamily          = NodeImageFamilyAmazonLinux2023
 	NodeImageFamilyAmazonLinux2023  = "AmazonLinux2023"
+	NodeImageFamilyAmazonLinux2027  = "AmazonLinux2027"
 	NodeImageFamilyAmazonLinux2     = "AmazonLinux2"
 	NodeImageFamilyUbuntuPro2604    = "UbuntuPro2604"
 	NodeImageFamilyUbuntu2604       = "Ubuntu2604"
@@ -597,6 +598,7 @@ func SupportedNodeVolumeTypes() []string {
 func SupportedAMIFamilies() []string {
 	return []string{
 		NodeImageFamilyAmazonLinux2023,
+		NodeImageFamilyAmazonLinux2027,
 		NodeImageFamilyAmazonLinux2,
 		NodeImageFamilyUbuntuPro2604,
 		NodeImageFamilyUbuntu2604,

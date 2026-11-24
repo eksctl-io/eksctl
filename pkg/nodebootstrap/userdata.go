@@ -50,8 +50,8 @@ func NewBootstrapper(clusterConfig *api.ClusterConfig, ng *api.NodeGroup) (Boots
 		return NewUbuntuBootstrapper(clusterConfig, ng, clusterDNS), nil
 	case api.NodeImageFamilyBottlerocket, api.NodeImageFamilyBottlerocketFips:
 		return NewBottlerocketBootstrapper(clusterConfig, ng), nil
-	case api.NodeImageFamilyAmazonLinux2023:
-		return NewAL2023Bootstrapper(clusterConfig, ng, clusterDNS), nil
+	case api.NodeImageFamilyAmazonLinux2023, api.NodeImageFamilyAmazonLinux2027:
+		return NewNodeadmBootstrapper(clusterConfig, ng, clusterDNS), nil
 	case api.NodeImageFamilyAmazonLinux2:
 		return NewAL2Bootstrapper(clusterConfig, ng, clusterDNS), nil
 	default:
@@ -72,8 +72,8 @@ func NewManagedBootstrapper(clusterConfig *api.ClusterConfig, ng *api.ManagedNod
 		}, nil
 	}
 	switch ng.AMIFamily {
-	case api.NodeImageFamilyAmazonLinux2023:
-		return NewManagedAL2023Bootstrapper(clusterConfig, ng, clusterDNS), nil
+	case api.NodeImageFamilyAmazonLinux2023, api.NodeImageFamilyAmazonLinux2027:
+		return NewManagedNodeadmBootstrapper(clusterConfig, ng, clusterDNS), nil
 	case api.NodeImageFamilyAmazonLinux2:
 		return NewManagedAL2Bootstrapper(ng), nil
 	case api.NodeImageFamilyBottlerocket, api.NodeImageFamilyBottlerocketFips:

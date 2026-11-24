@@ -52,7 +52,7 @@ func MakeSSMParameterName(version, instanceType, imageFamily string) (string, er
 	const fieldName = "image_id"
 
 	switch imageFamily {
-	case api.NodeImageFamilyAmazonLinux2023:
+	case api.NodeImageFamilyAmazonLinux2023, api.NodeImageFamilyAmazonLinux2027:
 		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/%s/%s/recommended/%s",
 			version, utils.ToKebabCase(imageFamily), instanceEC2ArchName(instanceType), imageType(imageFamily, instanceType, version), fieldName), nil
 	case api.NodeImageFamilyAmazonLinux2:
@@ -178,7 +178,7 @@ func ubuntuArchName(instanceType string) string {
 func imageType(imageFamily, instanceType, version string) string {
 	family := utils.ToKebabCase(imageFamily)
 	switch imageFamily {
-	case api.NodeImageFamilyAmazonLinux2023:
+	case api.NodeImageFamilyAmazonLinux2023, api.NodeImageFamilyAmazonLinux2027:
 		if instanceutils.IsNvidiaInstanceType(instanceType) {
 			return "nvidia"
 		}

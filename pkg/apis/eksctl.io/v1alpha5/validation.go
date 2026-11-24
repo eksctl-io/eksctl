@@ -1175,7 +1175,7 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 	}
 
 	if ng.AMI != "" && ng.OverrideBootstrapCommand == nil &&
-		ng.AMIFamily != NodeImageFamilyAmazonLinux2023 &&
+		!IsNodeadmImage(ng.AMIFamily) &&
 		!IsBottlerocketImage(ng.AMIFamily) &&
 		!IsWindowsImage(ng.AMIFamily) {
 		return fmt.Errorf("%[1]s.overrideBootstrapCommand is required when using a custom AMI based on %s (%[1]s.ami)", path, ng.AMIFamily)
@@ -1242,10 +1242,11 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 		return err
 	}
 
+	if ng.ContainerRuntime != nil && IsNodeadmImage(ng.AMIFamily) && *ng.ContainerRuntime != ContainerRuntimeContainerD {
+		return fmt.Errorf("only %s is supported for container runtime on %s nodes", ContainerRuntimeContainerD, ng.AMIFamily)
+	}
+
 	if ng.ContainerRuntime != nil {
-		if ng.AMIFamily == NodeImageFamilyAmazonLinux2023 && *ng.ContainerRuntime != ContainerRuntimeContainerD {
-			return fmt.Errorf("only %s is supported for container runtime on %s nodes", ContainerRuntimeContainerD, NodeImageFamilyAmazonLinux2023)
-		}
 		if *ng.ContainerRuntime != ContainerRuntimeDockerD && *ng.ContainerRuntime != ContainerRuntimeContainerD && *ng.ContainerRuntime != ContainerRuntimeDockerForWindows {
 			return fmt.Errorf("only %s, %s and %s are supported for container runtime", ContainerRuntimeContainerD, ContainerRuntimeDockerD, ContainerRuntimeDockerForWindows)
 		}
@@ -1622,7 +1623,7 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 			return fmt.Errorf("cannot set amiFamily to %s when using a custom AMI for managed nodes, only %s are supported", ng.AMIFamily,
 				strings.Join(slices.Concat(SupportedAmazonLinuxImages, SupportedBottlerocketImages, SupportedUbuntuImages), ", "))
 		}
-		if ng.OverrideBootstrapCommand == nil && ng.AMIFamily != NodeImageFamilyAmazonLinux2023 && !IsBottlerocketImage(ng.AMIFamily) {
+		if ng.OverrideBootstrapCommand == nil && !IsNodeadmImage(ng.AMIFamily) && !IsBottlerocketImage(ng.AMIFamily) {
 			return fmt.Errorf("%[1]s.overrideBootstrapCommand is required when using a custom AMI based on %s (%[1]s.ami)", path, ng.AMIFamily)
 		}
 		notSupportedWithCustomAMIErr := func(field string) error {
@@ -1638,7 +1639,7 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 			return notSupportedWithCustomAMIErr("releaseVersion")
 		}
 
-	case ng.OverrideBootstrapCommand != nil && ng.AMIFamily != NodeImageFamilyAmazonLinux2023:
+	case ng.OverrideBootstrapCommand != nil && !IsNodeadmImage(ng.AMIFamily):
 		return fmt.Errorf("%s.overrideBootstrapCommand can only be set when a custom AMI (%s.ami) is specified", path, path)
 	}
 
@@ -1837,7 +1838,20 @@ func supportedAMIFamiliesForOS(isOSImage func(string) bool) []string {
 func IsAmazonLinuxImage(imageFamily string) bool {
 	switch imageFamily {
 	case NodeImageFamilyAmazonLinux2023,
+		NodeImageFamilyAmazonLinux2027,
 		NodeImageFamilyAmazonLinux2:
+		return true
+
+	default:
+		return false
+	}
+}
+
+// IsNodeadmImage reports whether nodes of the specified AMI family are bootstrapped by nodeadm.
+func IsNodeadmImage(imageFamily string) bool {
+	switch imageFamily {
+	case NodeImageFamilyAmazonLinux2023,
+		NodeImageFamilyAmazonLinux2027:
 		return true
 
 	default:

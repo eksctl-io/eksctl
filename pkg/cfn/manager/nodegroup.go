@@ -163,11 +163,37 @@ func (t *UnmanagedNodeGroupTask) maybeCreateAccessEntry(ctx context.Context, ng 
 		var resourceInUse *ekstypes.ResourceInUseException
 		if errors.As(err, &resourceInUse) {
 			logger.Info("nodegroup %s: access entry for principal ARN %q already exists", ng.Name, roleARN)
-			return nil
+			return t.checkExistingAccessEntryType(ctx, ng)
 		}
 		return fmt.Errorf("creating access entry for nodegroup %s: %w", ng.Name, err)
 	}
 	logger.Info("nodegroup %s: created access entry for principal ARN %q", ng.Name, roleARN)
+	return nil
+}
+
+// checkExistingAccessEntryType returns an error if a role reused by the nodegroup already has an access entry for
+// the other node name type (EC2 vs EC2_LINUX), as a role can only have one access entry and its nodes wouldn't join.
+func (t *UnmanagedNodeGroupTask) checkExistingAccessEntryType(ctx context.Context, ng *api.NodeGroup) error {
+	output, err := t.EKSAPI.DescribeAccessEntry(ctx, &eks.DescribeAccessEntryInput{
+		ClusterName:  aws.String(t.ClusterConfig.Metadata.Name),
+		PrincipalArn: aws.String(ng.IAM.InstanceRoleARN),
+	})
+	if err != nil {
+		logger.Warning("nodegroup %s: unable to check the type of the existing access entry: %v", ng.Name, err)
+		return nil
+	}
+	if output.AccessEntry == nil {
+		return nil
+	}
+	existingType := api.AccessEntryType(aws.ToString(output.AccessEntry.Type))
+	neededType := api.GetAccessEntryType(ng)
+	isNodeNameType := func(t api.AccessEntryType) bool {
+		return t == api.AccessEntryTypeEC2 || t == api.AccessEntryTypeLinux
+	}
+	if existingType != neededType && isNodeNameType(existingType) && isNodeNameType(neededType) {
+		return fmt.Errorf("access entry for role %q is %s, but nodegroup %s needs %s; use a separate instance role for this nodegroup",
+			ng.IAM.InstanceRoleARN, existingType, ng.Name, neededType)
+	}
 	return nil
 }
 
