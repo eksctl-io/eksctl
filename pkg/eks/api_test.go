@@ -215,19 +215,44 @@ var _ = Describe("eksctl API", func() {
 		It("should reject unknown field in a YAML config", func() {
 			_, err := eks.LoadConfigFromFile("testdata/bad-field-1.yaml")
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(HavePrefix(`loading config file "testdata/bad-field-1.yaml": error unmarshaling JSON: while decoding JSON: json: unknown field "zone"`))
+			Expect(err.Error()).To(HavePrefix(`loading config file "testdata/bad-field-1.yaml": strict decoding error: unknown field "metadata.zone"`))
 		})
 
 		It("should reject unknown field in a YAML config", func() {
 			_, err := eks.LoadConfigFromFile("testdata/bad-field-2.yaml")
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(HavePrefix(`loading config file "testdata/bad-field-2.yaml": error unmarshaling JSON: while decoding JSON: json: unknown field "bar"`))
+			Expect(err.Error()).To(HavePrefix(`loading config file "testdata/bad-field-2.yaml": strict decoding error: unknown field "nodeGroups[0].iam.withAddonPolicies.bar"`))
 		})
 
 		It("should reject unknown field in a JSON config", func() {
 			_, err := eks.LoadConfigFromFile("testdata/bad-field-1.json")
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(HavePrefix(`loading config file "testdata/bad-field-1.json": error unmarshaling JSON: while decoding JSON: json: unknown field "nodes"`))
+			Expect(err.Error()).To(HavePrefix(`loading config file "testdata/bad-field-1.json": strict decoding error: unknown field "nodeGroups[0].nodes"`))
+		})
+
+		It("should reject a duplicate key in a YAML config", func() {
+			_, err := eks.LoadConfigFromFile("testdata/duplicate-key-1.yaml")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(HavePrefix(`loading config file "testdata/duplicate-key-1.yaml": strict decoding error: yaml: unmarshal errors:`))
+			Expect(err.Error()).To(ContainSubstring(`key "name" already set in map`))
+		})
+
+		It("should report a type error before unknown fields", func() {
+			_, err := eks.LoadConfigFromFile("testdata/bad-type-2.yaml")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(HavePrefix(`loading config file "testdata/bad-type-2.yaml": json: cannot unmarshal bool into Go struct field`))
+		})
+
+		It("should reject a top-level field with the wrong case", func() {
+			_, err := eks.LoadConfigFromFile("testdata/bad-field-case-1.yaml")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(HavePrefix(`loading config file "testdata/bad-field-case-1.yaml": strict decoding error: unknown field "NodeGroups"`))
+		})
+
+		It("should reject a nested field with the wrong case", func() {
+			_, err := eks.LoadConfigFromFile("testdata/bad-field-case-2.yaml")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(HavePrefix(`loading config file "testdata/bad-field-case-2.yaml": strict decoding error: unknown field "managedNodeGroups[0].capacityReservation.capacityReservationTarget.capacityReservationId"`))
 		})
 
 		It("should reject old API version", func() {
