@@ -18,7 +18,7 @@ type IAMIdentityMapping struct {
 }
 
 func (im *IAMIdentityMapping) hasARNOptions() bool {
-	return im.hasARN() && im.hasUsername() && im.hasGroups()
+	return im.hasARN() || im.hasUsername() || im.hasGroups()
 }
 
 func (im *IAMIdentityMapping) hasARN() bool {
