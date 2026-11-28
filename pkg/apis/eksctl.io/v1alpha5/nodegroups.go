@@ -39,7 +39,7 @@ func ClusterHasInstanceType(cfg *ClusterConfig, hasType func(string) bool) bool 
 	}
 
 	for _, mng := range cfg.ManagedNodeGroups {
-		if hasType(mng.InstanceType) {
+		if HasInstanceTypeManaged(mng, hasType) {
 			return true
 		}
 	}
