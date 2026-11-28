@@ -26,25 +26,28 @@ var _ = Describe("IAMIdentityMapping", func() {
 	It("errors when ARN is configured with serviceName", func() {
 		m := v1alpha5.IAMIdentityMapping{
 			ServiceName: "emr-containers",
+			Namespace:   "emr",
 			ARN:         "a:fake:arn:hasbeenconfigured",
 		}
 		err := m.Validate()
-		Expect(err).To(HaveOccurred())
+		Expect(err).To(MatchError("cannot use arn, username, and groups with serviceName"))
 	})
 	It("errors when Groups is configured with serviceName", func() {
 		m := v1alpha5.IAMIdentityMapping{
 			ServiceName: "emr-containers",
+			Namespace:   "emr",
 			Groups:      []string{"group1"},
 		}
 		err := m.Validate()
-		Expect(err).To(HaveOccurred())
+		Expect(err).To(MatchError("cannot use arn, username, and groups with serviceName"))
 	})
 	It("errors when Username is configured with serviceName", func() {
 		m := v1alpha5.IAMIdentityMapping{
 			ServiceName: "emr-containers",
+			Namespace:   "emr",
 			Username:    "admin",
 		}
 		err := m.Validate()
-		Expect(err).To(HaveOccurred())
+		Expect(err).To(MatchError("cannot use arn, username, and groups with serviceName"))
 	})
 })
